@@ -91,6 +91,7 @@ export const STATUS_COLORS = {
   'Ordered':         '#f19a4e',
   'Received':        '#6bcb77',
   'Denied':          '#f16a4e',
+  'Cancelled':       '#f59e0b',
   'Void':            '#8a8a8a',
 };
 

@@ -16,11 +16,12 @@
 
   const statusOptions = [
     { label: 'All Statuses', value: '' },
-    { label: 'Submitted, in review', value: 'Submitted, in review' },
+    { label: 'Pending Review', value: 'Pending Review' },
+    { label: 'Approved', value: 'Approved' },
     { label: 'Ordered', value: 'Ordered' },
     { label: 'Received', value: 'Received' },
-    { label: 'Approved', value: 'Approved' },
     { label: 'Denied', value: 'Denied' },
+    { label: 'Cancelled', value: 'Cancelled' },
     { label: 'Void', value: 'Void' }
   ];
 

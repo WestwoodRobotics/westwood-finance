@@ -128,10 +128,11 @@ class DataStore {
         const low = s.toLowerCase();
         if (low === "submitted, in review" || low === "submitted" || low === "pending review") return "Pending Review";
         if (low === "ordered") return "Ordered";
-        if (low === "received") return "Received";
+        if (low === "received" || low === "recieved") return "Received";
         if (low === "approved") return "Approved";
         if (low === "denied") return "Denied";
-        if (low === "void" || low === "cancelled") return "Void";
+        if (low === "cancelled") return "Cancelled";
+        if (low === "void") return "Void";
         return s; // Fallback
       })(),
       tracking: o.Tracking ?? o.tracking ?? "",

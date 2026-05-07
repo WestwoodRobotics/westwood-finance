@@ -38,17 +38,46 @@
     ordered: 2,
     received: 3,
     denied: 4,
-    void: 5,
+    cancelled: 5,
+    void: 6,
   };
+
+  let adminSortCol = $state("status");
+  let adminSortDir = $state("asc");
+
+  function toggleAdminSort(/** @type {string} */ col) {
+    if (adminSortCol === col) {
+      adminSortDir = adminSortDir === "asc" ? "desc" : "asc";
+    } else {
+      adminSortCol = col;
+      adminSortDir = col === "timestamp" || col === "total" ? "desc" : "asc";
+    }
+  }
 
   let sortedAdminOrders = $derived.by(() => {
     return dataService.orders.slice().sort((a, b) => {
-      let pA = STATUS_PRIORITY[(a.status || "").toLowerCase().trim()] ?? 99;
-      let pB = STATUS_PRIORITY[(b.status || "").toLowerCase().trim()] ?? 99;
-      if (pA !== pB) return pA - pB;
-      let tA = new Date(a.timestamp || 0).getTime();
-      let tB = new Date(b.timestamp || 0).getTime();
-      return tB - tA;
+      if (adminSortCol === "status") {
+        let pA = STATUS_PRIORITY[(a.status || "").toLowerCase().trim()] ?? 99;
+        let pB = STATUS_PRIORITY[(b.status || "").toLowerCase().trim()] ?? 99;
+        const diff = adminSortDir === "asc" ? pA - pB : pB - pA;
+        if (diff !== 0) return diff;
+        let tA = new Date(a.timestamp || 0).getTime();
+        let tB = new Date(b.timestamp || 0).getTime();
+        return tB - tA;
+      }
+      if (adminSortCol === "timestamp") {
+        let tA = new Date(a.timestamp || 0).getTime();
+        let tB = new Date(b.timestamp || 0).getTime();
+        return adminSortDir === "asc" ? tA - tB : tB - tA;
+      }
+      if (adminSortCol === "total") {
+        return adminSortDir === "asc" ? (a.total || 0) - (b.total || 0) : (b.total || 0) - (a.total || 0);
+      }
+      let valA = String((/** @type {any} */ (a))[adminSortCol] || "").toLowerCase();
+      let valB = String((/** @type {any} */ (b))[adminSortCol] || "").toLowerCase();
+      if (valA < valB) return adminSortDir === "asc" ? -1 : 1;
+      if (valA > valB) return adminSortDir === "asc" ? 1 : -1;
+      return 0;
     });
   });
 
@@ -965,12 +994,24 @@
             <table>
               <thead>
                 <tr>
-                  <th style="padding-left: 24px;">Provision/Item</th>
-                  <th>Category</th>
-                  <th>Team</th>
-                  <th>Submission Date</th>
-                  <th class="text-right">Investment</th>
-                  <th>Status</th>
+                  <th class="sortable" style="padding-left: 24px;" onclick={() => toggleAdminSort('item')}>
+                    <div class="th-content">Provision/Item {adminSortCol === 'item' ? (adminSortDir === 'asc' ? '↑' : '↓') : ''}</div>
+                  </th>
+                  <th class="sortable" onclick={() => toggleAdminSort('category')}>
+                    <div class="th-content">Category {adminSortCol === 'category' ? (adminSortDir === 'asc' ? '↑' : '↓') : ''}</div>
+                  </th>
+                  <th class="sortable" onclick={() => toggleAdminSort('team')}>
+                    <div class="th-content">Team {adminSortCol === 'team' ? (adminSortDir === 'asc' ? '↑' : '↓') : ''}</div>
+                  </th>
+                  <th class="sortable" onclick={() => toggleAdminSort('timestamp')}>
+                    <div class="th-content">Date {adminSortCol === 'timestamp' ? (adminSortDir === 'asc' ? '↑' : '↓') : ''}</div>
+                  </th>
+                  <th class="sortable text-right" onclick={() => toggleAdminSort('total')}>
+                    <div class="th-content text-right">Investment {adminSortCol === 'total' ? (adminSortDir === 'asc' ? '↑' : '↓') : ''}</div>
+                  </th>
+                  <th class="sortable" onclick={() => toggleAdminSort('status')}>
+                    <div class="th-content">Status {adminSortCol === 'status' ? (adminSortDir === 'asc' ? '↑' : '↓') : ''}</div>
+                  </th>
                   <th class="text-right" style="padding-right: 24px;"></th>
                 </tr>
               </thead>
