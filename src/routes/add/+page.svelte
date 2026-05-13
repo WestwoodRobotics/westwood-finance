@@ -6,11 +6,14 @@
   import { dataService } from "$lib/dataService.svelte.js";
   import { BASE_URL, SECRET_KEY } from "$lib/config.js";
   import { fade, scale } from "svelte/transition";
+  import { authStore } from "$lib/authStore.svelte.js";
 
-  const teamOptions = TEAMS.filter(t => t !== "Westwood Overall").map((/** @type {string} */ team) => ({
-    label: team,
-    value: team,
-  }));
+  const teamOptions = authStore.isAdmin
+    ? TEAMS.filter(t => t !== "Westwood Overall").map((/** @type {string} */ team) => ({
+        label: team,
+        value: team,
+      }))
+    : [{ label: authStore.userTeam, value: authStore.userTeam }];
 
   let vendorSelect = $state("");
   const presetVendors = [
@@ -32,10 +35,10 @@
     price: "",
     quantity: "1",
     notes: "",
-    team: "",
+    team: authStore.userTeam || "",
     category: "hardware",
     uuid: "",
-    orderedBy: "",
+    orderedBy: authStore.displayName || "",
     isExpense: false, // Tracks if adding as immediate expense
   });
 
@@ -76,6 +79,11 @@
   async function submit() {
     submitError = "";
     submitSuccess = "";
+
+    // For non-admins, always force orderedBy to be their verified name
+    if (!authStore.isAdmin) {
+      form.orderedBy = authStore.displayName;
+    }
 
     const required = {
       "Item name": form.item,
@@ -174,7 +182,7 @@
         team: form.team, // Preserve team for convenience
         category: "hardware",
         uuid: "",
-        orderedBy: form.orderedBy, // Preserve name for convenience
+        orderedBy: authStore.displayName || form.orderedBy, // Always reset to verified name
         isExpense: false,
       };
       vendorSelect = "";
@@ -206,6 +214,14 @@
     <h1>Add <span>Order</span></h1>
     <p class="text-muted">Fill out the form below to request a new purchase</p>
   </div>
+  {#if authStore.isAdmin}
+    <div class="header-right">
+      <button class="btn btn-ghost btn-sm" onclick={toggleExpenseMode}>
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20m-5-17h10a4 4 0 1 1 0 8H7a4 4 0 1 0 0 8h10"/></svg>
+        Add as Expense
+      </button>
+    </div>
+  {/if}
 </div>
 
 <div class="add-layout fade-in">
@@ -268,10 +284,20 @@
 
           <div class="form-group">
             <label for="ae-team">Team *</label>
-            <CustomDropdown
-              options={teamOptions}
-              bind:value={form.team}
-            />
+            {#if authStore.isAdmin}
+              <CustomDropdown
+                options={teamOptions}
+                bind:value={form.team}
+              />
+            {:else}
+              <input
+                id="ae-team"
+                type="text"
+                value={form.team}
+                disabled
+                style="background: rgba(255, 255, 255, 0.03); color: var(--text-muted); cursor: not-allowed; border-color: transparent;"
+              />
+            {/if}
           </div>
 
           <div class="form-group">
@@ -302,13 +328,23 @@
 
           <div class="form-group">
             <label for="ae-orderedby">Ordered By *</label>
-            <input
-              id="ae-orderedby"
-              type="text"
-              bind:value={form.orderedBy}
-              placeholder="Your name"
-              required
-            />
+            {#if authStore.isAdmin}
+              <input
+                id="ae-orderedby"
+                type="text"
+                bind:value={form.orderedBy}
+                placeholder="Enter name"
+                required
+              />
+            {:else}
+              <input
+                id="ae-orderedby"
+                type="text"
+                value={authStore.displayName}
+                disabled
+                class="disabled-input"
+              />
+            {/if}
           </div>
 
           <div class="form-group" style="grid-column: 1 / -1">
@@ -461,6 +497,13 @@
       margin: 0; 
     }
     .summary-section { padding: 16px; margin-bottom: 24px; }
+  }
+
+  .disabled-input {
+    background: rgba(255, 255, 255, 0.03) !important;
+    color: var(--text-muted) !important;
+    cursor: not-allowed !important;
+    border-color: transparent !important;
   }
 
 </style>

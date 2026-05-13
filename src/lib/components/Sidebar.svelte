@@ -1,8 +1,9 @@
 <script>
   import { page } from "$app/stores";
   import { onMount } from "svelte";
+  import { authStore } from "$lib/authStore.svelte.js";
 
-  const navItems = [
+  const allNavItems = [
     { 
       href: "/", 
       label: "Dashboard", 
@@ -30,10 +31,15 @@
     },
     { 
       href: "/admin/", 
-      label: "Admin Portal", 
+      label: "Admin Portal",
+      adminOnly: true,
       icon: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`
     },
   ];
+
+  let navItems = $derived(
+    allNavItems.filter(item => !item.adminOnly || authStore.isAdmin)
+  );
 
   /** @param {string} href */
   function isActive(href) {
@@ -114,6 +120,28 @@
       </a>
     {/each}
   </nav>
+
+  <!-- User Info & Sign Out -->
+  <div class="sidebar-user">
+    {#if authStore.googleUser}
+      <div class="user-row">
+        {#if authStore.googleUser.picture}
+          <img src={authStore.googleUser.picture} alt="" class="user-avatar" referrerpolicy="no-referrer" />
+        {:else}
+          <div class="user-avatar-placeholder">
+            {authStore.displayName.charAt(0)}
+          </div>
+        {/if}
+        <div class="user-info">
+          <div class="user-name">{authStore.displayName}</div>
+          <div class="user-team">{authStore.userTeam}{authStore.isAdmin ? ' · Admin' : ''}</div>
+        </div>
+      </div>
+      <button class="signout-btn" onclick={() => authStore.signOut()} title="Sign out">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    {/if}
+  </div>
 
   <div class="sidebar-footer">
     <div class="footer-team">Westwood Finance</div>
@@ -293,6 +321,89 @@
   .nav-link:hover .nav-icon,
   .nav-link.active .nav-icon {
     opacity: 1;
+  }
+
+  /* ── User Info Section ───────────────────────────────────────── */
+  .sidebar-user {
+    padding: 16px 18px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .user-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    border: 1.5px solid var(--border);
+  }
+
+  .user-avatar-placeholder {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--surface-3);
+    border: 1.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: var(--primary);
+  }
+
+  .user-info {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .user-name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+  }
+
+  .user-team {
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    font-weight: 500;
+  }
+
+  .signout-btn {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    padding: 0;
+    transition: all 0.2s;
+  }
+
+  .signout-btn:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.3);
   }
 
   .sidebar-footer {

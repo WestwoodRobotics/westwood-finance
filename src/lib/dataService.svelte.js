@@ -1,5 +1,6 @@
 import { BASE_URL, SECRET_KEY } from './config.js';
 import { generateShortId } from './utils.js';
+import { authStore } from './authStore.svelte.js';
 
 /**
  * @typedef {Object} Order
@@ -212,6 +213,11 @@ class DataStore {
       this.funds = this.normalizeFunds(data.funds || []); 
       this.budget = data.budget || null;
       this.lastFetched = Date.now();
+
+      // Sync members list with auth store
+      if (data.members && Array.isArray(data.members)) {
+        authStore.updateMembersList(data.members);
+      }
       
       this.persist();
       console.log(`✅ DataStore: Sync complete. Received ${this.orders.length} orders and ${this.funds.length} funding entries.`);

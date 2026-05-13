@@ -14,6 +14,7 @@
   import AdminLock from "$lib/components/AdminLock.svelte";
   import PieChart from "$lib/components/PieChart.svelte";
   import { browser } from "$app/environment";
+  import { authStore } from "$lib/authStore.svelte.js";
 
   const typeOptions = [
     { label: "Fundraiser", value: "Fundraiser" },
@@ -38,7 +39,7 @@
   let sortCol = $state("Date");
   let sortDir = $state("desc");
 
-  let selectedBudgetTeam = $state("FRC");
+  let selectedBudgetTeam = $state(authStore.isAdmin ? "FRC" : authStore.userTeam);
 
   let teamSpecificBudgetOrders = $derived(
     dataService.orders.filter((/** @type {any} */ o) => {
@@ -291,18 +292,25 @@
       <span class="hide-mobile">{dataService.isManualRefreshing ? "Syncing..." : "Refresh"}</span>
     </button>
     <div class="team-selector">
-      <CustomDropdown
-        options={[
-          "FRC",
-          "Slingshot",
-          "Atlatl",
-          "Kunai",
-          "Hunga Munga",
-          "Westwood Overall",
-        ]}
-        bind:value={selectedBudgetTeam}
-        placeholder="Select Team"
-      />
+      {#if authStore.isAdmin}
+        <CustomDropdown
+          options={[
+            "FRC",
+            "Slingshot",
+            "Atlatl",
+            "Kunai",
+            "Hunga Munga",
+            "Westwood Overall",
+          ]}
+          bind:value={selectedBudgetTeam}
+          placeholder="Select Team"
+        />
+      {:else}
+        <div class="team-preview-box">
+          <span>{selectedBudgetTeam}</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.3;"><path d="m6 9 6 6 6-6"/></svg>
+        </div>
+      {/if}
     </div>
   </div>
 </div>
@@ -496,19 +504,15 @@
       </div>
     {/if}
 
-    <!-- Team Dashboard Activity -->
+    <!-- Team Order History -->
     <div class="team-dashboard-content fade-in" style="margin-top: 40px;">
-      <div class="dashboard-stack" style="display: flex; flex-direction: column; gap: 40px;">
-        <div class="activity-section">
-          <div class="section-title" style="margin-bottom: 20px; font-size: 1.1rem; color: var(--text-muted);">
-            {selectedBudgetTeam} Activity
-          </div>
-          <OrderTable
-            orders={teamSpecificBudgetOrders}
-            hideTeamColumn={selectedBudgetTeam !== "Westwood Overall"}
-          />
-        </div>
+      <div class="section-title" style="margin-bottom: 20px; font-size: 1.1rem; color: var(--text-muted);">
+        {selectedBudgetTeam} Orders
       </div>
+      <OrderTable
+        orders={teamSpecificBudgetOrders}
+        hideTeamColumn={true}
+      />
     </div>
   {/if}
 
@@ -827,6 +831,7 @@
     width: 500px;
     max-width: none;
     padding: 28px 32px;
+    height: auto;
   }
   .budget-team-name {
     font-size: 1.1rem;
@@ -883,7 +888,7 @@
     display: flex;
     flex-direction: row;
     justify-content: center;
-    align-items: center;
+    align-items: stretch; /* Prevents vertical shifting by matching heights */
     gap: 40px;
     max-width: 1100px;
     margin: 0 auto;
@@ -977,8 +982,10 @@
   }
 
   .breakdown-card {
-    height: 260px; /* Matching budget card min-height */
-    width: 260px;
+    flex: 1;
+    min-height: 260px;
+    height: auto;
+    width: 320px;
     flex-shrink: 0;
     background: transparent;
     border: none;
@@ -988,5 +995,21 @@
   }
   @media (max-width: 768px) {
     .refresh-btn { aspect-ratio: 1/1; width: 42px; padding: 0 !important; display: inline-flex; align-items: center; justify-content: center; flex: none !important; }
+  }
+
+  .team-preview-box {
+    background: var(--surface-2);
+    color: var(--text-muted);
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    cursor: not-allowed;
+    opacity: 0.6;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 180px;
   }
 </style>

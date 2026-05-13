@@ -14,20 +14,16 @@
     truncate,
   } from "$lib/utils.js";
   import { dataService } from "$lib/dataService.svelte.js";
+  import { authStore } from "$lib/authStore.svelte.js";
 
   /** @typedef {import('$lib/dataService.svelte.js').Order} Order */
 
   let syncing = $state(false);
 
-  const TEAM_OPTIONS = [
-    "FRC",
-    "Slingshot",
-    "Hunga Munga",
-    "Atlatl",
-    "Kunai",
-    "Westwood Overall",
-  ];
-  let selectedTeam = $state("FRC");
+  const TEAM_OPTIONS = authStore.isAdmin
+    ? ["FRC", "Slingshot", "Hunga Munga", "Atlatl", "Kunai", "Westwood Overall"]
+    : [authStore.userTeam];
+  let selectedTeam = $state(authStore.isAdmin ? "FRC" : authStore.userTeam);
 
   async function sync() {
     dataService.isManualRefreshing = true;
@@ -51,10 +47,14 @@
       : dataService.orders.filter((o) => {
           const t = (o.team || "").toLowerCase().trim();
           const s = selectedTeam.toLowerCase().trim();
+          // For non-admins, always enforce their team regardless of selectedTeam
+          const teamToMatch = (!authStore.isAdmin && authStore.userTeam)
+            ? authStore.userTeam.toLowerCase().trim()
+            : s;
           return (
-            t === s ||
-            t.includes(s) ||
-            (s === "frc" && (t.includes("frc") || /^\d+$/.test(t)))
+            t === teamToMatch ||
+            t.includes(teamToMatch) ||
+            (teamToMatch === "frc" && (t.includes("frc") || /^\d+$/.test(t)))
           );
         }),
   );
@@ -207,9 +207,16 @@
         <span class="hide-mobile">{dataService.isManualRefreshing ? "Syncing..." : "Refresh"}</span>
       </button>
 
+      {#if authStore.isAdmin}
       <div class="team-selector" style="width: 180px;">
         <CustomDropdown options={TEAM_OPTIONS} bind:value={selectedTeam} />
       </div>
+      {:else}
+      <div class="team-preview-box">
+        <span>{selectedTeam}</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.3;"><path d="m6 9 6 6 6-6"/></svg>
+      </div>
+      {/if}
     </div>
   </div>
 </div>
@@ -380,5 +387,22 @@
     .btn { height: 42px; line-height: 1; display: inline-flex; align-items: center; }
     .refresh-btn { width: 42px; padding: 0; justify-content: center; flex-shrink: 0; }
     .team-selector { width: 175px; }
+  }
+
+  .team-preview-box {
+    background: var(--surface-2);
+    color: var(--text-muted);
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    cursor: not-allowed;
+    opacity: 0.6;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 180px;
+    width: 180px;
   }
 </style>

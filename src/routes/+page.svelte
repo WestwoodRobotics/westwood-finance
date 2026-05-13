@@ -12,21 +12,17 @@
     capitalize,
   } from "$lib/utils.js";
   import { dataService } from "$lib/dataService.svelte.js";
+  import { authStore } from "$lib/authStore.svelte.js";
   import appInfo from "$lib/app-info.json";
 
   /** @typedef {import('$lib/dataService.svelte.js').Order} Order */
 
   let syncing = $state(false);
 
-  const TEAM_OPTIONS = [
-    "FRC",
-    "Slingshot",
-    "Hunga Munga",
-    "Atlatl",
-    "Kunai",
-    "Westwood Overall",
-  ];
-  let selectedTeam = $state("Westwood Overall");
+  const TEAM_OPTIONS = authStore.isAdmin
+    ? ["FRC", "Slingshot", "Hunga Munga", "Atlatl", "Kunai", "Westwood Overall"]
+    : [authStore.userTeam];
+  let selectedTeam = $state(authStore.isAdmin ? "Westwood Overall" : authStore.userTeam);
 
   // ── Derived View Based on Team ─────────────────────────────────────────────
   let teamOrders = $derived(
@@ -213,9 +209,11 @@
       >
     </button>
 
+    {#if authStore.isAdmin}
     <div class="team-selector">
       <CustomDropdown options={TEAM_OPTIONS} bind:value={selectedTeam} />
     </div>
+    {/if}
   </div>
 </div>
 

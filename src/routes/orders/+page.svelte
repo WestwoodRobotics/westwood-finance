@@ -5,6 +5,7 @@
   import OrderTable from "$lib/components/OrderTable.svelte";
   import LoadingIndicator from "$lib/components/LoadingIndicator.svelte";
   import { dataService } from "$lib/dataService.svelte.js";
+  import { authStore } from "$lib/authStore.svelte.js";
 
   /** @typedef {import('$lib/dataService.svelte.js').Order} Order */
 
@@ -14,7 +15,7 @@
     search: "",
     category: "",
     company: "",
-    team: "",
+    team: authStore.isAdmin ? "" : authStore.userTeam,
     status: "",
     dateFrom: "",
     dateTo: "",
@@ -36,7 +37,8 @@
       if (q.has("search")) filters.search = q.get("search") || "";
       if (q.has("category")) filters.category = q.get("category") || "";
       if (q.has("company")) filters.company = q.get("company") || "";
-      if (q.has("team")) filters.team = q.get("team") || "";
+      // Only allow team filter override for admins
+      if (q.has("team") && authStore.isAdmin) filters.team = q.get("team") || "";
       if (q.has("status")) filters.status = q.get("status") || "";
     }
   });
@@ -130,6 +132,12 @@
   let filtered = $derived.by(() => {
     return dataService.orders
       .filter((/** @type {Order} */ e) => {
+        // HARD GUARD: Non-admin members can ONLY see their own team's data
+        if (!authStore.isAdmin && authStore.userTeam) {
+          const orderTeam = (e.team || '').toLowerCase().trim();
+          const myTeam = authStore.userTeam.toLowerCase().trim();
+          if (orderTeam !== myTeam && !orderTeam.includes(myTeam)) return false;
+        }
         if (filters.category && e.category !== filters.category) return false;
         if (
           filters.company &&
@@ -179,12 +187,12 @@
 </script>
 
 <svelte:head>
-  <title>Orders Dashboard | Westwood Finance</title>
+  <title>All Orders | Westwood Finance</title>
 </svelte:head>
 
 <div class="page-header">
   <div class="header-left">
-    <h1>Order <span>History</span></h1>
+    <h1>All <span>Orders</span></h1>
   </div>
 
   <div class="header-right">
@@ -262,7 +270,7 @@
   <LoadingIndicator text="Syncing records..." />
 {:else if dataService.orders.length > 0}
   <div class={!dataService.hasLoadedOnce ? "fade-in" : ""}>
-    <OrderTable orders={filtered} />
+    <OrderTable orders={filtered} hideTeamColumn={!authStore.isAdmin} />
   </div>
 {:else}
   <div class="empty-state card fade-in">

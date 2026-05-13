@@ -2,9 +2,11 @@
   import { onMount } from 'svelte';
   import { onNavigate } from '$app/navigation';
   import { dataService } from '$lib/dataService.svelte.js';
+  import { authStore } from '$lib/authStore.svelte.js';
   import '../app.css';
   import Sidebar from '$lib/components/Sidebar.svelte';
   import MobileTabBar from '$lib/components/MobileTabBar.svelte';
+  import AuthGate from '$lib/components/AuthGate.svelte';
 
   let { children } = $props();
 
@@ -76,20 +78,24 @@
   <meta name="description" content="Finance management system for Westwood Robotics" />
 </svelte:head>
 
-<!-- Pull-to-Refresh Indicator -->
-{#if dataService.isManualRefreshing}
-  <div class="ptr-indicator">
-    <div class="ptr-spinner"></div>
-    Refreshing…
-  </div>
-{/if}
+<AuthGate>
+  {#snippet children()}
+    <!-- Pull-to-Refresh Indicator -->
+    {#if dataService.isManualRefreshing}
+      <div class="ptr-indicator">
+        <div class="ptr-spinner"></div>
+        Refreshing…
+      </div>
+    {/if}
 
-<div class="app-shell">
-  <Sidebar />
-  <main class="main-content">
-    {@render children()}
-  </main>
-</div>
+    <div class="app-shell">
+      <Sidebar />
+      <main class="main-content">
+        {@render children()}
+      </main>
+    </div>
 
-<!-- iOS Tab Bar (renders itself only on mobile) -->
-<MobileTabBar />
+    <!-- iOS Tab Bar (renders itself only on mobile) -->
+    <MobileTabBar />
+  {/snippet}
+</AuthGate>

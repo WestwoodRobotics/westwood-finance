@@ -3,7 +3,7 @@
   import OrderStatusBadge from "$lib/components/OrderStatusBadge.svelte";
   import CustomDropdown from "$lib/components/CustomDropdown.svelte";
   import LoadingIndicator from "$lib/components/LoadingIndicator.svelte";
-  import AdminLock from "$lib/components/AdminLock.svelte";
+
   import OrderTable from "$lib/components/OrderTable.svelte";
   import {
     formatCurrency,
@@ -14,7 +14,9 @@
     generateShortId,
   } from "$lib/utils.js";
   import { dataService } from "$lib/dataService.svelte.js";
+  import { authStore } from "$lib/authStore.svelte.js";
   import { BASE_URL, SECRET_KEY } from "$lib/config.js";
+  import { goto } from "$app/navigation";
 
   /** @typedef {import('$lib/dataService.svelte.js').Order} Order */
 
@@ -106,7 +108,7 @@
     return groups;
   });
 
-  let unlocked = $state(false);
+
 
   /** @type {(() => void) | null} */
   let undoFn = $state(null);
@@ -189,7 +191,7 @@
     Type: "",
     Date: "",
   });
-  let activeView = $state("orderHistory"); // "orderHistory" | "orders" | "master" | "funding" | "add" | "addOrder"
+  let activeView = $state("orderHistory"); // "orderHistory" | "orders" | "master" | "funding" | "add" | "addOrder" | "members"
 
   const typeOptions = [
     { label: "Fundraiser", value: "Fundraiser" },
@@ -297,9 +299,14 @@
     // Check for view parameter in URL
     const urlParams = new URLSearchParams(window.location.search);
     const view = urlParams.get("view");
-    const validViews = ["orderHistory", "orders", "master", "funding", "add", "addOrder"];
+    const validViews = ["orderHistory", "orders", "master", "funding", "add", "addOrder", "members"];
     if (view && validViews.includes(view)) {
       activeView = view;
+    }
+
+    // Redirect non-admins away from admin page
+    if (!authStore.isAdmin) {
+      goto('/');
     }
   });
 
@@ -789,21 +796,92 @@
       editingGroupOrders = null;
     }
   }
+
+  // ── Members Management ──────────────────────────────────────────────────────
+  let addMemberForm = $state({
+    firstName: '',
+    lastName: '',
+    studentId: '',
+    team: 'FRC',
+    isAdmin: false,
+  });
+  let addMemberSubmitting = $state(false);
+  let memberActionMsg = $state('');
+  let memberActionErr = $state('');
+
+  async function addNewMember() {
+    memberActionMsg = '';
+    memberActionErr = '';
+
+    if (!addMemberForm.firstName.trim() || !addMemberForm.lastName.trim()) {
+      memberActionErr = 'First and last name are required.';
+      return;
+    }
+    const cleanId = addMemberForm.studentId.replace(/^s/i, '').trim();
+    if (!cleanId || cleanId.length !== 6 || !/^\d{6}$/.test(cleanId)) {
+      memberActionErr = 'Student ID must be exactly 6 digits (without the S).';
+      return;
+    }
+
+    addMemberSubmitting = true;
+    try {
+      const params = new URLSearchParams({
+        action: 'addMember',
+        key: SECRET_KEY,
+        firstName: addMemberForm.firstName.trim(),
+        lastName: addMemberForm.lastName.trim(),
+        studentId: cleanId,
+        team: addMemberForm.team,
+        role: addMemberForm.isAdmin ? 'admin' : '',
+      });
+      const res = await fetch(`${BASE_URL}?${params.toString()}`);
+      const result = await res.json();
+      if (result.error) throw new Error(result.error);
+
+      memberActionMsg = `✓ ${addMemberForm.firstName} ${addMemberForm.lastName} approved!`;
+      addMemberForm = { firstName: '', lastName: '', studentId: '', team: 'FRC', isAdmin: false };
+
+      // Refresh members list
+      await authStore.fetchMembers();
+    } catch (e) {
+      memberActionErr = e instanceof Error ? e.message : 'Failed to add member';
+    } finally {
+      addMemberSubmitting = false;
+    }
+  }
+
+  /** @param {string} studentId */
+  async function removeMember(studentId) {
+    memberActionMsg = '';
+    memberActionErr = '';
+    try {
+      const params = new URLSearchParams({
+        action: 'removeMember',
+        key: SECRET_KEY,
+        studentId: studentId,
+      });
+      const res = await fetch(`${BASE_URL}?${params.toString()}`);
+      const result = await res.json();
+      if (result.error) throw new Error(result.error);
+
+      memberActionMsg = '✓ Member removed.';
+      await authStore.fetchMembers();
+    } catch (e) {
+      memberActionErr = e instanceof Error ? e.message : 'Failed to remove member';
+    }
+  }
+
 </script>
 
 <svelte:head>
   <title>Admin Dashboard | Westwood Finance</title>
 </svelte:head>
 
-{#if !unlocked}
-  <div class="admin-auth-container">
-    <AdminLock
-      onunlock={() => {
-        unlocked = true;
-      }}
-      title="Admin Portal"
-      description="Enter the admin password to manage orders and funding."
-    />
+{#if !authStore.isAdmin}
+  <div class="admin-auth-container" style="text-align:center; padding: 80px 20px;">
+    <h2 style="color: #fff; margin-bottom: 12px;">Access Denied</h2>
+    <p style="color: var(--text-muted); margin-bottom: 24px;">You need admin privileges to access this page.</p>
+    <a href="/" class="btn btn-primary">Back to Dashboard</a>
   </div>
 {:else}
   <div class="page-header">
@@ -815,28 +893,6 @@
       class="header-right"
       style="display: flex; align-items: center; gap: 12px;"
     >
-      <button
-        class="btn btn-ghost btn-sm"
-        style="color: var(--primary);"
-        onclick={() => (unlocked = false)}
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          ><rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path
-            d="M7 11V7a5 5 0 0 1 10 0v4"
-          /></svg
-        >
-        Lock
-      </button>
-
       <button class="btn btn-ghost btn-sm refresh-btn" onclick={sync} disabled={syncing}>
         <span class:spinning={syncing}>↻</span>
         <span class="hide-mobile">{syncing ? "Syncing..." : "Refresh"}</span>
@@ -848,7 +904,7 @@
   <div class="tabs-wrapper" style="margin-bottom: 32px;">
     <div
       class="segmented-control"
-      style="width: auto; min-width: 650px; margin: 0 auto; position: relative; grid-template-columns: repeat(6, 1fr);"
+      style="width: auto; min-width: 750px; margin: 0 auto; position: relative; grid-template-columns: repeat(7, 1fr);"
     >
       <div
         class="segment-highlight"
@@ -859,7 +915,8 @@
           'funding',
           'add',
           'addOrder',
-        ].indexOf(activeView)} * 100%)); width: calc((100% - 10px) / 6);"
+          'members',
+        ].indexOf(activeView)} * 100%)); width: calc((100% - 10px) / 7);"
       ></div>
       <button
         class="segment"
@@ -902,6 +959,13 @@
         onclick={() => (activeView = "addOrder")}
       >
         Add Expense +
+      </button>
+      <button
+        class="segment"
+        class:active={activeView === "members"}
+        onclick={() => (activeView = "members")}
+      >
+        Members
       </button>
     </div>
   </div>
@@ -1616,11 +1680,145 @@
         </ul>
       </aside>
     </div>
+  {:else if activeView === "members"}
+    <!-- ── Members Management ──────────────────────────────────────────── -->
+    <div class="add-layout fade-in">
+      <div class="card add-card">
+        <h3 style="margin-bottom:4px; color: var(--primary);">
+          Approve New Member
+        </h3>
+        <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 20px;">
+          Add a member to grant them access to the site. They'll be able to see data for their assigned team.
+        </p>
+
+        {#if memberActionMsg}
+          <div class="success-bar message-bar">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            {memberActionMsg}
+          </div>
+        {/if}
+        {#if memberActionErr}
+          <div class="error-bar message-bar">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            {memberActionErr}
+          </div>
+        {/if}
+
+        <form onsubmit={(e) => { e.preventDefault(); addNewMember(); }}>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="member-first">First Name *</label>
+              <input id="member-first" type="text" bind:value={addMemberForm.firstName} placeholder="Jane" required />
+            </div>
+            <div class="form-group">
+              <label for="member-last">Last Name *</label>
+              <input id="member-last" type="text" bind:value={addMemberForm.lastName} placeholder="Doe" required />
+            </div>
+            <div class="form-group">
+              <label for="member-sid">Student ID (6 digits, no S) *</label>
+              <input id="member-sid" type="text" inputmode="numeric" maxlength="6" bind:value={addMemberForm.studentId} placeholder="123456" required />
+            </div>
+            <div class="form-group">
+              <label for="member-team">Team *</label>
+              <CustomDropdown
+                options={[
+                  { label: "FRC", value: "FRC" },
+                  { label: "Kunai", value: "Kunai" },
+                  { label: "Slingshot", value: "Slingshot" },
+                  { label: "Hunga Munga", value: "Hunga Munga" },
+                  { label: "Atlatl", value: "Atlatl" },
+                ]}
+                bind:value={addMemberForm.team}
+              />
+            </div>
+            <div class="form-group" style="display: flex; align-items: center; gap: 10px; padding-top: 24px;">
+              <input id="member-admin" type="checkbox" bind:checked={addMemberForm.isAdmin} style="width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer;" />
+              <label for="member-admin" style="margin: 0; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: #fff;">Grant Admin Access</label>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="margin-top:24px; width: 100%; justify-content: center;" disabled={addMemberSubmitting}>
+            {addMemberSubmitting ? "Adding..." : "Approve Member"}
+          </button>
+        </form>
+      </div>
+
+      <aside class="tips-card card hide-mobile" style="padding: 24px;">
+        <div class="card-title">Member Access</div>
+        <p class="text-muted" style="font-size: 0.85rem; line-height: 1.5;">
+          Approved members can only view data for their assigned team. Admin members get full access to all teams and this portal.
+        </p>
+        <ul style="margin: 16px 0 0 16px; padding: 0; font-size: 0.8rem; color: var(--text-dim); display: flex; flex-direction: column; gap: 8px;">
+          <li>Members sign in with Google and enter their Student ID</li>
+          <li>Unapproved users see "Ask Ishaan to approve you"</li>
+          <li>Admins see all teams and can manage orders</li>
+          <li>Regular members only see their own team's data</li>
+        </ul>
+      </aside>
+    </div>
+
+    <!-- Current Members List -->
+    <section class="fade-in" style="margin-top: 32px;">
+      <div class="section-title" style="margin-bottom:12px; display: flex; justify-content: space-between; align-items: center;">
+        <span>Approved Members ({authStore.membersList.length})</span>
+        <button class="btn btn-ghost btn-sm" onclick={() => authStore.fetchMembers()} style="font-size: 0.75rem;">
+          ↻ Refresh List
+        </button>
+      </div>
+
+      <div class="card orders-card" style="padding:0; overflow:hidden;">
+        {#if authStore.membersList.length === 0}
+          <div class="empty-state" style="padding: 40px;">
+            No approved members yet. Add someone above.
+          </div>
+        {:else}
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Student ID</th>
+                  <th>Team</th>
+                  <th>Role</th>
+                  <th style="width: 80px; text-align: center;">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {#each authStore.membersList as m (m.studentId)}
+                  <tr>
+                    <td style="font-weight: 600; color: #fff;">{m.firstName} {m.lastName}</td>
+                    <td class="monospace" style="color: var(--text-muted);">{m.studentId}</td>
+                    <td><span class="badge" style="font-size: 0.75rem;">{m.team}</span></td>
+                    <td>
+                      {#if m.role === 'admin'}
+                        <span class="badge badge-awarded" style="font-size: 0.7rem;">Admin</span>
+                      {:else}
+                        <span style="color: var(--text-dim); font-size: 0.8rem;">Member</span>
+                      {/if}
+                    </td>
+                    <td style="text-align: center;">
+                      <button
+                        class="btn btn-ghost btn-sm"
+                        style="color: var(--status-rejected); font-size: 0.7rem; padding: 4px 8px;"
+                        onclick={() => removeMember(m.studentId)}
+                        title="Remove member"
+                      >
+                        Remove
+                      </button>
+                    </td>
+                  </tr>
+                {/each}
+              </tbody>
+            </table>
+          </div>
+        {/if}
+      </div>
+    </section>
   {/if}
 {/if}
 
 <!-- ── Mobile Tab FAB (bottom right, admin) ────────────────────────────── -->
-{#if unlocked && isMobile}
+{#if authStore.isAdmin && isMobile}
   {#if showTabMenu}
     <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_noninteractive_element_interactions -->
     <div class="tab-fab-backdrop" onclick={() => showTabMenu = false} role="button" tabindex="-1"></div>
@@ -1632,6 +1830,7 @@
         ['funding', 'Funding'],
         ['add', 'Add Funds +'],
         ['addOrder', 'Add Expense +'],
+        ['members', 'Members'],
       ] as [key, label]}
         <button class="tab-fab-option" class:active={activeView === key} onclick={() => { activeView = key; showTabMenu = false; }}>{label}</button>
       {/each}

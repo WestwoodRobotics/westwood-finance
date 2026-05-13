@@ -3,6 +3,7 @@
   import CustomDropdown from './CustomDropdown.svelte';
   import IOSBottomSheet from './IOSBottomSheet.svelte';
   import { onMount } from 'svelte';
+  import { authStore } from '$lib/authStore.svelte.js';
 
   const categoryOptions = [
     { label: 'All Categories', value: '' },
@@ -45,7 +46,8 @@
     filters.search = "";
     filters.category = "";
     filters.company = "";
-    filters.team = "";
+    // Only reset team filter for admins — members stay locked to their team
+    if (authStore.isAdmin) filters.team = "";
     filters.status = "";
     filters.dateFrom = "";
     filters.dateTo = "";
@@ -75,7 +77,7 @@
         </div>
       </div>
       <button class="btn btn-ghost btn-sm reset-button" onclick={reset} title="Reset filters">
-         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+         Reset Filters
       </button>
     </div>
 
@@ -88,10 +90,12 @@
         <span class="field-label">Vendor</span>
         <input id="filter-company" type="text" placeholder="Any vendor" bind:value={filters.company} oninput={emit} />
       </div>
+      {#if authStore.isAdmin}
       <div class="filter-field">
         <span class="field-label">Team</span>
         <CustomDropdown options={teamOptions} bind:value={filters.team} onchange={emit} />
       </div>
+      {/if}
       <div class="filter-field">
         <span class="field-label">Status</span>
         <CustomDropdown options={statusOptions} bind:value={filters.status} onchange={emit} />
@@ -152,6 +156,7 @@
             {/each}
           </select>
         </div>
+        {#if authStore.isAdmin}
         <div class="ios-sheet-filter-group">
           <div class="ios-sheet-filter-label">Team</div>
           <select bind:value={filters.team} onchange={emit} class="ios-native-select">
@@ -160,6 +165,7 @@
             {/each}
           </select>
         </div>
+        {/if}
         <div class="ios-sheet-filter-group">
           <div class="ios-sheet-filter-label">Status</div>
           <select bind:value={filters.status} onchange={emit} class="ios-native-select">
@@ -204,7 +210,7 @@
   .filter-main { display: flex; gap: 12px; align-items: center; }
   .search-input { flex: 1; }
   .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; align-items: flex-end; }
-  @media (min-width: 1200px) { .filter-grid { grid-template-columns: repeat(4, 1fr) 1.5fr; } }
+  @media (min-width: 1200px) { .filter-grid { grid-template-columns: repeat(3, 1fr) 1.8fr; } }
   .filter-field { display: flex; flex-direction: column; gap: 6px; }
   .field-label { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim); }
   .input-wrapper { position: relative; display: flex; align-items: center; }
@@ -215,7 +221,7 @@
   .date-range input { background: transparent; border: none; padding: 0 12px; font-size: 0.85rem; flex: 1; width: 0; min-width: 0; height: 100%; color: #fff; cursor: pointer; text-align: center; }
   .date-range input:focus { background: rgba(255,255,255,0.03); outline: none; }
   .connector { color: var(--text-dim); font-size: 0.8rem; }
-  .reset-button { width: 44px; height: 44px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-sm); }
+  .reset-button { height: 44px; padding: 0 16px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-sm); font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
 
   /* ── iOS Mobile ─────────────────────────────────────────────────── */
   .ios-filter-row { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; margin-top: 8px; }

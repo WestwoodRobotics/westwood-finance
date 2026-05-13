@@ -12,7 +12,8 @@ function doGet(e) {
         return jsonResponse({
           orders: getOrders(),
           funds: getFundraising(),
-          budget: getBudget()
+          budget: getBudget(),
+          members: getMembers()
         });
 
       case "getOrders":
@@ -39,6 +40,15 @@ function doGet(e) {
 
       case "updateFunding":
         return jsonResponse(updateFunding(e.parameter));
+
+      case "getMembers":
+        return jsonResponse({ members: getMembers() });
+
+      case "addMember":
+        return jsonResponse(addMember(e));
+
+      case "removeMember":
+        return jsonResponse(removeMember(e));
 
       default:
         return jsonResponse({ error: "Invalid action: " + action });
@@ -191,4 +201,75 @@ function jsonResponse(data) {
 
 function logRequest(e) {
   console.log("Action: " + (e.parameter.action || "none") + " | Params: " + JSON.stringify(e.parameter));
+}
+
+// ── MEMBERS ─────────────────────────────────────────────────────────────────
+
+function getMembers() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("Members");
+  if (!sheet) return [];
+
+  var data = sheet.getDataRange().getValues();
+  var members = [];
+
+  for (var i = 1; i < data.length; i++) {
+    var row = data[i];
+    if (!row[0] && !row[2]) continue; // Skip empty rows
+    members.push({
+      firstName: row[0] || "",
+      lastName: row[1] || "",
+      studentId: String(row[2] || ""),
+      team: row[3] || "",
+      role: row[4] || "",
+      email: row[5] || ""
+    });
+  }
+
+  return members;
+}
+
+function addMember(e) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("Members");
+  if (!sheet) {
+    sheet = ss.insertSheet("Members");
+    sheet.appendRow(["firstName", "lastName", "studentId", "team", "role"]);
+  }
+
+  var firstName = e.parameter.firstName || "";
+  var lastName = e.parameter.lastName || "";
+  var studentId = e.parameter.studentId || "";
+  var team = e.parameter.team || "";
+  var role = e.parameter.role || "";
+  var email = e.parameter.email || "";
+
+  // Check if student ID already exists
+  var data = sheet.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][2]) === studentId || (email && String(data[i][5]).toLowerCase() === email.toLowerCase())) {
+      return { error: "Member with this Student ID or Email already exists" };
+    }
+  }
+
+  sheet.appendRow([firstName, lastName, studentId, team, role, email]);
+  return { success: true, message: "Member added successfully" };
+}
+
+function removeMember(e) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("Members");
+  if (!sheet) return { error: "Members sheet not found" };
+
+  var studentId = e.parameter.studentId || "";
+  var data = sheet.getDataRange().getValues();
+
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][2]) === studentId) {
+      sheet.deleteRow(i + 1);
+      return { success: true, message: "Member removed" };
+    }
+  }
+
+  return { error: "Member not found" };
 }
