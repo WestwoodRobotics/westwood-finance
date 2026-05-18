@@ -44,9 +44,13 @@
   });
 
   $effect(() => {
-    if (browser) {
+    if (!browser) return;
+    
+    const currentFilters = { ...filters };
+
+    const t = setTimeout(() => {
       const url = new URL(window.location.href);
-      Object.entries(filters).forEach(([k, v]) => {
+      Object.entries(currentFilters).forEach(([k, v]) => {
         if (
           v &&
           v !== "All Categories" &&
@@ -59,7 +63,9 @@
         }
       });
       window.history.replaceState(null, "", url.toString());
-    }
+    }, 300);
+
+    return () => clearTimeout(t);
   });
 
   /**

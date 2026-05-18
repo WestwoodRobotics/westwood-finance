@@ -96,11 +96,11 @@
         <CustomDropdown options={teamOptions} bind:value={filters.team} onchange={emit} />
       </div>
       {/if}
-      <div class="filter-field">
+      <div class="filter-field filter-status">
         <span class="field-label">Status</span>
         <CustomDropdown options={statusOptions} bind:value={filters.status} onchange={emit} />
       </div>
-      <div class="filter-field">
+      <div class="filter-field filter-timeline">
         <span class="field-label">Timeline</span>
         <div class="date-range">
           <input type="date" bind:value={filters.dateFrom} onchange={emit} />
@@ -209,9 +209,10 @@
   }
   .filter-main { display: flex; gap: 12px; align-items: center; }
   .search-input { flex: 1; }
-  .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; align-items: flex-end; }
-  @media (min-width: 1200px) { .filter-grid { grid-template-columns: repeat(3, 1fr) 1.8fr; } }
-  .filter-field { display: flex; flex-direction: column; gap: 6px; }
+  .filter-grid { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; }
+  .filter-field { display: flex; flex-direction: column; gap: 6px; flex: 1 1 160px; min-width: 0; }
+  .filter-status { flex: 0 1 140px; }
+  .filter-timeline { flex: 2 1 280px; }
   .field-label { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim); }
   .input-wrapper { position: relative; display: flex; align-items: center; }
   .search-icon { position: absolute; left: 14px; color: var(--text-dim); pointer-events: none; }

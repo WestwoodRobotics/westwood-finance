@@ -293,6 +293,9 @@
         </p>
       </div>
 
+      <div class="pending-actions" style="margin-top: 24px;">
+        <button class="auth-back-btn" onclick={signOut}>Sign in with another account</button>
+      </div>
 
     </div>
   </div>

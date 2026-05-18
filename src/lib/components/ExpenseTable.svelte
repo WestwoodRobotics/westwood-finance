@@ -163,7 +163,7 @@
     {#if display.length > 0}
       <tfoot>
         <tr class="total-row">
-          <td colspan={hideTeam ? 7 : 8} class="total-label">Subtotal</td>
+          <td colspan={hideTeam ? 6 : 7} class="total-label text-right" style="padding-right: 16px;">Subtotal</td>
           <td class="text-right monospace total-amount">
             {formatCurrency(display.reduce((sum, e) => sum + (e.total || 0), 0))}
           </td>
