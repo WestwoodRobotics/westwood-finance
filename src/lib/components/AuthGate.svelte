@@ -258,6 +258,9 @@
         <button type="submit" class="auth-submit-btn">Continue</button>
       </form>
 
+      <div class="pending-actions" style="margin-top: 8px;">
+        <button class="auth-back-btn" onclick={signOut}>Sign in with another account</button>
+      </div>
 
     </div>
   </div>
