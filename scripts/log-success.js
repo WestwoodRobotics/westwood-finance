@@ -13,7 +13,7 @@ try {
     process.stdout.write(`\ Deploying Westwood Finance v${info.version}...\n`);
     process.stdout.write(`Build Time: ${info.deployedAt}\n\n`);
     process.stdout.write(`✅ Status: SUCCESS\n`);
-    process.stdout.write(`Deployment: https://finance.ftcblueprint.com\n\n`);
+    process.stdout.write(`Deployment: https://finance.westwoodrobots.org\n\n`);
 
 } catch (error) {
     process.exit(0); // Silent fail for logger
