@@ -126,6 +126,13 @@
     );
   }
 
+  /** @param {string} url */
+  function openExternal(url) {
+    if (!url) return;
+    const href = url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`;
+    window.open(href, '_blank', 'noopener,noreferrer');
+  }
+
   /** @type {any} */
   let selectedOrder = /** @type {any|null} */ ($state(null));
 
@@ -228,14 +235,13 @@
           <td>
             <div class="item-name">
               {#if order.link}
-                <a
-                  href={order.link}
-                  target="_blank"
-                  rel="noopener"
-                  class="item-link"
+                <button
+                  type="button"
+                  class="item-link link-btn"
+                  onclick={() => openExternal(order.link)}
                 >
-                  {truncate(order.item, 40)}
-                </a>
+                  {truncate(order.item, 40)} ↗
+                </button>
               {:else}
                 <span class="item-text">{truncate(order.item, 40)}</span>
               {/if}
@@ -244,13 +250,12 @@
               <div class="item-notes">{truncate(order.notes, 50)}</div>
             {/if}
             {#if order.tracking}
-              {@const href = String(order.tracking).startsWith("http")
-                ? order.tracking
-                : `https://www.google.com/search?q=${order.tracking}`}
               <div class="tracking-info">
-                <a {href} target="_blank" rel="noopener" class="tracking-link"
-                  >Tracking</a
-                >
+                <button
+                  type="button"
+                  class="tracking-link link-btn"
+                  onclick={() => openExternal(order.tracking)}
+                >Tracking ↗</button>
               </div>
             {/if}
           </td>
@@ -486,12 +491,13 @@
             <span class="ios-receipt-val monospace">×{selectedOrder.quantity}</span>
           </div>
           {#if selectedOrder.tracking}
-            {@const href = String(selectedOrder.tracking).startsWith("http")
-              ? selectedOrder.tracking
-              : `https://www.google.com/search?q=${selectedOrder.tracking}`}
             <div class="ios-receipt-row">
               <span class="ios-receipt-label">Tracking</span>
-              <span class="ios-receipt-val monospace"><a href={href} target="_blank" rel="noopener">{selectedOrder.tracking} ↗</a></span>
+              <span class="ios-receipt-val monospace">
+                <button type="button" class="link-btn" onclick={() => openExternal(selectedOrder.tracking)}>
+                  {selectedOrder.tracking} ↗
+                </button>
+              </span>
             </div>
           {/if}
         </div>
@@ -508,15 +514,14 @@
 
         <div style="display: flex; flex-direction: column; gap: 10px;">
           {#if selectedOrder.link}
-            <a
-              href={selectedOrder.link}
-              target="_blank"
-              rel="noopener"
+            <button
+              type="button"
               class="btn btn-ghost btn-block"
               style="height: 48px; border-radius: 12px; font-weight: 700;"
+              onclick={() => openExternal(selectedOrder.link)}
             >
               Open Vendor Link ↗
-            </a>
+            </button>
           {/if}
 
           {#if onmanage}
@@ -574,6 +579,15 @@
   .item-name {
     font-weight: 600;
     color: var(--text);
+  }
+
+  .link-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
   }
 
   .item-link {

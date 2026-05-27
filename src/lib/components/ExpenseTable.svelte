@@ -60,6 +60,13 @@
     return CAT_ICONS[(cat || 'miscellaneous').toLowerCase()] || CAT_ICONS.miscellaneous;
   }
 
+/** @param {string} url */
+function openExternal(url) {
+  if (!url) return;
+  const href = url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`;
+  window.open(href, '_blank', 'noopener,noreferrer');
+}
+
   /** @type {any} */
   let selectedExpense = $state(null);
 </script>
@@ -119,9 +126,9 @@
           <td>
             <div class="item-name">
               {#if expense.link}
-                <a href={expense.link} target="_blank" rel="noopener" class="item-link">
-                  {truncate(expense.item, 40)}
-                </a>
+                <button type="button" class="item-link link-btn" onclick={() => openExternal(expense.link)}>
+                  {truncate(expense.item, 40)} ↗
+                </button>
               {:else}
                 <span class="item-text">{truncate(expense.item, 40)}</span>
               {/if}
@@ -262,14 +269,13 @@
             {/if}
 
             {#if selectedExpense.link}
-              <a
-                href={selectedExpense.link}
-                target="_blank"
-                rel="noopener"
+              <button
+                type="button"
+                onclick={() => openExternal(selectedExpense.link)}
                 class="btn btn-primary btn-block"
               >
                 Open Vendor Link ↗
-              </a>
+              </button>
             {/if}
           </div>
         {/if}
@@ -301,6 +307,15 @@
     align-items: center;
     gap: 4px;
     height: 100%;
+  }
+
+  .link-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
   }
 
   .item-name { font-weight: 600; color: var(--text); }

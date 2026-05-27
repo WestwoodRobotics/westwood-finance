@@ -311,6 +311,13 @@
   });
 
   // ── Modal helpers ─────────────────────────────────────────────────────────────
+  /** @param {string} url */
+  function openExternal(url) {
+    if (!url) return;
+    const href = url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`;
+    window.open(href, '_blank', 'noopener,noreferrer');
+  }
+
   function openEdit(/** @type {Order} */ order) {
     editingOrderId = order.id;
     editStatus = order.status || "Pending Review";
@@ -1089,9 +1096,9 @@
                     <td style="padding-left: 24px;">
                       <div class="item-primary">
                         {#if order.link}
-                          <a href={order.link} target="_blank" rel="noopener"
-                            >{order.item}</a
-                          >
+                          <button type="button" class="admin-link-btn" onclick={() => openExternal(order.link)}>
+                            {order.item} ↗
+                          </button>
                         {:else}
                           {order.item}
                         {/if}
