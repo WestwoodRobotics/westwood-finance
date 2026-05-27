@@ -462,18 +462,18 @@
               {@const pctColor = usagePct > 90 ? '#f16a4e' : (usagePct > 60 ? '#f97316' : '#6bcb77')}
               {@const pctBg = usagePct > 90 ? 'rgba(241, 106, 78, 0.1)' : (usagePct > 60 ? 'rgba(249, 115, 22, 0.1)' : 'rgba(107, 203, 119, 0.1)')}
               <div class="budget-card card selected">
-                <div class="budget-team-name" style="font-size: 1.4rem; color: var(--primary);">{team}</div>
-                <div class="budget-final" style="color:{final >= 0 ? '#6bcb77' : '#f16a4e'}; font-size: 2.2rem;">
-                  {formatCurrency(final)} <span style="font-size: 1.2rem; color: var(--text-muted); font-weight: 500;">/ {formatCurrency(teamFundsRaised + personal)}</span>
+                <div class="budget-team-name" style="font-size: 1.3rem; color: var(--primary);">{team}</div>
+                <div class="budget-final" style="color:{final >= 0 ? '#6bcb77' : '#f16a4e'}; font-size: 2.0rem;">
+                  {formatCurrency(final)} <span style="font-size: 1.1rem; color: var(--text-muted); font-weight: 500;">/ {formatCurrency(teamFundsRaised + personal)}</span>
                 </div>
                 {#if usagePct > 0}
-                  <div style="position: absolute; top: 24px; right: 24px;">
+                  <div style="position: absolute; top: 22px; right: 22px;">
                     <div style="font-size: 0.85rem; font-weight: 700; color: {pctColor}; background: {pctBg}; padding: 4px 10px; border-radius: 6px;">
                       {usagePct.toFixed(1)}% Used
                     </div>
                   </div>
                 {/if}
-                <div class="budget-details" style="gap: 12px; margin-top: 20px;">
+                <div class="budget-details" style="gap: 11px; margin-top: 18px;">
                   <div class="budget-detail-row" style="font-size: 0.95rem;">
                     <span class="text-muted">Raised</span>
                     <span class="monospace" style="color:#6bcb77">+{formatCurrency(teamFundsRaised)}</span>
@@ -491,7 +491,7 @@
                     <span class="monospace" style="color:var(--text-muted)">{formatCurrency(pendingExpenses)}</span>
                   </div>
                 </div>
-                <div class="budget-bar-track" style="margin-top:24px; height: 8px;">
+                <div class="budget-bar-track" style="margin-top:22px; height: 8px;">
                   <div class="budget-bar-fill" style="background:var(--primary);width:100%"></div>
                 </div>
               </div>
@@ -828,9 +828,9 @@
 
   /* Wide card for single team view */
   .is-single .budget-card {
-    width: 500px;
+    width: 450px;
     max-width: none;
-    padding: 28px 32px;
+    padding: 26px 30px;
     height: auto;
   }
   .budget-team-name {
@@ -888,8 +888,8 @@
     display: flex;
     flex-direction: row;
     justify-content: center;
-    align-items: stretch; /* Prevents vertical shifting by matching heights */
-    gap: 40px;
+    align-items: center;
+    gap: 32px;
     max-width: 1100px;
     margin: 0 auto;
   }
@@ -954,7 +954,7 @@
     }
     .breakdown-card {
       width: 100% !important;
-      height: 240px !important;
+      height: 225px !important;
     }
   }
 
@@ -966,7 +966,7 @@
       min-height: unset !important;
     }
     .breakdown-card {
-      height: 200px !important;
+      height: 190px !important;
     }
     /* Show tabs on mobile — make them scrollable and compact */
     .tabs-container {
@@ -982,10 +982,10 @@
   }
 
   .breakdown-card {
-    flex: 1;
-    min-height: 260px;
+    flex: none;
+    min-height: 240px;
     height: auto;
-    width: 320px;
+    width: 295px;
     flex-shrink: 0;
     background: transparent;
     border: none;

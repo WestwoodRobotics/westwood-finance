@@ -5,6 +5,7 @@
   import LoadingIndicator from "$lib/components/LoadingIndicator.svelte";
   import OrderStatusBadge from "$lib/components/OrderStatusBadge.svelte";
   import CustomDropdown from "$lib/components/CustomDropdown.svelte";
+  import IOSBottomSheet from "$lib/components/IOSBottomSheet.svelte";
   import {
     formatCurrency,
     formatDate,
@@ -333,140 +334,83 @@
   </div>
 {/if}
 
-{#if selectedOrder}
-  <div 
-    class="ios-popup-overlay" 
-    onclick={() => (selectedOrder = null)}
-    onkeydown={(e) => e.key === 'Escape' && (selectedOrder = null)}
-    role="button"
-    tabindex="-1"
-    aria-label="Close details"
-  >
-    <div 
-      class="ios-popup-content" 
-      onclick={(e) => e.stopPropagation()} 
-      onkeydown={(e) => e.stopPropagation()} 
-      role="dialog" 
-      aria-modal="true" 
-      tabindex="-1"
-      style="transform: translateY({swipeTranslateY}px); transition: {isSwiping ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'}"
-      ontouchstart={handleTouchStart}
-      ontouchmove={handleTouchMove}
-      ontouchend={handleTouchEnd}
-    >
-      <div class="ios-popup-header">
-        <div class="ios-popup-title">Order Details</div>
-        <button
-          class="ios-popup-close"
-          onclick={() => (selectedOrder = null)}
-          aria-label="Close details"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="3"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            ><line x1="18" y1="6" x2="6" y2="18" /><line
-              x1="6"
-              y1="6"
-              x2="18"
-              y2="18"
-            /></svg
-          >
-        </button>
-      </div>
+<IOSBottomSheet open={!!selectedOrder} onclose={() => (selectedOrder = null)} title="Order Details">
+  {#snippet children()}
+    {#if selectedOrder}
+      {@const orderColor = getOrderColor(selectedOrder.orderUUID)}
+      <div class="ios-receipt-card">
+        <div class="ios-receipt-header">
+          <div class="ios-receipt-avatar" style="background: {orderColor}22; color: {orderColor};">
+            {#if (selectedOrder.category || '').toLowerCase() === 'hardware'}
+              ⚙️
+            {:else if (selectedOrder.category || '').toLowerCase() === 'software'}
+              💻
+            {:else if (selectedOrder.category || '').toLowerCase() === 'outreach'}
+              📢
+            {:else if (selectedOrder.category || '').toLowerCase() === 'food'}
+              🍕
+            {:else}
+              📦
+            {/if}
+          </div>
+          <div class="ios-receipt-amount">{formatCurrency(selectedOrder.total)}</div>
+          <div class="ios-receipt-title">{selectedOrder.item}</div>
+          <div class="ios-receipt-subtitle">{selectedOrder.company || '—'}</div>
+        </div>
 
-      <div class="ios-detail-grid" style="margin-bottom: 20px;">
-        <div class="ios-detail-item">
-          <span class="ios-detail-label">Status</span>
-          <OrderStatusBadge status={selectedOrder.status} />
-        </div>
-        <div class="ios-detail-item">
-          <span class="ios-detail-label">Date</span>
-          <span class="ios-detail-value"
-            >{formatDate(selectedOrder.timestamp)}</span
-          >
-        </div>
-        <div class="ios-detail-item">
-          <span class="ios-detail-label">Team</span>
-          <span class="ios-detail-value"
-            >{selectedOrder.team || selectedOrder.user || "—"}</span
-          >
-        </div>
-        <div class="ios-detail-item">
-          <span class="ios-detail-label">Category</span>
-          <span class="ios-detail-value"
-            >{capitalize(selectedOrder.category)}</span
-          >
-        </div>
-      </div>
+        <hr class="ios-receipt-divider" />
 
-      <div class="ios-detail-grid" style="margin-bottom: 20px;">
-        <div class="ios-detail-item">
-          <span class="ios-detail-label">Item</span>
-          <span
-            class="ios-detail-value"
-            style="max-width: 70%; white-space: normal; text-align: right;"
-            >{selectedOrder.item}</span
-          >
+        <div class="ios-receipt-grid">
+          <div class="ios-receipt-row">
+            <span class="ios-receipt-label">Status</span>
+            <span class="ios-receipt-val"><OrderStatusBadge status={selectedOrder.status} /></span>
+          </div>
+          <div class="ios-receipt-row">
+            <span class="ios-receipt-label">Date</span>
+            <span class="ios-receipt-val monospace">{formatDate(selectedOrder.timestamp)}</span>
+          </div>
+          <div class="ios-receipt-row">
+            <span class="ios-receipt-label">Team</span>
+            <span class="ios-receipt-val">{selectedOrder.team || selectedOrder.user || "—"}</span>
+          </div>
+          <div class="ios-receipt-row">
+            <span class="ios-receipt-label">Category</span>
+            <span class="ios-receipt-val">{capitalize(selectedOrder.category)}</span>
+          </div>
+          <div class="ios-receipt-row">
+            <span class="ios-receipt-label">Unit Price</span>
+            <span class="ios-receipt-val monospace">{formatCurrency(selectedOrder.price)}</span>
+          </div>
+          <div class="ios-receipt-row">
+            <span class="ios-receipt-label">Quantity</span>
+            <span class="ios-receipt-val monospace">×{selectedOrder.quantity}</span>
+          </div>
         </div>
-        <div class="ios-detail-item">
-          <span class="ios-detail-label">Vendor</span>
-          <span class="ios-detail-value">{selectedOrder.company || "—"}</span>
-        </div>
-        {#if selectedOrder.link}
-          <div class="ios-detail-item">
-            <span class="ios-detail-label">Link</span>
-            <a
-              href={selectedOrder.link}
-              target="_blank"
-              rel="noopener"
-              class="ios-detail-value"
-              style="color: var(--primary)">Open Link ↗</a
-            >
+
+        {#if selectedOrder.notes}
+          <div class="ios-receipt-notes-card">
+            <div class="ios-receipt-notes-title">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              Notes
+            </div>
+            <div class="ios-receipt-notes-body">{selectedOrder.notes}</div>
           </div>
         {/if}
-      </div>
 
-      <div class="ios-detail-grid" style="margin-bottom: 20px;">
-        <div class="ios-detail-item">
-          <span class="ios-detail-label">Unit Price</span>
-          <span class="ios-detail-value monospace"
-            >{formatCurrency(selectedOrder.price)}</span
+        {#if selectedOrder.link}
+          <a
+            href={selectedOrder.link}
+            target="_blank"
+            rel="noopener"
+            class="btn btn-primary btn-block"
           >
-        </div>
-        <div class="ios-detail-item">
-          <span class="ios-detail-label">Quantity</span>
-          <span class="ios-detail-value monospace"
-            >{selectedOrder.quantity}</span
-          >
-        </div>
-        <div class="ios-detail-item">
-          <span class="ios-detail-label">Total Cost</span>
-          <span
-            class="ios-detail-value monospace"
-            style="color: var(--primary); font-size: 1.1rem;"
-            >{formatCurrency(selectedOrder.total)}</span
-          >
-        </div>
+            Open Vendor Link ↗
+          </a>
+        {/if}
       </div>
-
-      {#if selectedOrder.notes}
-        <div class="ios-detail-grid" style="margin-bottom: 24px;">
-          <div class="ios-detail-block">
-            <div class="ios-detail-label">Notes</div>
-            <div class="ios-detail-value">{selectedOrder.notes}</div>
-          </div>
-        </div>
-      {/if}
-    </div>
-  </div>
-{/if}
+    {/if}
+  {/snippet}
+</IOSBottomSheet>
 
 <!-- Mobile Version Info Footer -->
 <div class="mobile-version-footer">

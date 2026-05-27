@@ -214,55 +214,62 @@
     <IOSBottomSheet open={!!selectedExpense} onclose={() => selectedExpense = null} title="Expense Details">
       {#snippet children()}
         {#if selectedExpense}
-          <div class="ios-sheet-content-inner">
-            <div class="ios-detail-grid" style="margin-bottom: 20px;">
-              <div class="ios-detail-item">
-                <span class="ios-detail-label">Date</span>
-                <span class="ios-detail-value">{formatDate(selectedExpense.timestamp)}</span>
+          {@const catColor = getCatColor(selectedExpense.category)}
+          {@const catIcon = getCatIcon(selectedExpense.category)}
+          <div class="ios-receipt-card">
+            <div class="ios-receipt-header">
+              <div class="ios-receipt-avatar" style="background: {catColor}22; color: {catColor}; font-size: 18px;">
+                {@html catIcon}
               </div>
-              <div class="ios-detail-item">
-                <span class="ios-detail-label">Team</span>
-                <span class="ios-detail-value">{selectedExpense.team || "—"}</span>
-              </div>
-              <div class="ios-detail-item">
-                <span class="ios-detail-label">Category</span>
-                <span class="ios-detail-value">{capitalize(selectedExpense.category)}</span>
-              </div>
+              <div class="ios-receipt-amount">{formatCurrency(selectedExpense.total)}</div>
+              <div class="ios-receipt-title">{selectedExpense.item}</div>
+              <div class="ios-receipt-subtitle">{selectedExpense.company || '—'}</div>
             </div>
 
-            <div class="ios-detail-grid" style="margin-bottom: 20px;">
-              <div class="ios-detail-item">
-                <span class="ios-detail-label">Item</span>
-                <span class="ios-detail-value" style="max-width: 70%; white-space: normal; text-align: right;">{selectedExpense.item}</span>
-              </div>
-              <div class="ios-detail-item">
-                <span class="ios-detail-label">Vendor</span>
-                <span class="ios-detail-value">{selectedExpense.company || "—"}</span>
-              </div>
-            </div>
+            <hr class="ios-receipt-divider" />
 
-            <div class="ios-detail-grid" style="margin-bottom: 20px;">
-              <div class="ios-detail-item">
-                <span class="ios-detail-label">Unit Price</span>
-                <span class="ios-detail-value monospace">{formatCurrency(selectedExpense.price)}</span>
+            <div class="ios-receipt-grid">
+              <div class="ios-receipt-row">
+                <span class="ios-receipt-label">Date</span>
+                <span class="ios-receipt-val monospace">{formatDate(selectedExpense.timestamp)}</span>
               </div>
-              <div class="ios-detail-item">
-                <span class="ios-detail-label">Quantity</span>
-                <span class="ios-detail-value monospace">{selectedExpense.quantity}</span>
+              <div class="ios-receipt-row">
+                <span class="ios-receipt-label">Team</span>
+                <span class="ios-receipt-val">{selectedExpense.team || "—"}</span>
               </div>
-              <div class="ios-detail-item">
-                <span class="ios-detail-label">Total Cost</span>
-                <span class="ios-detail-value monospace" style="color: var(--primary); font-size: 1.1rem;">{formatCurrency(selectedExpense.total)}</span>
+              <div class="ios-receipt-row">
+                <span class="ios-receipt-label">Category</span>
+                <span class="ios-receipt-val">{capitalize(selectedExpense.category)}</span>
+              </div>
+              <div class="ios-receipt-row">
+                <span class="ios-receipt-label">Unit Price</span>
+                <span class="ios-receipt-val monospace">{formatCurrency(selectedExpense.price)}</span>
+              </div>
+              <div class="ios-receipt-row">
+                <span class="ios-receipt-label">Quantity</span>
+                <span class="ios-receipt-val monospace">×{selectedExpense.quantity}</span>
               </div>
             </div>
 
             {#if selectedExpense.notes}
-              <div class="ios-detail-grid">
-                <div class="ios-detail-block">
-                  <div class="ios-detail-label">Notes</div>
-                  <div class="ios-detail-value">{selectedExpense.notes}</div>
+              <div class="ios-receipt-notes-card">
+                <div class="ios-receipt-notes-title">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                  Notes
                 </div>
+                <div class="ios-receipt-notes-body">{selectedExpense.notes}</div>
               </div>
+            {/if}
+
+            {#if selectedExpense.link}
+              <a
+                href={selectedExpense.link}
+                target="_blank"
+                rel="noopener"
+                class="btn btn-primary btn-block"
+              >
+                Open Vendor Link ↗
+              </a>
             {/if}
           </div>
         {/if}
@@ -343,52 +350,7 @@
     font-family: -apple-system, 'SF Pro Text', sans-serif;
   }
 
-  .ios-sheet-content-inner {
-    padding: 16px 20px 24px;
-  }
 
-  .ios-detail-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    background: rgba(255, 255, 255, 0.04);
-    border-radius: 12px;
-    padding: 16px;
-  }
-
-  .ios-detail-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-  }
-
-  .ios-detail-label {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .ios-detail-value {
-    font-size: 15px;
-    font-weight: 500;
-    color: #fff;
-  }
-
-  .ios-detail-block {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .ios-detail-block .ios-detail-value {
-    text-align: left;
-    line-height: 1.5;
-    font-size: 14px;
-    color: var(--text-muted);
-  }
 
   .stat-sub {
     font-size: 0.78rem;
