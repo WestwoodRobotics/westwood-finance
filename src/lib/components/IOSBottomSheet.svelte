@@ -60,7 +60,7 @@
   <div
     class="ios-sheet"
     bind:this={sheetEl}
-    style="transform: translateY({currentY}px)"
+    style="--drag-y: {currentY}px"
     ontouchstart={onTouchStart}
     ontouchmove={onTouchMove}
     ontouchend={onTouchEnd}
@@ -112,14 +112,35 @@
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     z-index: 610;
-    animation: sheetSlideUp 0.32s cubic-bezier(0.34, 1.2, 0.64, 1);
+    transform: translateY(var(--drag-y, 0px));
     will-change: transform;
     padding-bottom: env(safe-area-inset-bottom, 20px);
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.4);
+    animation: sheetSlideUp 0.32s cubic-bezier(0.34, 1.2, 0.64, 1);
   }
 
   @keyframes sheetSlideUp {
     from { transform: translateY(100%); }
-    to { transform: translateY(0); }
+    to { transform: translateY(var(--drag-y, 0px)); }
+  }
+
+  @media (min-width: 769px) {
+    .ios-sheet {
+      left: 50%;
+      right: auto;
+      transform: translate(-50%, var(--drag-y, 0px));
+      width: 90%;
+      max-width: 550px;
+      border-radius: 16px;
+      bottom: 40px; /* Elevated on desktop */
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+      animation: sheetSlideUpDesktop 0.32s cubic-bezier(0.34, 1.2, 0.64, 1);
+    }
+  }
+
+  @keyframes sheetSlideUpDesktop {
+    from { transform: translate(-50%, 100%); opacity: 0; }
+    to { transform: translate(-50%, var(--drag-y, 0px)); opacity: 1; }
   }
 
   .ios-sheet-handle-area {

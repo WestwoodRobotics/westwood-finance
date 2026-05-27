@@ -385,6 +385,15 @@
             <span class="ios-receipt-label">Quantity</span>
             <span class="ios-receipt-val monospace">×{selectedOrder.quantity}</span>
           </div>
+          {#if selectedOrder.tracking}
+            {@const href = String(selectedOrder.tracking).startsWith("http")
+              ? selectedOrder.tracking
+              : `https://www.google.com/search?q=${selectedOrder.tracking}`}
+            <div class="ios-receipt-row">
+              <span class="ios-receipt-label">Tracking</span>
+              <span class="ios-receipt-val monospace"><a href={href} target="_blank" rel="noopener">{selectedOrder.tracking} ↗</a></span>
+            </div>
+          {/if}
         </div>
 
         {#if selectedOrder.notes}

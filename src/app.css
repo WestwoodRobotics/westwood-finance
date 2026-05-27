@@ -1099,3 +1099,9 @@ tbody td {
   border-radius: 12px;
   font-weight: 700;
 }
+
+@media (min-width: 769px) {
+  .ios-receipt-avatar {
+    display: none !important;
+  }
+}
