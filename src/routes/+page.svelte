@@ -388,7 +388,7 @@
           {#if selectedOrder.tracking}
             {@const href = String(selectedOrder.tracking).startsWith("http")
               ? selectedOrder.tracking
-              : `https://www.google.com/search?q=${selectedOrder.tracking}`}
+              : `https://${selectedOrder.tracking}`}
             <div class="ios-receipt-row">
               <span class="ios-receipt-label">Tracking</span>
               <span class="ios-receipt-val monospace"><a href={href} target="_blank" rel="noopener">{selectedOrder.tracking} ↗</a></span>
@@ -408,7 +408,7 @@
 
         {#if selectedOrder.link}
           <a
-            href={selectedOrder.link}
+            href={selectedOrder.link.startsWith('http://') || selectedOrder.link.startsWith('https://') ? selectedOrder.link : 'https://' + selectedOrder.link}
             target="_blank"
             rel="noopener"
             class="btn btn-primary btn-block"
