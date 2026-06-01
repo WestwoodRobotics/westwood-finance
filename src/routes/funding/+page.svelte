@@ -1,5 +1,6 @@
 <script>
   import { onMount } from "svelte";
+  import { ChevronDown, BarChart3, Receipt } from '@lucide/svelte';
   import {
     formatCurrency,
     formatFullDate,
@@ -308,7 +309,7 @@
       {:else}
         <div class="team-preview-box">
           <span>{selectedBudgetTeam}</span>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.3;"><path d="m6 9 6 6 6-6"/></svg>
+          <ChevronDown size={12} style="opacity: 0.3;" />
         </div>
       {/if}
     </div>
@@ -343,23 +344,7 @@
   {:else if !dataService.budget}
     <div class="empty-state card">
       <div class="icon">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="48"
-          height="48"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          ><line x1="18" y1="20" x2="18" y2="10" /><line
-            x1="12"
-            y1="20"
-            x2="12"
-            y2="4"
-          /><line x1="6" y1="20" x2="6" y2="14" /></svg
-        >
+        <BarChart3 size={48} stroke-width={1.2} />
       </div>
       No budget data available.
     </div>
@@ -597,22 +582,7 @@
       {:else if teamMasterTransactions.length === 0}
         <div class="empty-state">
           <div class="icon">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="48"
-              height="48"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              ><path
-                d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1Z"
-              /><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" /><path
-                d="M12 17.5v-11"
-              /></svg
-            >
+            <Receipt size={48} stroke-width={1} />
           </div>
           No transactions found.
         </div>

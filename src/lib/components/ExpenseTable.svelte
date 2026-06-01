@@ -1,5 +1,6 @@
 <script>
   import { formatCurrency, formatDate, truncate, capitalize, getTeamBadgeClass } from '../utils.js';
+  import { Settings, Code2, Megaphone, UtensilsCrossed, Package, ClipboardList, Clipboard, Pencil } from '@lucide/svelte';
   import IOSBottomSheet from './IOSBottomSheet.svelte';
 
   /** @type {{ expenses?: any[], limit?: number, hideTeam?: boolean }} */
@@ -44,20 +45,22 @@
     miscellaneous: '#8b5cf6',
   };
 
-  /** @type {Record<string, string>} */
   const CAT_ICONS = {
-    hardware: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
-    software: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>',
-    outreach: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>',
-    food: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>',
-    miscellaneous: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>',
+    hardware: Settings,
+    software: Code2,
+    outreach: Megaphone,
+    food: UtensilsCrossed,
+    miscellaneous: Package,
   };
 
+  /** @type {Record<string,string>} */ const CAT_COLORS_MAP = CAT_COLORS;
+  /** @type {Record<string,any>} */ const CAT_ICONS_MAP = CAT_ICONS;
+
   function getCatColor(/** @type {string|undefined} */ cat) {
-    return CAT_COLORS[(cat || 'miscellaneous').toLowerCase()] || '#8b5cf6';
+    return CAT_COLORS_MAP[(cat || 'miscellaneous').toLowerCase()] || '#8b5cf6';
   }
   function getCatIcon(/** @type {string|undefined} */ cat) {
-    return CAT_ICONS[(cat || 'miscellaneous').toLowerCase()] || CAT_ICONS.miscellaneous;
+    return CAT_ICONS_MAP[(cat || 'miscellaneous').toLowerCase()] || CAT_ICONS.miscellaneous;
   }
 
 /** @param {string} url */
@@ -159,7 +162,7 @@ function openExternal(url) {
           <td colspan="8">
             <div class="empty-state" style="padding: 40px 0;">
               <div class="icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M8 11h8"/><path d="M8 16h8"/><path d="M8 6h8"/></svg>
+                <ClipboardList size={48} stroke-width={1} />
               </div>
               No expenses found
             </div>
@@ -185,7 +188,7 @@ function openExternal(url) {
   {#if expenses.length === 0}
     <div class="empty-state" style="padding: 40px 16px; border-radius: 14px;">
       <div class="icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+        <Clipboard size={40} stroke-width={1} />
       </div>
       No expenses found
     </div>
@@ -194,15 +197,16 @@ function openExternal(url) {
       {#each display as expense (expense.id)}
         {@const catColor = getCatColor(expense.category)}
         {@const catIcon = getCatIcon(expense.category)}
-        <div 
-          class="ios-cell" 
-          role="button" 
+        {@const CatIcon = catIcon}
+        <div
+          class="ios-cell"
+          role="button"
           tabindex="0"
           onclick={() => selectedExpense = expense}
           onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && (selectedExpense = expense)}
         >
           <div class="ios-cell-icon" style="background: {catColor}22; color: {catColor}; font-size: 18px;">
-            {@html catIcon}
+            <CatIcon size={18} />
           </div>
           <div class="ios-cell-body">
             <div class="ios-cell-title">{truncate(expense.item, 28)}</div>
@@ -223,10 +227,11 @@ function openExternal(url) {
         {#if selectedExpense}
           {@const catColor = getCatColor(selectedExpense.category)}
           {@const catIcon = getCatIcon(selectedExpense.category)}
+          {@const CatIcon = catIcon}
           <div class="ios-receipt-card">
             <div class="ios-receipt-header">
               <div class="ios-receipt-avatar" style="background: {catColor}22; color: {catColor}; font-size: 18px;">
-                {@html catIcon}
+                <CatIcon size={18} />
               </div>
               <div class="ios-receipt-amount">{formatCurrency(selectedExpense.total)}</div>
               <div class="ios-receipt-title">{selectedExpense.item}</div>
@@ -261,7 +266,7 @@ function openExternal(url) {
             {#if selectedExpense.notes}
               <div class="ios-receipt-notes-card">
                 <div class="ios-receipt-notes-title">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                  <Pencil size={12} />
                   Notes
                 </div>
                 <div class="ios-receipt-notes-body">{selectedExpense.notes}</div>

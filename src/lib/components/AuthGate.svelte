@@ -1,5 +1,6 @@
 <script>
   import { onMount } from 'svelte';
+  import { Info, Clock } from '@lucide/svelte';
   import { authStore } from '$lib/authStore.svelte.js';
   import { BASE_URL } from '$lib/config.js';
   import CustomDropdown from '$lib/components/CustomDropdown.svelte';
@@ -238,13 +239,13 @@
 
       {#if idError}
         <div class="auth-error">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <Info size={16} />
           {idError}
         </div>
       {/if}
       {#if registerError}
         <div class="auth-error">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <Info size={16} />
           {registerError}
         </div>
       {/if}
@@ -302,10 +303,7 @@
       </div>
 
       <div class="pending-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/>
-          <polyline points="12 6 12 12 16 14"/>
-        </svg>
+        <Clock size={48} stroke-width={1.5} />
       </div>
 
       <h2 class="auth-step-title" style="margin-top: 16px;">Approval <span>Required</span></h2>

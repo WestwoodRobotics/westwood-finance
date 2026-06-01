@@ -3,39 +3,15 @@
   import { onMount } from "svelte";
   import { authStore } from "$lib/authStore.svelte.js";
   import appInfo from "$lib/app-info.json";
+  import { LayoutDashboard, PlusCircle, Users, ShoppingCart, BarChart3, User, X, LogOut } from '@lucide/svelte';
 
   const allNavItems = [
-    { 
-      href: "/", 
-      label: "Dashboard", 
-      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>`
-    },
-    { 
-      href: "/add/", 
-      label: "Submit an Order", 
-      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>`
-    },
-    { 
-      href: "/funding/", 
-      label: "Team Dashboard", 
-      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`
-    },
-    { 
-      href: "/orders/", 
-      label: "Orders", 
-      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>`
-    },
-    { 
-      href: "/stats/", 
-      label: "Analytics", 
-      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`
-    },
-    { 
-      href: "/admin/", 
-      label: "Admin Portal",
-      adminOnly: true,
-      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`
-    },
+    { href: "/",        label: "Dashboard",       icon: LayoutDashboard },
+    { href: "/add/",    label: "Submit an Order",  icon: PlusCircle },
+    { href: "/funding/",label: "Team Dashboard",   icon: Users },
+    { href: "/orders/", label: "Orders",           icon: ShoppingCart },
+    { href: "/stats/",  label: "Analytics",        icon: BarChart3 },
+    { href: "/admin/",  label: "Admin Portal",     icon: User, adminOnly: true },
   ];
 
   let navItems = $derived(
@@ -102,13 +78,14 @@
     </div>
     {#if isMobile}
       <button class="mobile-close-btn" onclick={closeMobileNav} aria-label="Close navigation">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        <X size={18} />
       </button>
     {/if}
   </div>
 
   <nav class="sidebar-nav">
     {#each navItems as item}
+      {@const NavIcon = item.icon}
       <a
         href={item.href}
         class="nav-link"
@@ -116,7 +93,7 @@
         aria-current={isActive(item.href) ? "page" : undefined}
         onclick={() => handleNavClick(item.href)}
       >
-        <span class="nav-icon">{@html item.icon}</span>
+        <span class="nav-icon"><NavIcon size={18} /></span>
         <span>{item.label}</span>
       </a>
     {/each}
@@ -139,7 +116,7 @@
         </div>
       </div>
       <button class="signout-btn" onclick={() => authStore.signOut()} title="Sign out">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <LogOut size={16} />
       </button>
     {/if}
   </div>

@@ -1,5 +1,6 @@
 <script>
   import { onMount } from "svelte";
+  import { Check, Info, Grid2x2, Package, DollarSign, Receipt, TriangleAlert, X } from '@lucide/svelte';
   import OrderStatusBadge from "$lib/components/OrderStatusBadge.svelte";
   import CustomDropdown from "$lib/components/CustomDropdown.svelte";
   import LoadingIndicator from "$lib/components/LoadingIndicator.svelte";
@@ -21,7 +22,7 @@
   /** @typedef {import('$lib/dataService.svelte.js').Order} Order */
 
   $effect(() => {
-    if (authStore.initialized && !authStore.isAdmin) goto('/');
+    if (authStore && authStore.initialized && !authStore.isAdmin) goto('/');
   });
 
   const ORDER_STATUSES = [
@@ -981,17 +982,7 @@
   {#if actionMsg}
     <div class="success-bar message-bar" style="justify-content: space-between;">
       <div style="display: flex; align-items: center; gap: 12px;">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg
-        >
+        <Check size={16} />
         {actionMsg}
       </div>
       {#if undoFn}
@@ -1003,23 +994,7 @@
   {/if}
   {#if actionErr}
     <div class="error-bar message-bar">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        ><circle cx="12" cy="12" r="10" /><line
-          x1="12"
-          y1="8"
-          x2="12"
-          y2="12"
-        /><line x1="12" y1="16" x2="12.01" y2="16" /></svg
-      >
+      <Info size={16} />
       {actionErr}
     </div>
   {/if}
@@ -1043,20 +1018,7 @@
         {:else if dataService.orders.length === 0}
           <div class="empty-state fade-in">
             <div class="icon">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="48"
-                height="48"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                ><path d="m7.5 4.27 9 5.15" /><path
-                  d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"
-                /><path d="m3.3 7 8.7 5 8.7-5" /><path d="M12 22V12" /></svg
-              >
+              <Package size={48} stroke-width={1} />
             </div>
             <h3>No requests on file</h3>
             <p>New requests will appear here for admin action.</p>
@@ -1154,20 +1116,7 @@
       {#if Object.keys(groupedCompanyOrders).length === 0}
         <div class="card empty-state fade-in" style="margin-bottom: 24px;">
           <div class="icon">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="48"
-              height="48"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              ><path
-                d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"
-              /><path d="m3.3 7 8.7 5 8.7-5" /><path d="M12 22V12" /></svg
-            >
+            <Package size={48} stroke-width={1.2} />
           </div>
           <h3>All caught up</h3>
           <p>There are no active orders to display.</p>
@@ -1231,20 +1180,7 @@
         {:else if dataService.funds.length === 0}
           <div class="empty-state">
             <div class="icon">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="48"
-                height="48"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                ><circle cx="12" cy="12" r="10" /><path
-                  d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"
-                /><path d="M12 18V6" /></svg
-              >
+              <DollarSign size={48} stroke-width={1} />
             </div>
             No funding entries found.
           </div>
@@ -1340,22 +1276,7 @@
         {:else if masterTransactions.length === 0}
           <div class="empty-state">
             <div class="icon">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="48"
-                height="48"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                ><path
-                  d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1Z"
-                /><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" /><path
-                  d="M12 17.5v-11"
-                /></svg
-              >
+              <Receipt size={48} stroke-width={1} />
             </div>
             No transactions found.
           </div>
@@ -1701,13 +1622,13 @@
 
         {#if memberActionMsg}
           <div class="success-bar message-bar">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <Check size={16} />
             {memberActionMsg}
           </div>
         {/if}
         {#if memberActionErr}
           <div class="error-bar message-bar">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <Info size={16} />
             {memberActionErr}
           </div>
         {/if}
@@ -1845,7 +1766,7 @@
     </div>
   {/if}
   <button class="page-fab" onclick={() => showTabMenu = !showTabMenu} aria-label="Switch admin view">
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    <Grid2x2 size={20} />
   </button>
 {/if}
 
@@ -1878,18 +1799,7 @@
           onclick={() => (editingGroupOrders = null)}
           aria-label="Close"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            ><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg
-          >
+          <X size={20} />
         </button>
       </div>
 
@@ -1956,18 +1866,7 @@
           onclick={() => (editingFund = null)}
           aria-label="Close"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            ><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg
-          >
+          <X size={20} />
         </button>
       </div>
 
@@ -2055,18 +1954,7 @@
           </p>
         </div>
         <button class="modal-close" onclick={closeEdit} aria-label="Close">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            ><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg
-          >
+          <X size={20} />
         </button>
       </div>
 
@@ -2196,21 +2084,7 @@
       style="width: 100%; max-width: 360px; padding: 32px; text-align: center; border: 1px solid rgba(239, 68, 68, 0.2);"
     >
       <div class="icon" style="margin-bottom: 20px;">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="48"
-          height="48"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          style="color: var(--status-rejected);"
-          ><path
-            d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
-          /><path d="M12 9v4" /><path d="M12 17h.01" /></svg
-        >
+        <TriangleAlert size={48} style="color: var(--status-rejected);" />
       </div>
       <h3 style="margin-bottom: 12px; color: var(--text);">Delete Order?</h3>
       <p

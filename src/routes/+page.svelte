@@ -1,5 +1,6 @@
 <script>
   import { onMount } from "svelte";
+  import { TriangleAlert, DollarSign, TrendingUp, ShoppingCart, BarChart3, Settings, Monitor, Navigation, UtensilsCrossed, Package, Pencil } from '@lucide/svelte';
   import StatCard from "$lib/components/StatCard.svelte";
   import ExpenseTable from "$lib/components/ExpenseTable.svelte";
   import LoadingIndicator from "$lib/components/LoadingIndicator.svelte";
@@ -172,21 +173,7 @@
   <div class="header-right">
     {#if dataService.error}
       <span class="error-text" style="display:inline-flex;align-items:center;">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          style="margin-right:6px;"
-          ><path
-            d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
-          /><path d="M12 9v4" /><path d="M12 17h.01" /></svg
-        >
+        <TriangleAlert size={14} style="margin-right:6px;" />
         {dataService.error}
       </span>
     {/if}
@@ -219,11 +206,10 @@
       value={netBalance.toString()}
       isCurrency={true}
       sub="Total Raised - Total Spent"
-      accentColor={netBalance >= 0
-        ? "var(--status-awarded)"
-        : "var(--status-rejected)"}
-      icon='<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="M12 2v20m-5-17h10a4 4 0 1 1 0 8H7a4 4 0 1 0 0 8h10"/></svg>'
-    />
+      accentColor={netBalance >= 0 ? "var(--status-awarded)" : "var(--status-rejected)"}
+    >
+      {#snippet icon()}<DollarSign size={18} />{/snippet}
+    </StatCard>
     <div class="total-raised-card">
       <StatCard
         label="Total Raised"
@@ -231,8 +217,9 @@
         isCurrency={true}
         sub={`${dataService.funds.length} contributions`}
         accentColor="var(--status-awarded)"
-        icon='<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="m12 19 7-7 3 3-7 7-3-3z"/><path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="m2 2 20 20"/><path d="m8 8 4 4"/></svg>'
-      />
+      >
+        {#snippet icon()}<TrendingUp size={18} />{/snippet}
+      </StatCard>
     </div>
     <StatCard
       label="Total Spent"
@@ -240,22 +227,18 @@
       isCurrency={true}
       sub={`${allYearExpenses.length} expenses this year`}
       accentColor="var(--status-rejected)"
-      icon='<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>'
-    />
+    >
+      {#snippet icon()}<ShoppingCart size={18} />{/snippet}
+    </StatCard>
     <StatCard
       label="Budget Progress"
-      value={budgetTotalValue > 0
-        ? ((totalSpent / budgetTotalValue) * 100).toFixed(2) + "%"
-        : "0%"}
-      progress={budgetTotalValue > 0
-        ? (totalSpent / budgetTotalValue) * 100
-        : 0}
-      sub={budgetTotalValue > 0
-        ? `${formatCurrency(totalSpent)} of ${formatCurrency(budgetTotalValue)}`
-        : "No active budget"}
+      value={budgetTotalValue > 0 ? ((totalSpent / budgetTotalValue) * 100).toFixed(2) + "%" : "0%"}
+      progress={budgetTotalValue > 0 ? (totalSpent / budgetTotalValue) * 100 : 0}
+      sub={budgetTotalValue > 0 ? `${formatCurrency(totalSpent)} of ${formatCurrency(budgetTotalValue)}` : "No active budget"}
       accentColor="var(--cat-miscellaneous)"
-      icon='<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="M12 20v-6M6 20V10M18 20V4"/></svg>'
-    />
+    >
+      {#snippet icon()}<BarChart3 size={18} />{/snippet}
+    </StatCard>
   </div>
 
   <div class="dashboard-content fade-in">
@@ -334,15 +317,15 @@
         <div class="ios-receipt-header">
           <div class="ios-receipt-avatar" style="background: {orderColor}22; color: {orderColor};">
             {#if (selectedOrder.category || '').toLowerCase() === 'hardware'}
-              <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16z"/><path d="M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+              <Settings size={20} />
             {:else if (selectedOrder.category || '').toLowerCase() === 'software'}
-              <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+              <Monitor size={20} />
             {:else if (selectedOrder.category || '').toLowerCase() === 'outreach'}
-              <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="m3 11 19-9-9 19-2-8-8-2z"/></svg>
+              <Navigation size={20} />
             {:else if (selectedOrder.category || '').toLowerCase() === 'food'}
-              <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 .6.4 1 1 1h1.5"/><path d="M18 22v-3"/><path d="M21 22v-3"/></svg>
+              <UtensilsCrossed size={20} />
             {:else}
-              <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+              <Package size={20} />
             {/if}
           </div>
           <div class="ios-receipt-amount">{formatCurrency(selectedOrder.total)}</div>
@@ -391,7 +374,7 @@
         {#if selectedOrder.notes}
           <div class="ios-receipt-notes-card">
             <div class="ios-receipt-notes-title">
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              <Pencil size={12} />
               Notes
             </div>
             <div class="ios-receipt-notes-body">{selectedOrder.notes}</div>

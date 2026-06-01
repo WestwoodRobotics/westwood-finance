@@ -1,5 +1,6 @@
 <script>
   import { CATEGORIES, TEAMS, formatDate } from "$lib/utils.js";
+  import { DollarSign, Info, Check, Plus } from '@lucide/svelte';
   import { goto } from "$app/navigation";
   import CustomDropdown from "$lib/components/CustomDropdown.svelte";
   import AdminLock from "$lib/components/AdminLock.svelte";
@@ -212,7 +213,7 @@
   {#if authStore.isAdmin}
     <div class="header-right">
       <button class="btn btn-ghost btn-sm" onclick={toggleExpenseMode}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20m-5-17h10a4 4 0 1 1 0 8H7a4 4 0 1 0 0 8h10"/></svg>
+        <DollarSign size={14} />
         Add as Expense
       </button>
     </div>
@@ -223,13 +224,13 @@
   <div class="card add-card">
       {#if submitError}
         <div class="error-bar message-bar">
-           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+           <Info size={18} />
            {submitError}
         </div>
       {/if}
       {#if submitSuccess}
         <div class="success-bar message-bar">
-           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+           <Check size={18} />
            {submitSuccess}
         </div>
       {/if}
@@ -383,7 +384,7 @@
             {#if submitting}
               <span class="submit-spinner" aria-hidden="true"></span> Processing...
             {:else}
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+              <Plus size={16} aria-hidden="true" />
               {form.isExpense ? "Confirm Immediate Expense" : "Submit Order Request"}
             {/if}
           </button>

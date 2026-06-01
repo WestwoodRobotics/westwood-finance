@@ -1,5 +1,6 @@
 <script>
   import { onMount } from "svelte";
+  import { TriangleAlert, Download, Plus, Package } from '@lucide/svelte';
   import { browser } from "$app/environment";
   import FilterBar from "$lib/components/FilterBar.svelte";
   import OrderTable from "$lib/components/OrderTable.svelte";
@@ -204,21 +205,7 @@
   <div class="header-right">
     {#if dataService.error}
       <span class="error-text" style="display:inline-flex;align-items:center;">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          style="margin-right:6px;"
-          ><path
-            d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"
-          /><path d="M12 9v4" /><path d="M12 17h.01" /></svg
-        >
+        <TriangleAlert size={14} style="margin-right:6px;" />
         {dataService.error}
       </span>
     {/if}
@@ -229,36 +216,12 @@
         onclick={exportCSV}
         disabled={!filtered || !filtered.length}
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          ><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline
-            points="7 10 12 15 17 10"
-          /><line x1="12" y1="15" x2="12" y2="3" /></svg
-        >
+        <Download size={14} />
         <span class="hide-mobile">Export</span>
       </button>
 
       <a href="/add" class="btn btn-primary btn-sm hide-mobile">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          ><path d="M5 12h14" /><path d="M12 5v14" /></svg
-        >
+        <Plus size={14} />
         <span>New Request</span>
       </a>
     </div>
@@ -281,20 +244,7 @@
 {:else}
   <div class="empty-state card fade-in">
     <div class="icon">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="48"
-        height="48"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        ><path
-          d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"
-        /><path d="m3.3 7 8.7 5 8.7-5" /><path d="M12 22V12" /></svg
-      >
+      <Package size={48} stroke-width={1} />
     </div>
     <h3>No requests found</h3>
     <p>Submit a new order request to see it appear in the history.</p>

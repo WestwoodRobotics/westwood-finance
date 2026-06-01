@@ -3,56 +3,22 @@
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
   import { authStore } from '$lib/authStore.svelte.js';
+  import { LayoutDashboard, ShoppingBag, Plus, Users, MoreHorizontal, BarChart3, User, ChevronRight } from '@lucide/svelte';
 
   let showMoreSheet = $state(false);
   let isMobile = $state(false);
 
   const mainTabs = [
-    {
-      href: '/',
-      label: 'Dashboard',
-      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1.5"/><rect width="7" height="5" x="14" y="3" rx="1.5"/><rect width="7" height="9" x="14" y="12" rx="1.5"/><rect width="7" height="5" x="3" y="16" rx="1.5"/></svg>`,
-    },
-    {
-      href: '/orders',
-      label: 'All Orders',
-      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>`,
-    },
-    {
-      href: '/add',
-      label: 'Submit',
-      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>`,
-      center: true,
-    },
-    {
-      href: '/funding',
-      label: 'Team',
-      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
-    },
-    {
-      href: '#more',
-      label: 'More',
-      isMore: true,
-      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>`,
-    },
+    { href: '/',       label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/orders', label: 'All Orders', icon: ShoppingBag },
+    { href: '/add',    label: 'Submit', icon: Plus, center: true },
+    { href: '/funding',label: 'Team', icon: Users },
+    { href: '#more',   label: 'More', isMore: true, icon: MoreHorizontal },
   ];
 
   const allMoreItems = [
-    {
-      href: '/stats',
-      label: 'Analytics',
-      subtitle: 'Spending trends & charts',
-      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`,
-      color: '#3b82f6',
-    },
-    {
-      href: '/admin',
-      label: 'Admin Portal',
-      subtitle: 'Manage orders & funding',
-      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
-      color: '#f97316',
-      adminOnly: true,
-    },
+    { href: '/stats', label: 'Analytics', subtitle: 'Spending trends & charts', icon: BarChart3, color: '#3b82f6' },
+    { href: '/admin', label: 'Admin Portal', subtitle: 'Manage orders & funding', icon: User, color: '#f97316', adminOnly: true },
   ];
 
   let moreItems = $derived(
@@ -136,6 +102,7 @@
       <div class="sheet-title">More</div>
       <div class="sheet-items">
         {#each moreItems as item}
+          {@const SheetIcon = item.icon}
           <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
           <div
             class="sheet-item"
@@ -143,13 +110,13 @@
             onclick={() => handleMoreItemClick(item.href)}
           >
             <div class="sheet-item-icon" style="background: {item.color}20; color: {item.color}">
-              {@html item.icon}
+              <SheetIcon size={22} />
             </div>
             <div class="sheet-item-text">
               <div class="sheet-item-label">{item.label}</div>
               <div class="sheet-item-subtitle">{item.subtitle}</div>
             </div>
-            <svg class="sheet-chevron" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            <ChevronRight size={16} class="sheet-chevron" />
           </div>
         {/each}
       </div>
@@ -159,6 +126,7 @@
   <!-- iOS Tab Bar -->
   <nav class="ios-tab-bar" aria-label="Main navigation">
     {#each mainTabs as tab}
+      {@const TabIcon = tab.icon}
       <button
         class="ios-tab"
         class:ios-tab-active={isActive(tab.href)}
@@ -169,11 +137,11 @@
       >
         {#if tab.center}
           <div class="ios-tab-center-pill">
-            {@html tab.icon}
+            <TabIcon size={26} />
           </div>
         {:else}
           <div class="ios-tab-icon">
-            {@html tab.icon}
+            <TabIcon size={24} />
           </div>
           <span class="ios-tab-label">{tab.label}</span>
         {/if}
@@ -379,7 +347,7 @@
     color: var(--primary);
   }
 
-  .sheet-chevron {
+  :global(.sheet-chevron) {
     color: var(--text-dim);
     flex-shrink: 0;
   }

@@ -1,5 +1,6 @@
 <script>
   import { onMount, tick } from 'svelte';
+  import { ChevronDown, Check } from '@lucide/svelte';
 
   let { 
     options = [], 
@@ -68,9 +69,7 @@
   >
     <span class="label" class:placeholder={!value}>{selectedLabel()}</span>
     <span class="chevron" class:open={isOpen}>
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="m6 9 6 6 6-6"/>
-      </svg>
+      <ChevronDown size={12} />
     </span>
   </button>
 
@@ -93,7 +92,7 @@
           >
             {label}
             {#if value === val}
-               <svg class="check-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17 4 12"/></svg>
+               <Check size={14} class="check-icon" />
             {/if}
           </button>
         </li>
@@ -219,7 +218,7 @@
     color: var(--primary);
   }
 
-  .check-icon {
+  :global(.check-icon) {
     flex-shrink: 0;
   }
 

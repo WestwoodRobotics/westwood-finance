@@ -1,5 +1,6 @@
 <script>
   import { CATEGORIES, TEAMS } from '../utils.js';
+  import { Search, CircleX, ListFilter } from '@lucide/svelte';
   import CustomDropdown from './CustomDropdown.svelte';
   import IOSBottomSheet from './IOSBottomSheet.svelte';
   import { onMount } from 'svelte';
@@ -66,7 +67,7 @@
     <div class="filter-main">
       <div class="search-input">
         <div class="input-wrapper">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="search-icon"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <Search size={16} class="search-icon" />
           <input
             id="filter-search"
             type="search"
@@ -114,7 +115,7 @@
   <!-- ── iOS Mobile Search Bar ─────────────────────────────────────────────── -->
   <div class="ios-filter-row fade-in">
     <div class="ios-search-wrap">
-      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="ios-search-icon"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <Search size={15} class="ios-search-icon" />
       <input
         id="filter-search-mobile"
         type="search"
@@ -125,7 +126,7 @@
       />
       {#if filters.search}
         <button class="ios-search-clear" onclick={() => { filters.search = ''; emit(); }} aria-label="Clear search">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+          <CircleX size={14} />
         </button>
       {/if}
     </div>
@@ -136,7 +137,7 @@
       onclick={() => showFilterSheet = true}
       aria-label="Open filters"
     >
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+      <ListFilter size={16} />
       Filters
       {#if activeFilterCount > 0}
         <span class="ios-filter-badge">{activeFilterCount}</span>
@@ -215,7 +216,7 @@
   .filter-timeline { flex: 2 1 280px; }
   .field-label { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim); }
   .input-wrapper { position: relative; display: flex; align-items: center; }
-  .search-icon { position: absolute; left: 14px; color: var(--text-dim); pointer-events: none; }
+  :global(.search-icon) { position: absolute; left: 14px; color: var(--text-dim); pointer-events: none; }
   .input-wrapper input { padding-left: 40px; height: 44px; background: var(--surface-2); border-radius: var(--radius-sm); font-size: 0.9rem; }
   .date-range { display: flex; align-items: center; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); height: 44px; overflow: hidden; }
   .date-range:focus-within { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2); }
@@ -227,7 +228,7 @@
   /* ── iOS Mobile ─────────────────────────────────────────────────── */
   .ios-filter-row { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; margin-top: 8px; }
   .ios-search-wrap { flex: 1; position: relative; display: flex; align-items: center; background: rgba(118, 118, 128, 0.18); border-radius: 10px; overflow: hidden; }
-  .ios-search-icon { position: absolute; left: 10px; color: var(--text-dim); pointer-events: none; flex-shrink: 0; }
+  :global(.ios-search-icon) { position: absolute; left: 10px; color: var(--text-dim); pointer-events: none; flex-shrink: 0; }
   .ios-search-input { flex: 1; background: transparent; border: none; outline: none; padding: 10px 36px 10px 34px; font-size: 16px; color: #fff; font-family: -apple-system, 'SF Pro Text', sans-serif; min-height: 38px; -webkit-appearance: none; appearance: none; }
   .ios-search-input::placeholder { color: var(--text-dim); }
   .ios-search-clear { position: absolute; right: 8px; background: var(--surface-3); border: none; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); -webkit-tap-highlight-color: transparent; padding: 0; }

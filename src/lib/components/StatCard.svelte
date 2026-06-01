@@ -7,11 +7,9 @@
     isCurrency = false,
     sub = '',
     accentColor = 'var(--primary)',
-    icon = '',
-    /** Progress bar value 0–100. If undefined, no bar is shown. */
+    icon = undefined,
     progress = undefined,
     progressLabel = '',
-    /** Optional percentage to show in top-right (e.g. "45%") */
     percentage = undefined,
   } = $props();
 </script>
@@ -20,7 +18,7 @@
   <div class="stat-header">
     <div class="stat-meta">
       {#if icon}
-        <span class="stat-icon" style="color:{accentColor}">{@html icon}</span>
+        <span class="stat-icon" style="color:{accentColor}">{@render icon()}</span>
       {/if}
       <span class="stat-label">{label}</span>
     </div>
