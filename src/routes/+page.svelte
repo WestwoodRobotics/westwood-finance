@@ -169,10 +169,7 @@
     <h1>Dashboard</h1>
   </div>
 
-  <div
-    class="header-right"
-    style="display: flex; align-items: center; gap: 12px;"
-  >
+  <div class="header-right">
     {#if dataService.error}
       <span class="error-text" style="display:inline-flex;align-items:center;">
         <svg
@@ -193,11 +190,6 @@
         {dataService.error}
       </span>
     {/if}
-
-    <div class="deploy-info">
-      <span class="version-tag">v{appInfo.version}</span>
-      <span class="deploy-time">{appInfo.deployedAt}</span>
-    </div>
 
     <button
       class="btn btn-ghost btn-sm refresh-btn"
@@ -271,7 +263,7 @@
       <section class="card">
         <div class="section-header">
           <div class="section-title-group">
-            <h2>Recent <span>Expenses</span></h2>
+            <h2>Recent Expenses</h2>
           </div>
           <a href="/orders" class="btn btn-ghost btn-xs">View History</a>
         </div>
@@ -289,7 +281,7 @@
       <section class="card">
         <div class="section-header">
           <div class="section-title-group">
-            <h2 style="font-size: 1.1rem">Recent <span>Orders</span></h2>
+            <h2>Recent Orders</h2>
           </div>
           <a href="/orders" class="btn btn-ghost btn-xs">Track</a>
         </div>
@@ -342,15 +334,15 @@
         <div class="ios-receipt-header">
           <div class="ios-receipt-avatar" style="background: {orderColor}22; color: {orderColor};">
             {#if (selectedOrder.category || '').toLowerCase() === 'hardware'}
-              ⚙️
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16z"/><path d="M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
             {:else if (selectedOrder.category || '').toLowerCase() === 'software'}
-              💻
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
             {:else if (selectedOrder.category || '').toLowerCase() === 'outreach'}
-              📢
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="m3 11 19-9-9 19-2-8-8-2z"/></svg>
             {:else if (selectedOrder.category || '').toLowerCase() === 'food'}
-              🍕
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 .6.4 1 1 1h1.5"/><path d="M18 22v-3"/><path d="M21 22v-3"/></svg>
             {:else}
-              📦
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
             {/if}
           </div>
           <div class="ios-receipt-amount">{formatCurrency(selectedOrder.total)}</div>
@@ -454,9 +446,21 @@
 
   .stat-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 24px;
     margin-bottom: 40px;
+  }
+
+  @media (max-width: 900px) {
+    .stat-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .stat-grid {
+      grid-template-columns: 1fr;
+    }
   }
 
   .total-raised-card {
@@ -467,13 +471,6 @@
   .total-raised-card > :global(*) {
     flex: 1;
     width: 100%;
-  }
-
-  /* Hide Total Raised when it would cause an awkward 3+1 layout */
-  @media (min-width: 1100px) and (max-width: 1380px) {
-    .total-raised-card {
-      display: none;
-    }
   }
 
   .dashboard-content {
@@ -614,45 +611,11 @@
     font-size: 0.7rem;
     padding: 4px 10px;
   }
-  .btn-xs {
-    font-size: 0.7rem;
-    padding: 4px 10px;
-  }
-
-  .deploy-info {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
-    margin-right: 8px;
-    padding-right: 12px;
-    border-right: 1px solid var(--border);
-    line-height: 1;
-  }
-
-  .version-tag {
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: #fff;
-  }
-  .deploy-time {
-    font-size: 0.6rem;
-    color: var(--text-dim);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    white-space: nowrap;
-  }
 
   .error-text {
     color: var(--status-rejected);
     font-size: 0.8rem;
     font-weight: 600;
-  }
-
-  @media (max-width: 650px) {
-    .header-right .deploy-info {
-      display: none;
-    }
   }
 
   .mobile-version-footer {

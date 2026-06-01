@@ -2,6 +2,7 @@
   import { page } from "$app/stores";
   import { onMount } from "svelte";
   import { authStore } from "$lib/authStore.svelte.js";
+  import appInfo from "$lib/app-info.json";
 
   const allNavItems = [
     { 
@@ -144,7 +145,7 @@
   </div>
 
   <div class="sidebar-footer">
-    <div class="footer-team">Westwood Finance</div>
+    <div class="footer-version">v{appInfo.version} · {appInfo.deployedAt}</div>
     <div class="footer-copyright">Westwood Robotics © 2025</div>
   </div>
 </aside>
@@ -412,13 +413,16 @@
     background: rgba(0,0,0,0.1);
   }
   
-  .footer-team {
-    font-size: 0.7rem;
+  .footer-version {
+    font-size: 0.65rem;
     font-weight: 600;
     color: var(--text-muted);
     margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  
+
   .footer-copyright {
     font-size: 0.65rem;
     color: var(--text-dim);
