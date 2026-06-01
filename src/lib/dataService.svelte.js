@@ -204,8 +204,6 @@ class DataStore {
     const idToken = authStore.idToken;
     if (!idToken) return;
 
-    console.groupCollapsed('%c DataStore sync', 'color: #888; font-weight: normal');
-
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 20000);
@@ -237,8 +235,7 @@ class DataStore {
       }
       
       this.persist();
-      console.log(`✅ ${this.orders.length} orders, ${this.funds.length} funding entries`);
-      console.groupEnd();
+      console.debug(`DataStore: ${this.orders.length} orders, ${this.funds.length} funding entries`);
     } catch (e) {
       if (e instanceof Error) {
         this.error = e.name === 'AbortError' ? "Connection timed out. Trying again..." : e.message;
@@ -246,7 +243,6 @@ class DataStore {
         this.error = "Unknown error occurred while fetching data.";
       }
       console.error("DataStore Load Error:", e);
-      console.groupEnd();
     } finally {
       this.loading = false;
       this.isSilentLoading = false;
