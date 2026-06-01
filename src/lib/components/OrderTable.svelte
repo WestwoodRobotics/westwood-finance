@@ -228,7 +228,14 @@
     <tbody>
       {#each display as order (order.id)}
         {@const orderColor = getOrderColor(order.orderUUID)}
-        <tr class="group-row" style="--group-color: {orderColor}">
+        <tr
+          class="group-row clickable-row"
+          style="--group-color: {orderColor}"
+          role="button"
+          tabindex="0"
+          onclick={() => selectedOrder = order}
+          onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && (selectedOrder = order)}
+        >
           <td>
             <div class="item-name">
               {#if order.link}
@@ -587,6 +594,16 @@
   }
   .font-medium {
     font-weight: 500;
+  }
+
+  .clickable-row {
+    cursor: pointer;
+  }
+
+  @media (hover: hover) {
+    .clickable-row:hover td {
+      background: var(--surface-2);
+    }
   }
 
   .group-row td:first-child {

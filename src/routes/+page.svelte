@@ -8,6 +8,7 @@
   import OrderStatusBadge from "$lib/components/OrderStatusBadge.svelte";
   import CustomDropdown from "$lib/components/CustomDropdown.svelte";
   import IOSBottomSheet from "$lib/components/IOSBottomSheet.svelte";
+  import LineChart from "$lib/components/LineChart.svelte";
   import {
     formatCurrency,
     formatDate,
@@ -91,6 +92,20 @@
     ),
   );
   let netBalance = $derived(totalRaised - totalSpent);
+
+  let monthlyTrends = $derived.by(() => {
+    /** @type {Record<string, number>} */
+    const map = {};
+    expenses.forEach((/** @type {Order} */ e) => {
+      const d = new Date(e.timestamp || "");
+      if (isNaN(d.getTime())) return;
+      const month = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      map[month] = (map[month] || 0) + (e.total || 0);
+    });
+    return Object.entries(map)
+      .map(([month, amount]) => ({ month, amount }))
+      .sort((a, b) => a.month.localeCompare(b.month));
+  });
 
   let recentExpenses = $derived(expenses.slice(-5).reverse());
   let recentOrders = $derived(teamOrders.slice(-5).reverse());
@@ -273,6 +288,20 @@
       </section>
     </aside>
   </div>
+
+  {#if monthlyTrends.length > 1}
+    <div class="card trend-card fade-in">
+      <div class="section-header" style="margin-bottom: 20px;">
+        <div class="section-title-group">
+          <h2>Spending Trend</h2>
+        </div>
+        <a href="/stats" class="btn btn-ghost btn-xs">Full Analytics</a>
+      </div>
+      <div class="trend-chart-container">
+        <LineChart data={monthlyTrends} />
+      </div>
+    </div>
+  {/if}
 {/if}
 
 <IOSBottomSheet open={!!selectedOrder} onclose={() => (selectedOrder = null)} title="Order Details">
@@ -550,6 +579,17 @@
   .btn-xs {
     font-size: 0.7rem;
     padding: 4px 10px;
+  }
+
+  .trend-card {
+    margin-top: 24px;
+    padding: 24px;
+  }
+
+  .trend-chart-container {
+    height: 220px;
+    width: 100%;
+    position: relative;
   }
 
   .mobile-version-footer {

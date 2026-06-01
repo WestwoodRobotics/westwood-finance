@@ -232,6 +232,17 @@
         {/if}
       </div>
     </div>
+
+    {#if Object.keys(byVendorDollars).length > 0}
+      <div class="card chart-card chart-card-wide" style="margin-top: 24px">
+        <div class="card-header-group">
+          <h3 class="chart-title">Top Vendors by Spend</h3>
+        </div>
+        <div class="chart-container chart-container-tall">
+          <BarChart data={byVendorDollars} />
+        </div>
+      </div>
+    {/if}
   </div>
 {:else}
   <div class="empty-state card fade-in">
@@ -282,9 +293,17 @@
 
 
   .chart-container {
-    height: 220px;
+    height: 260px;
     width: 100%;
     position: relative;
+  }
+
+  .chart-container-tall {
+    height: 320px;
+  }
+
+  .chart-card-wide {
+    grid-column: 1 / -1;
   }
 
 

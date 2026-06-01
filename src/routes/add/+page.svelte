@@ -55,6 +55,12 @@
   let testModalError = $state("");
 
 
+  $effect(() => {
+    if (vendorSelect && vendorSelect !== 'Other') {
+      form.company = vendorSelect;
+    }
+  });
+
   function handleTestUnlock() {
     fillTestOrder();
     showTestLock = false;
@@ -256,13 +262,16 @@
 
           <div class="form-group">
             <label for="ae-company">Vendor / Supplier *</label>
-            <input
-              id="ae-company"
-              type="text"
-              bind:value={form.company}
-              placeholder="ex. REV Robotics"
-              required
-            />
+            <div class="vendor-field-group">
+              <CustomDropdown options={presetVendors} bind:value={vendorSelect} />
+              <input
+                id="ae-company"
+                type="text"
+                bind:value={form.company}
+                placeholder="or type vendor name"
+                required
+              />
+            </div>
           </div>
 
           <div class="form-group">
@@ -495,6 +504,12 @@
       margin: 0; 
     }
     .summary-section { padding: 16px; margin-bottom: 24px; }
+  }
+
+  .vendor-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
   }
 
   .disabled-input {
