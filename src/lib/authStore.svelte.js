@@ -103,26 +103,12 @@ class AuthStore {
         const match = emailMatch || sidMatch;
 
         if (match) {
-          const conflictingEmail = match.member.email &&
-            this.googleUser.email &&
-            match.member.email.toLowerCase() !== this.googleUser.email.toLowerCase();
-
-          if (conflictingEmail) {
+          if (match.member.email &&
+              this.googleUser.email &&
+              match.member.email.toLowerCase() !== this.googleUser.email.toLowerCase()) {
             console.warn('🔐 Auth: Email mismatch for student ID', this.studentId);
-            this.status = 'unauthorized';
-            this.member = null;
-          } else if (match.evalStatus === 'approved') {
-            this.member = match.member;
-            this.status = 'approved';
-          } else if (match.evalStatus === 'unauthorized') {
-            this.member = null;
-            this.status = 'unauthorized';
-          } else {
-            this.member = null;
-            this.status = 'pending_approval';
           }
-          this.studentId = match.member.studentId;
-          this.pendingTeam = match.member.team;
+          this._applyMatch(match);
         } else if (this.studentId) {
           this.status = 'pending_approval';
         } else {
@@ -214,6 +200,28 @@ class AuthStore {
     }
   }
 
+  /** @param {{ member: ApprovedMember, evalStatus: string }} match */
+  _applyMatch(match) {
+    const conflictingEmail = match.member.email &&
+      this.googleUser?.email &&
+      match.member.email.toLowerCase() !== this.googleUser.email.toLowerCase();
+    if (conflictingEmail) {
+      this.status = 'unauthorized';
+      this.member = null;
+    } else if (match.evalStatus === 'approved') {
+      this.member = match.member;
+      this.status = 'approved';
+    } else if (match.evalStatus === 'unauthorized') {
+      this.member = null;
+      this.status = 'unauthorized';
+    } else {
+      this.member = null;
+      this.status = 'pending_approval';
+    }
+    this.studentId = match.member.studentId;
+    this.pendingTeam = match.member.team;
+  }
+
   _revalidate() {
     if (!this.googleUser) return;
     const emailMatch = this._findMemberByEmail(this.googleUser.email);
@@ -221,24 +229,7 @@ class AuthStore {
     const match = emailMatch || sidMatch;
 
     if (match) {
-      const conflictingEmail = match.member.email &&
-        this.googleUser.email &&
-        match.member.email.toLowerCase() !== this.googleUser.email.toLowerCase();
-      if (conflictingEmail) {
-        this.status = 'unauthorized';
-        this.member = null;
-      } else if (match.evalStatus === 'approved') {
-        this.member = match.member;
-        this.status = 'approved';
-      } else if (match.evalStatus === 'unauthorized') {
-        this.member = null;
-        this.status = 'unauthorized';
-      } else {
-        this.member = null;
-        this.status = 'pending_approval';
-      }
-      this.studentId = match.member.studentId;
-      this.pendingTeam = match.member.team;
+      this._applyMatch(match);
     } else if (this.status === 'approved') {
       this.member = null;
       this.status = 'pending_approval';
