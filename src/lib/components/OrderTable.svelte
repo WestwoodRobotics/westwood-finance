@@ -1,6 +1,7 @@
 <script>
   import {
     formatCurrency,
+    formatFullDate,
     truncate,
     capitalize,
     getTeamBadgeClass,

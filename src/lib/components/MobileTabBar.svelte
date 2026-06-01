@@ -1,7 +1,7 @@
 <script>
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
-  import { authStore } from '$lib/authStore.svelte.js';
+  import { perms } from '$lib/perms.js';
   import { isMobile } from '$lib/mediaQuery.svelte.js';
   import { LayoutDashboard, ShoppingBag, Plus, Users, MoreHorizontal, BarChart3, User, ChevronRight } from '@lucide/svelte';
 
@@ -21,7 +21,7 @@
   ];
 
   let moreItems = $derived(
-    allMoreItems.filter(item => !item.adminOnly || authStore.isAdmin)
+    allMoreItems.filter(item => !item.adminOnly || perms.admin)
   );
 
   /** @param {string} href */

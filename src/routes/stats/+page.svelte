@@ -1,5 +1,4 @@
 <script>
-  import { onMount } from "svelte";
   import { ChevronDown, DollarSign, ShoppingBag, Home, BarChart3 } from '@lucide/svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import StatCard from "$lib/components/StatCard.svelte";
@@ -19,23 +18,14 @@
   } from "$lib/utils.js";
   import { dataService } from "$lib/dataService.svelte.js";
   import { authStore } from "$lib/authStore.svelte.js";
+  import { perms } from "$lib/perms.js";
 
   /** @typedef {import('$lib/dataService.svelte.js').Order} Order */
 
-  const TEAM_OPTIONS = authStore.isAdmin ? TEAMS : [authStore.userTeam];
-  let selectedTeam = $state(authStore.isAdmin ? "FRC" : authStore.userTeam);
+  const TEAM_OPTIONS = perms.viewAllTeams ? TEAMS : [authStore.userTeam];
+  let selectedTeam = $state(perms.viewAllTeams ? "FRC" : authStore.userTeam);
 
-  onMount(() => {
-    dataService.load();
-  });
-
-  // ── Stats Calculations ──────────────────────────────────────────────────────
-
-  // Use all requested orders for analytics
-  // For non-admins, always enforce their own team regardless of selectedTeam
-  let effectiveTeam = $derived(
-    !authStore.isAdmin && authStore.userTeam ? authStore.userTeam : selectedTeam
-  );
+  let effectiveTeam = $derived(!perms.viewAllTeams && authStore.userTeam ? authStore.userTeam : selectedTeam);
 
   let teamOrders = $derived(
     dataService.orders.filter((o) => matchesTeam(o, effectiveTeam)),
@@ -155,7 +145,7 @@
 
 <PageHeader title="Spending" titleAccent="Trends">
   {#snippet actions()}
-    {#if authStore.isAdmin}
+    {#if perms.viewAllTeams}
     <div class="team-selector">
       <CustomDropdown options={TEAM_OPTIONS} bind:value={selectedTeam} />
     </div>

@@ -1,10 +1,8 @@
 <script>
-  import { onMount } from "svelte";
   import { ChevronDown, BarChart3, Receipt } from '@lucide/svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import {
     formatCurrency,
-    formatFullDate,
     getTeamBadgeClass,
     CATEGORIES,
     matchesTeam,
@@ -19,6 +17,7 @@
   import PieChart from "$lib/components/PieChart.svelte";
   import { browser } from "$app/environment";
   import { authStore } from "$lib/authStore.svelte.js";
+  import { perms } from "$lib/perms.js";
 
   const typeOptions = [
     { label: "Fundraiser", value: "Fundraiser" },
@@ -40,7 +39,7 @@
   let sortCol = $state("Date");
   let sortDir = $state("desc");
 
-  let selectedBudgetTeam = $state(authStore.isAdmin ? "FRC" : authStore.userTeam);
+  let selectedBudgetTeam = $state(perms.viewAllTeams ? "FRC" : authStore.userTeam);
 
   let teamSpecificBudgetOrders = $derived(
     dataService.orders.filter((/** @type {any} */ o) => matchesTeam(o, selectedBudgetTeam)),
@@ -51,10 +50,6 @@
   const TABS = ['budget', 'history', 'master'];
   let tabIndex = $derived(TABS.indexOf(activeTab));
   let tabCount = $derived(selectedBudgetTeam === 'Westwood Overall' ? 1 : 3);
-
-  onMount(() => {
-    dataService.load();
-  });
 
   let totalRaised = $derived(
     dataService.funds.reduce(
@@ -145,17 +140,6 @@
       sortCol = col;
       sortDir = col === "Date" || col === "Amount" ? "desc" : "asc";
     }
-  }
-
-  function formatDate(/** @type {string} */ ts) {
-    if (!ts) return "—";
-    const d = new Date(ts);
-    if (isNaN(d.getTime())) return ts;
-    return d.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
   }
 
   const TYPE_COLORS = /** @type {Record<string,string>} */ ({
@@ -264,7 +248,7 @@
 <PageHeader title="Team" titleAccent="Dashboard">
   {#snippet actions()}
     <div class="team-selector">
-      {#if authStore.isAdmin}
+      {#if perms.viewAllTeams}
         <CustomDropdown
           options={["FRC", "Slingshot", "Atlatl", "Kunai", "Hunga Munga", "Westwood Overall"]}
           bind:value={selectedBudgetTeam}

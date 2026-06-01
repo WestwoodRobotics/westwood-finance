@@ -1,5 +1,4 @@
 <script>
-  import { onMount } from "svelte";
   import { DollarSign, TrendingUp, ShoppingCart, BarChart3 } from '@lucide/svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import StatCard from "$lib/components/StatCard.svelte";
@@ -18,12 +17,13 @@
   } from "$lib/utils.js";
   import { dataService } from "$lib/dataService.svelte.js";
   import { authStore } from "$lib/authStore.svelte.js";
+  import { perms } from "$lib/perms.js";
   import appInfo from "$lib/app-info.json";
 
   /** @typedef {import('$lib/dataService.svelte.js').Order} Order */
 
-  const TEAM_OPTIONS = authStore.isAdmin ? TEAMS : [authStore.userTeam];
-  let selectedTeam = $state(authStore.isAdmin ? "Westwood Overall" : authStore.userTeam);
+  const TEAM_OPTIONS = perms.viewAllTeams ? TEAMS : [authStore.userTeam];
+  let selectedTeam = $state(perms.viewAllTeams ? "Westwood Overall" : authStore.userTeam);
 
   // ── Derived View Based on Team ─────────────────────────────────────────────
   let teamOrders = $derived(
@@ -41,10 +41,6 @@
           return r === s || r.includes(s) || r === "all";
         }),
   );
-
-  onMount(() => {
-    dataService.load(); // uses cache if available
-  });
 
   // ── Derived Stats ───────────────────────────────────────────────────────────
   // All orders for the full year expense count (regardless of status)
@@ -119,7 +115,7 @@
 
 <PageHeader title="Dashboard">
   {#snippet actions()}
-    {#if authStore.isAdmin}
+    {#if perms.viewAllTeams}
     <div class="team-selector">
       <CustomDropdown options={TEAM_OPTIONS} bind:value={selectedTeam} />
     </div>

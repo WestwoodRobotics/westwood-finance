@@ -16,13 +16,14 @@
   } from "$lib/utils.js";
   import { dataService } from "$lib/dataService.svelte.js";
   import { authStore } from "$lib/authStore.svelte.js";
+  import { perms } from "$lib/perms.js";
   import { BASE_URL } from "$lib/config.js";
   import { goto } from "$app/navigation";
 
   /** @typedef {import('$lib/dataService.svelte.js').Order} Order */
 
   $effect(() => {
-    if (authStore && authStore.initialized && !authStore.isAdmin) goto('/');
+    if (authStore && authStore.initialized && !perms.admin) goto('/');
   });
 
   const ORDER_STATUSES = [
@@ -303,7 +304,7 @@
       activeView = view;
     }
 
-    if (!authStore.isAdmin) {
+    if (!perms.admin) {
       goto('/');
     }
   });
@@ -866,7 +867,7 @@
   <title>Admin Dashboard | Westwood Finance</title>
 </svelte:head>
 
-{#if !authStore.isAdmin}
+{#if !perms.admin}
   <div class="admin-auth-container" style="text-align:center; padding: 80px 20px;">
     <h2 style="color: #fff; margin-bottom: 12px;">Access Denied</h2>
     <p style="color: var(--text-muted); margin-bottom: 24px;">You need admin privileges to access this page.</p>
@@ -1727,7 +1728,7 @@
 {/if}
 
 <!-- ── Mobile Tab FAB (bottom right, admin) ────────────────────────────── -->
-{#if authStore.isAdmin && isMobile}
+{#if perms.admin && isMobile}
   {#if showTabMenu}
     <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_noninteractive_element_interactions -->
     <div class="tab-fab-backdrop" onclick={() => showTabMenu = false} role="button" tabindex="-1"></div>

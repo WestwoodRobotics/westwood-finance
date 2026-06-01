@@ -10,7 +10,10 @@
 
   let { children } = $props();
 
-  // ── Global 3s data poll (paused when tab is hidden) ────────────────────────
+  $effect(() => {
+    if (authStore.isApproved) dataService.load();
+  });
+
   onMount(() => {
     const interval = setInterval(() => {
       if (authStore.isApproved && document.visibilityState === 'visible') {

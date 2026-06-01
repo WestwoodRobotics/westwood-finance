@@ -8,8 +8,9 @@
   import { BASE_URL } from "$lib/config.js";
   import { fade, scale } from "svelte/transition";
   import { authStore } from "$lib/authStore.svelte.js";
+  import { perms } from "$lib/perms.js";
 
-  const teamOptions = authStore.isAdmin
+  const teamOptions = perms.manageOrders
     ? TEAMS.filter(t => t !== "Westwood Overall").map((/** @type {string} */ team) => ({
         label: team,
         value: team,
@@ -88,7 +89,7 @@
     submitSuccess = "";
 
     // For non-admins, always force orderedBy to be their verified name
-    if (!authStore.isAdmin) {
+    if (!perms.manageOrders) {
       form.orderedBy = authStore.displayName;
     }
 
@@ -216,7 +217,7 @@
     <h1>Add <span>Order</span></h1>
     <p class="text-muted">Fill out the form below to request a new purchase</p>
   </div>
-  {#if authStore.isAdmin}
+  {#if perms.manageOrders}
     <div class="header-right">
       <button class="btn btn-ghost btn-sm" onclick={toggleExpenseMode}>
         <DollarSign size={14} />
@@ -276,7 +277,7 @@
 
           <div class="form-group">
             <label for="ae-team">Team *</label>
-            {#if authStore.isAdmin}
+            {#if perms.manageOrders}
               <CustomDropdown
                 options={teamOptions}
                 bind:value={form.team}
@@ -333,7 +334,7 @@
 
           <div class="form-group">
             <label for="ae-orderedby">Ordered By *</label>
-            {#if authStore.isAdmin}
+            {#if perms.manageOrders}
               <input
                 id="ae-orderedby"
                 type="text"

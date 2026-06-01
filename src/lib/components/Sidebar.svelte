@@ -1,6 +1,7 @@
 <script>
   import { page } from "$app/stores";
   import { authStore } from "$lib/authStore.svelte.js";
+  import { perms } from "$lib/perms.js";
   import { isMobile } from "$lib/mediaQuery.svelte.js";
   import appInfo from "$lib/app-info.json";
   import { LayoutDashboard, PlusCircle, Users, ShoppingCart, BarChart3, User, X, LogOut } from '@lucide/svelte';
@@ -15,7 +16,7 @@
   ];
 
   let navItems = $derived(
-    allNavItems.filter(item => !item.adminOnly || authStore.isAdmin)
+    allNavItems.filter(item => !item.adminOnly || perms.admin)
   );
 
   /** @param {string} href */
@@ -100,7 +101,7 @@
         {/if}
         <div class="user-info">
           <div class="user-name">{authStore.displayName}</div>
-          <div class="user-team">{authStore.userTeam}{authStore.isAdmin ? ' · Admin' : ''}</div>
+          <div class="user-team">{authStore.userTeam}{perms.admin ? ' · Admin' : ''}</div>
         </div>
       </div>
       <button class="signout-btn" onclick={() => authStore.signOut()} title="Sign out">

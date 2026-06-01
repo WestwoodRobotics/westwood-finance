@@ -8,6 +8,7 @@
   import LoadingIndicator from "$lib/components/LoadingIndicator.svelte";
   import { dataService } from "$lib/dataService.svelte.js";
   import { authStore } from "$lib/authStore.svelte.js";
+  import { perms } from "$lib/perms.js";
   import { STATUS_PRIORITY } from "$lib/utils.js";
 
   /** @typedef {import('$lib/dataService.svelte.js').Order} Order */
@@ -16,21 +17,20 @@
     search: "",
     category: "",
     company: "",
-    team: authStore.isAdmin ? "" : authStore.userTeam,
+    team: perms.viewAllTeams ? "" : authStore.userTeam,
     status: "",
     dateFrom: "",
     dateTo: "",
   });
 
   onMount(() => {
-    dataService.load();
     if (browser) {
       const q = new URLSearchParams(window.location.search);
       if (q.has("search")) filters.search = q.get("search") || "";
       if (q.has("category")) filters.category = q.get("category") || "";
       if (q.has("company")) filters.company = q.get("company") || "";
       // Only allow team filter override for admins
-      if (q.has("team") && authStore.isAdmin) filters.team = q.get("team") || "";
+      if (q.has("team") && perms.viewAllTeams) filters.team = q.get("team") || "";
       if (q.has("status")) filters.status = q.get("status") || "";
     }
   });
@@ -131,7 +131,7 @@
     return dataService.orders
       .filter((/** @type {Order} */ e) => {
         // HARD GUARD: Non-admin members can ONLY see their own team's data
-        if (!authStore.isAdmin && authStore.userTeam) {
+        if (!perms.viewAllTeams && authStore.userTeam) {
           const orderTeam = (e.team || '').toLowerCase().trim();
           const myTeam = authStore.userTeam.toLowerCase().trim();
           if (orderTeam !== myTeam && !orderTeam.includes(myTeam)) return false;
@@ -204,7 +204,7 @@
   <LoadingIndicator text="Syncing records..." />
 {:else if dataService.orders.length > 0}
   <div class={!dataService.hasLoadedOnce ? "fade-in" : ""}>
-    <OrderTable orders={filtered} hideTeamColumn={!authStore.isAdmin} />
+    <OrderTable orders={filtered} hideTeamColumn={!perms.viewAllTeams} />
   </div>
 {:else}
   <div class="empty-state card fade-in">

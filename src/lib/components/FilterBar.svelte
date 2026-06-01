@@ -4,7 +4,7 @@
   import CustomDropdown from './CustomDropdown.svelte';
   import IOSBottomSheet from './IOSBottomSheet.svelte';
   import { isMobile } from '$lib/mediaQuery.svelte.js';
-  import { authStore } from '$lib/authStore.svelte.js';
+  import { perms } from '$lib/perms.js';
 
   const categoryOptions = [
     { label: 'All Categories', value: '' },
@@ -36,7 +36,7 @@
     filters.search = "";
     filters.category = "";
     filters.company = "";
-    if (authStore.isAdmin) filters.team = "";
+    if (perms.viewAllTeams) filters.team = "";
     filters.status = "";
     filters.dateFrom = "";
     filters.dateTo = "";
@@ -78,7 +78,7 @@
         <span class="field-label">Vendor</span>
         <input id="filter-company" type="text" placeholder="Any vendor" bind:value={filters.company} />
       </div>
-      {#if authStore.isAdmin}
+      {#if perms.viewAllTeams}
       <div class="filter-field">
         <span class="field-label">Team</span>
         <CustomDropdown options={teamOptions} bind:value={filters.team} />
@@ -144,7 +144,7 @@
             {/each}
           </select>
         </div>
-        {#if authStore.isAdmin}
+        {#if perms.viewAllTeams}
         <div class="ios-sheet-filter-group">
           <div class="ios-sheet-filter-label">Team</div>
           <select bind:value={filters.team} class="ios-native-select">
