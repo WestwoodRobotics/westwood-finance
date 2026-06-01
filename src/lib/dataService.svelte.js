@@ -235,7 +235,7 @@ class DataStore {
       }
       
       this.persist();
-      console.debug(`DataStore: ${this.orders.length} orders, ${this.funds.length} funding entries`);
+      console.log(`DataStore: ${this.orders.length} orders, ${this.funds.length} funding entries`);
     } catch (e) {
       if (e instanceof Error) {
         this.error = e.name === 'AbortError' ? "Connection timed out. Trying again..." : e.message;
