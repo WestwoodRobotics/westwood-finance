@@ -27,25 +27,19 @@
     { label: 'Void', value: 'Void' }
   ];
 
-  /** @type {{ onchange?: (f: any) => void, filters: any }} */
-  let { onchange, filters = $bindable() } = $props();
+  /** @type {{ filters: any }} */
+  let { filters = $bindable() } = $props();
 
   let showFilterSheet = $state(false);
-
-  function emit() {
-    onchange?.({ ...filters });
-  }
 
   function reset() {
     filters.search = "";
     filters.category = "";
     filters.company = "";
-    // Only reset team filter for admins — members stay locked to their team
     if (authStore.isAdmin) filters.team = "";
     filters.status = "";
     filters.dateFrom = "";
     filters.dateTo = "";
-    emit();
   }
 
   let activeFilterCount = $derived(
@@ -66,7 +60,7 @@
             type="search"
             placeholder="Filter requests, vendors, or notes..."
             bind:value={filters.search}
-            oninput={emit}
+           
           />
         </div>
       </div>
@@ -78,28 +72,28 @@
     <div class="filter-grid">
       <div class="filter-field">
         <span class="field-label">Category</span>
-        <CustomDropdown options={categoryOptions} bind:value={filters.category} onchange={emit} />
+        <CustomDropdown options={categoryOptions} bind:value={filters.category} />
       </div>
       <div class="filter-field">
         <span class="field-label">Vendor</span>
-        <input id="filter-company" type="text" placeholder="Any vendor" bind:value={filters.company} oninput={emit} />
+        <input id="filter-company" type="text" placeholder="Any vendor" bind:value={filters.company} />
       </div>
       {#if authStore.isAdmin}
       <div class="filter-field">
         <span class="field-label">Team</span>
-        <CustomDropdown options={teamOptions} bind:value={filters.team} onchange={emit} />
+        <CustomDropdown options={teamOptions} bind:value={filters.team} />
       </div>
       {/if}
       <div class="filter-field filter-status">
         <span class="field-label">Status</span>
-        <CustomDropdown options={statusOptions} bind:value={filters.status} onchange={emit} />
+        <CustomDropdown options={statusOptions} bind:value={filters.status} />
       </div>
       <div class="filter-field filter-timeline">
         <span class="field-label">Timeline</span>
         <div class="date-range">
-          <input type="date" bind:value={filters.dateFrom} onchange={emit} />
+          <input type="date" bind:value={filters.dateFrom} />
           <span class="connector">→</span>
-          <input type="date" bind:value={filters.dateTo} onchange={emit} />
+          <input type="date" bind:value={filters.dateTo} />
         </div>
       </div>
     </div>
@@ -114,11 +108,11 @@
         type="search"
         placeholder="Search orders..."
         bind:value={filters.search}
-        oninput={emit}
+       
         class="ios-search-input"
       />
       {#if filters.search}
-        <button class="ios-search-clear" onclick={() => { filters.search = ''; emit(); }} aria-label="Clear search">
+        <button class="ios-search-clear" onclick={() => { filters.search = ''; }} aria-label="Clear search">
           <CircleX size={14} />
         </button>
       {/if}
@@ -144,7 +138,7 @@
       <div class="ios-sheet-filters">
         <div class="ios-sheet-filter-group">
           <div class="ios-sheet-filter-label">Category</div>
-          <select bind:value={filters.category} onchange={emit} class="ios-native-select">
+          <select bind:value={filters.category} class="ios-native-select">
             {#each categoryOptions as opt}
               <option value={opt.value}>{opt.label}</option>
             {/each}
@@ -153,7 +147,7 @@
         {#if authStore.isAdmin}
         <div class="ios-sheet-filter-group">
           <div class="ios-sheet-filter-label">Team</div>
-          <select bind:value={filters.team} onchange={emit} class="ios-native-select">
+          <select bind:value={filters.team} class="ios-native-select">
             {#each teamOptions as opt}
               <option value={opt.value}>{opt.label}</option>
             {/each}
@@ -162,7 +156,7 @@
         {/if}
         <div class="ios-sheet-filter-group">
           <div class="ios-sheet-filter-label">Status</div>
-          <select bind:value={filters.status} onchange={emit} class="ios-native-select">
+          <select bind:value={filters.status} class="ios-native-select">
             {#each statusOptions as opt}
               <option value={opt.value}>{opt.label}</option>
             {/each}
@@ -170,15 +164,15 @@
         </div>
         <div class="ios-sheet-filter-group">
           <div class="ios-sheet-filter-label">Vendor</div>
-          <input type="text" placeholder="Any vendor" bind:value={filters.company} oninput={emit} class="ios-native-input" />
+          <input type="text" placeholder="Any vendor" bind:value={filters.company} class="ios-native-input" />
         </div>
         <div class="ios-sheet-filter-group">
           <div class="ios-sheet-filter-label">Date From</div>
-          <input type="date" bind:value={filters.dateFrom} onchange={emit} class="ios-native-input" />
+          <input type="date" bind:value={filters.dateFrom} class="ios-native-input" />
         </div>
         <div class="ios-sheet-filter-group">
           <div class="ios-sheet-filter-label">Date To</div>
-          <input type="date" bind:value={filters.dateTo} onchange={emit} class="ios-native-input" />
+          <input type="date" bind:value={filters.dateTo} class="ios-native-input" />
         </div>
         <div class="ios-sheet-filter-actions">
           <button class="ios-reset-btn" onclick={() => { reset(); showFilterSheet = false; }}>Reset All Filters</button>

@@ -107,6 +107,12 @@ export const CAT_COLORS = {
   food:          '#eab308',
   miscellaneous: '#8b5cf6',
 };
+
+/** @param {string|undefined} cat */
+export function getCatColor(cat) {
+  const key = /** @type {keyof typeof CAT_COLORS} */ ((cat || 'miscellaneous').toLowerCase());
+  return CAT_COLORS[key] || CAT_COLORS.miscellaneous;
+}
 export const STATUS_PRIORITY = {
   'pending review': 0,
   approved:         1,

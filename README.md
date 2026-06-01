@@ -14,14 +14,14 @@ npm works too
 
 ## stack
 
-- **frontend** — sveltekit (static), svelte 5 runes
+- **frontend** — sveltekit (static), svelte 5
 - **backend** — google apps script (`backend/Code.gs`)
-- **data** — google sheets via GAS web app endpoint
+- **data** — google sheets via apps script web app endpoint
 
 ## deploy
 
 ```sh
-pnpm build   # outputs to /build
+pnpm deploy   # deploys to gh-pages + outputs to /build w/o push to gh on wtv branch
 ```
 
 deployed via `.github/workflows/deploy.yml` to github pages in the `gh-pages` branch

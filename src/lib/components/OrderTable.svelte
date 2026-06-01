@@ -1,18 +1,17 @@
 <script>
   import {
     formatCurrency,
-    formatFullDate,
     truncate,
     capitalize,
     getTeamBadgeClass,
-    getOrderColorCached,
     CAT_COLORS,
     STATUS_PRIORITY,
+    getCatColor,
   } from "../utils.js";
-  import { Settings, Code2, Megaphone, UtensilsCrossed, Package, Pencil, ChevronRight } from '@lucide/svelte';
+  import { Settings, Code2, Megaphone, UtensilsCrossed, Package, ChevronRight } from '@lucide/svelte';
   const PackageIcon = Package;
   import OrderStatusBadge from "./OrderStatusBadge.svelte";
-  import IOSBottomSheet from "./IOSBottomSheet.svelte";
+  import OrderDetailSheet from "./OrderDetailSheet.svelte";
 
   /** @type {{ orders: any[], limit?: number, hideTeamColumn?: boolean, hideCategoryColumn?: boolean, hideCompanyColumn?: boolean, onmanage?: (order: any) => void }} */
   let {
@@ -81,11 +80,9 @@
     miscellaneous: Package,
   };
 
-  function getCatColor(/** @type {string|undefined} */ cat) {
-    return CAT_COLORS[(cat || "miscellaneous").toLowerCase()] || "#8b5cf6";
-  }
   function getCatIcon(/** @type {string|undefined} */ cat) {
-    return CAT_ICONS[(cat || "miscellaneous").toLowerCase()] || CAT_ICONS.miscellaneous;
+    const key = /** @type {keyof typeof CAT_ICONS} */ ((cat || "miscellaneous").toLowerCase());
+    return CAT_ICONS[key] || CAT_ICONS.miscellaneous;
   }
 
   /** @param {string} url */
@@ -164,10 +161,9 @@
     </thead>
     <tbody>
       {#each display as order (order.id)}
-        {@const orderColor = getOrderColorCached(order.orderUUID)}
         <tr
           class="group-row clickable-row"
-          style="--group-color: {orderColor}"
+          style="--group-color: {getCatColor(order.category)}"
           role="button"
           tabindex="0"
           onclick={() => selectedOrder = order}
@@ -293,8 +289,7 @@
     <div class="ios-list-group">
       {#each display as order (order.id)}
         {@const catColor = getCatColor(order.category)}
-        {@const catIcon = getCatIcon(order.category)}
-        {@const CatIcon = catIcon}
+        {@const CatIcon = getCatIcon(order.category)}
         <div
           class="ios-cell"
           role="button"
@@ -353,99 +348,12 @@
   {/if}
 </div>
 
-<IOSBottomSheet open={!!selectedOrder} onclose={() => selectedOrder = null} title="Order Details">
-  {#snippet children()}
-    {#if selectedOrder}
-      {@const catColor = getCatColor(selectedOrder.category)}
-      {@const catIcon = getCatIcon(selectedOrder.category)}
-      {@const CatIcon = catIcon}
-      <div class="ios-receipt-card">
-        <div class="ios-receipt-header">
-          <div class="ios-receipt-avatar" style="background: {catColor}22; color: {catColor}; font-size: 18px;">
-            <CatIcon size={18} />
-          </div>
-          <div class="ios-receipt-amount">{formatCurrency(selectedOrder.total)}</div>
-          <div class="ios-receipt-title">{selectedOrder.item}</div>
-          <div class="ios-receipt-subtitle">{selectedOrder.company || '—'}</div>
-        </div>
-
-        <hr class="ios-receipt-divider" />
-
-        <div class="ios-receipt-grid">
-          <div class="ios-receipt-row">
-            <span class="ios-receipt-label">Status</span>
-            <span class="ios-receipt-val"><OrderStatusBadge status={selectedOrder.status} /></span>
-          </div>
-          <div class="ios-receipt-row">
-            <span class="ios-receipt-label">Date</span>
-            <span class="ios-receipt-val monospace">{formatFullDate(selectedOrder.timestamp)}</span>
-          </div>
-          <div class="ios-receipt-row">
-            <span class="ios-receipt-label">Team</span>
-            <span class="ios-receipt-val">{selectedOrder.team || selectedOrder.user || "—"}</span>
-          </div>
-          <div class="ios-receipt-row">
-            <span class="ios-receipt-label">Category</span>
-            <span class="ios-receipt-val">{capitalize(selectedOrder.category)}</span>
-          </div>
-          <div class="ios-receipt-row">
-            <span class="ios-receipt-label">Unit Price</span>
-            <span class="ios-receipt-val monospace">{formatCurrency(selectedOrder.price)}</span>
-          </div>
-          <div class="ios-receipt-row">
-            <span class="ios-receipt-label">Quantity</span>
-            <span class="ios-receipt-val monospace">×{selectedOrder.quantity}</span>
-          </div>
-          {#if selectedOrder.tracking}
-            <div class="ios-receipt-row">
-              <span class="ios-receipt-label">Tracking</span>
-              <span class="ios-receipt-val monospace">
-                <button type="button" class="link-btn" onclick={() => openExternal(selectedOrder.tracking)}>
-                  {selectedOrder.tracking} ↗
-                </button>
-              </span>
-            </div>
-          {/if}
-        </div>
-
-        {#if selectedOrder.notes}
-          <div class="ios-receipt-notes-card">
-            <div class="ios-receipt-notes-title">
-              <Pencil size={12} />
-              Notes
-            </div>
-            <div class="ios-receipt-notes-body">{selectedOrder.notes}</div>
-          </div>
-        {/if}
-
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          {#if selectedOrder.link}
-            <button
-              type="button"
-              class="btn btn-ghost btn-block"
-              style="height: 48px; border-radius: 12px; font-weight: 700;"
-              onclick={() => openExternal(selectedOrder.link)}
-            >
-              Open Vendor Link ↗
-            </button>
-          {/if}
-
-          {#if onmanage}
-            <button
-              class="btn btn-primary btn-block"
-              onclick={() => {
-                onmanage(selectedOrder);
-                selectedOrder = null;
-              }}
-            >
-              Manage Order
-            </button>
-          {/if}
-        </div>
-      </div>
-    {/if}
-  {/snippet}
-</IOSBottomSheet>
+<OrderDetailSheet
+  order={selectedOrder}
+  open={!!selectedOrder}
+  onclose={() => (selectedOrder = null)}
+  onmanage={onmanage}
+/>
 
 <style>
   /* ── Desktop: show table, hide list ─────────────────────────── */

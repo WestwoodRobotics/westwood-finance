@@ -36,7 +36,6 @@
     { label: "Westwood Overall", value: "Westwood Overall" },
   ];
 
-  // ── State ───────────────────────────────────────────────────────────────────
   let activeTab = $state("budget");
   let sortCol = $state("Date");
   let sortDir = $state("desc");
@@ -47,20 +46,16 @@
     dataService.orders.filter((/** @type {any} */ o) => matchesTeam(o, selectedBudgetTeam)),
   );
 
-  // ── Lock ─────────────────────────────────────────────────────────────────────
   let unlocked = $state(false);
 
-  // ── Tab highlight position ───────────────────────────────────────────────────
-  let tabIndex = $derived(
-    selectedBudgetTeam === 'Westwood Overall' ? 0 : ['budget', 'history', 'master'].indexOf(activeTab)
-  );
+  const TABS = ['budget', 'history', 'master'];
+  let tabIndex = $derived(TABS.indexOf(activeTab));
   let tabCount = $derived(selectedBudgetTeam === 'Westwood Overall' ? 1 : 3);
 
   onMount(() => {
-    dataService.load(); // Uses cache for instant load
+    dataService.load();
   });
 
-  // ── Derived totals ──────────────────────────────────────────────────────────
   let totalRaised = $derived(
     dataService.funds.reduce(
       (/** @type {number} */ sum, /** @type {any} */ f) =>
@@ -152,7 +147,6 @@
     }
   }
 
-  // ── Formatting helpers ──────────────────────────────────────────────────────
   function formatDate(/** @type {string} */ ts) {
     if (!ts) return "—";
     const d = new Date(ts);
@@ -184,7 +178,6 @@
     const map = /** @type {Record<string,number>} */ ({});
     CATEGORIES.forEach((c) => (map[c] = 0));
 
-    // Filter team specific orders by status for "Spent" calculation
     const expenses = teamSpecificBudgetOrders.filter((o) => {
       const s = (o.status || "").toLowerCase().trim();
       return s === "received" || s === "ordered";
@@ -287,24 +280,22 @@
   {/snippet}
 </PageHeader>
 
-<!-- ── Tab Nav ──────────────────────────────────────────────────────────────── -->
+{#if tabCount > 1}
 <div class="tabs-container">
   <div class="segmented-control" style="--tab-index:{tabIndex}; --tab-count:{tabCount};">
     <div class="segment-highlight"></div>
     {#each [["budget", "Team Dashboard"], ["history", `${selectedBudgetTeam} Funding`], ["master", "Finance History"]] as [key, label]}
-      {#if selectedBudgetTeam !== 'Westwood Overall' || key === 'budget'}
-        <button
-          class="segment"
-          class:active={activeTab === key}
-          onclick={() => (activeTab = key)}
-          id="tab-{key}">{label}</button
-        >
-      {/if}
+      <button
+        class="segment"
+        class:active={activeTab === key}
+        onclick={() => (activeTab = key)}
+        id="tab-{key}">{label}</button
+      >
     {/each}
   </div>
 </div>
+{/if}
 
-<!-- ══ TEAM BUDGETS ══════════════════════════════════════════════════════════ -->
 {#if activeTab === "budget"}
 
   {#if dataService.loading && !dataService.budget}
@@ -318,7 +309,6 @@
     </div>
   {:else}
     {#if selectedBudgetTeam === "Westwood Overall"}
-      <!-- ── Westwood Overall: Clean Team Summary Table ─────────────────── -->
       <div class="overall-summary fade-in">
         <div class="card" style="padding: 0; overflow-x: auto; overflow-y: visible;">
           <table class="overall-table">
@@ -394,7 +384,6 @@
         </div>
       </div>
     {:else}
-      <!-- ── Single Team: Card + Pie Chart ──────────────────────────────── -->
       <div class="budget-overview-container is-single fade-in">
         <div class="budget-single-view">
           {#each budgetTeams as [team, data]}
@@ -402,18 +391,26 @@
               {@const teamFundsRaised = dataService.funds.reduce((sum, f) => {
                 const r = String(f.Recipient || "").toLowerCase().trim();
                 const s = team.toLowerCase().trim();
-                // Match exact team, "all" (split across teams), or "westwood overall"
+
                 const matches = r === s || r.includes(s) || r === "all" || r === "westwood overall";
                 return matches ? sum + (Number(f.Amount) || 0) : sum;
               }, 0)}
               {@const clubFunds = data["Club Funds"] ?? 0}
+
               {@const personal = data["Personal Funds"] ?? 0}
+
               {@const teamBudgetOnly = teamFundsRaised + personal}
+
               {@const budgetTotalVal = clubFunds + personal + teamFundsRaised}
+
               {@const final = budgetTotalVal - realExpenses}
+
               {@const usagePct = teamBudgetOnly > 0 ? (realExpenses / teamBudgetOnly) * 100 : 0}
+
               {@const pctColor = usagePct > 90 ? 'var(--status-rejected)' : (usagePct > 60 ? '#f97316' : 'var(--status-awarded)')}
+              
               {@const pctBg = usagePct > 90 ? 'rgba(239,68,68,0.1)' : (usagePct > 60 ? 'rgba(249,115,22,0.1)' : 'rgba(16,185,129,0.1)')}
+              
               <div class="budget-card card selected">
                 <div class="budget-team-name">{team}</div>
                 <div class="budget-final" style="color:{final >= 0 ? 'var(--status-awarded)' : 'var(--status-rejected)'}">
@@ -431,14 +428,17 @@
                     <span class="text-muted">Raised</span>
                     <span class="monospace amount-positive">+{formatCurrency(teamFundsRaised)}</span>
                   </div>
+
                   <div class="budget-detail-row">
                     <span class="text-muted">Personal</span>
                     <span class="monospace" style="color:#4e9af1">{formatCurrency(personal)}</span>
                   </div>
+
                   <div class="budget-detail-row">
                     <span class="text-muted">Expenses</span>
                     <span class="monospace amount-negative">{formatCurrency(Math.abs(realExpenses))}</span>
                   </div>
+
                   <div class="budget-detail-row">
                     <span class="text-muted">Pending Expenses</span>
                     <span class="monospace text-muted">{formatCurrency(pendingExpenses)}</span>
@@ -457,7 +457,6 @@
       </div>
     {/if}
 
-    <!-- Team Order History -->
     <div class="team-dashboard-content fade-in">
       <div class="section-title">
         {selectedBudgetTeam} Orders
@@ -469,11 +468,9 @@
     </div>
   {/if}
 
-  <!-- ══ TEAM HISTORY ═════════════════════════════════════════════════════════ -->
 {:else if activeTab === "history"}
   <div class="team-dashboard-content fade-in">
     <div class="dashboard-stack">
-      <!-- Section 2: Team Funding (Grants/Sponsors) -->
       <div class="funding-section">
         <div class="section-title">
           {selectedBudgetTeam} History

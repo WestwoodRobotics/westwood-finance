@@ -1,20 +1,18 @@
 <script>
   import { onMount } from "svelte";
-  import { DollarSign, TrendingUp, ShoppingCart, BarChart3, Settings, Monitor, Navigation, UtensilsCrossed, Package, Pencil } from '@lucide/svelte';
+  import { DollarSign, TrendingUp, ShoppingCart, BarChart3 } from '@lucide/svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import StatCard from "$lib/components/StatCard.svelte";
   import ExpenseTable from "$lib/components/ExpenseTable.svelte";
   import LoadingIndicator from "$lib/components/LoadingIndicator.svelte";
   import OrderStatusBadge from "$lib/components/OrderStatusBadge.svelte";
   import CustomDropdown from "$lib/components/CustomDropdown.svelte";
-  import IOSBottomSheet from "$lib/components/IOSBottomSheet.svelte";
+  import OrderDetailSheet from "$lib/components/OrderDetailSheet.svelte";
   import LineChart from "$lib/components/LineChart.svelte";
   import {
     formatCurrency,
     formatDate,
-    CATEGORIES,
-    capitalize,
-    getOrderColorCached,
+    getCatColor,
     matchesTeam,
     TEAMS,
   } from "$lib/utils.js";
@@ -202,10 +200,9 @@
         </div>
         <div class="recent-list">
           {#each recentOrders as order (order.id)}
-            {@const orderColor = getOrderColorCached(order.orderUUID)}
             <div
               class="recent-item group-row"
-              style="--group-color: {orderColor}; cursor: pointer;"
+              style="--group-color: {getCatColor(order.category)}; cursor: pointer;"
               role="button"
               tabindex="0"
               onclick={() => (selectedOrder = order)}
@@ -255,92 +252,11 @@
   {/if}
 {/if}
 
-<IOSBottomSheet open={!!selectedOrder} onclose={() => (selectedOrder = null)} title="Order Details">
-  {#snippet children()}
-    {#if selectedOrder}
-      {@const orderColor = getOrderColorCached(selectedOrder.orderUUID)}
-      <div class="ios-receipt-card">
-        <div class="ios-receipt-header">
-          <div class="ios-receipt-avatar" style="background: {orderColor}22; color: {orderColor};">
-            {#if (selectedOrder.category || '').toLowerCase() === 'hardware'}
-              <Settings size={20} />
-            {:else if (selectedOrder.category || '').toLowerCase() === 'software'}
-              <Monitor size={20} />
-            {:else if (selectedOrder.category || '').toLowerCase() === 'outreach'}
-              <Navigation size={20} />
-            {:else if (selectedOrder.category || '').toLowerCase() === 'food'}
-              <UtensilsCrossed size={20} />
-            {:else}
-              <Package size={20} />
-            {/if}
-          </div>
-          <div class="ios-receipt-amount">{formatCurrency(selectedOrder.total)}</div>
-          <div class="ios-receipt-title">{selectedOrder.item}</div>
-          <div class="ios-receipt-subtitle">{selectedOrder.company || '—'}</div>
-        </div>
-
-        <hr class="ios-receipt-divider" />
-
-        <div class="ios-receipt-grid">
-          <div class="ios-receipt-row">
-            <span class="ios-receipt-label">Status</span>
-            <span class="ios-receipt-val"><OrderStatusBadge status={selectedOrder.status} /></span>
-          </div>
-          <div class="ios-receipt-row">
-            <span class="ios-receipt-label">Date</span>
-            <span class="ios-receipt-val monospace">{formatDate(selectedOrder.timestamp)}</span>
-          </div>
-          <div class="ios-receipt-row">
-            <span class="ios-receipt-label">Team</span>
-            <span class="ios-receipt-val">{selectedOrder.team || selectedOrder.user || "—"}</span>
-          </div>
-          <div class="ios-receipt-row">
-            <span class="ios-receipt-label">Category</span>
-            <span class="ios-receipt-val">{capitalize(selectedOrder.category)}</span>
-          </div>
-          <div class="ios-receipt-row">
-            <span class="ios-receipt-label">Unit Price</span>
-            <span class="ios-receipt-val monospace">{formatCurrency(selectedOrder.price)}</span>
-          </div>
-          <div class="ios-receipt-row">
-            <span class="ios-receipt-label">Quantity</span>
-            <span class="ios-receipt-val monospace">×{selectedOrder.quantity}</span>
-          </div>
-          {#if selectedOrder.tracking}
-            {@const href = String(selectedOrder.tracking).startsWith("http")
-              ? selectedOrder.tracking
-              : `https://${selectedOrder.tracking}`}
-            <div class="ios-receipt-row">
-              <span class="ios-receipt-label">Tracking</span>
-              <span class="ios-receipt-val monospace"><a href={href} target="_blank" rel="noopener">{selectedOrder.tracking} ↗</a></span>
-            </div>
-          {/if}
-        </div>
-
-        {#if selectedOrder.notes}
-          <div class="ios-receipt-notes-card">
-            <div class="ios-receipt-notes-title">
-              <Pencil size={12} />
-              Notes
-            </div>
-            <div class="ios-receipt-notes-body">{selectedOrder.notes}</div>
-          </div>
-        {/if}
-
-        {#if selectedOrder.link}
-          <a
-            href={selectedOrder.link.startsWith('http://') || selectedOrder.link.startsWith('https://') ? selectedOrder.link : 'https://' + selectedOrder.link}
-            target="_blank"
-            rel="noopener"
-            class="btn btn-primary btn-block"
-          >
-            Open Vendor Link ↗
-          </a>
-        {/if}
-      </div>
-    {/if}
-  {/snippet}
-</IOSBottomSheet>
+<OrderDetailSheet
+  order={selectedOrder}
+  open={!!selectedOrder}
+  onclose={() => (selectedOrder = null)}
+/>
 
 <!-- Mobile Version Info Footer -->
 <div class="mobile-version-footer">

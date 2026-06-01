@@ -10,10 +10,12 @@
 
   let { children } = $props();
 
-  // ── Global 3s data poll ─────────────────────────────────────────────────────
+  // ── Global 3s data poll (paused when tab is hidden) ────────────────────────
   onMount(() => {
     const interval = setInterval(() => {
-      if (authStore.isApproved) dataService.load(true, true);
+      if (authStore.isApproved && document.visibilityState === 'visible') {
+        dataService.load(true, true);
+      }
     }, 3000);
     return () => clearInterval(interval);
   });
