@@ -4,7 +4,7 @@
   import CustomDropdown from "$lib/components/CustomDropdown.svelte";
   import AdminLock from "$lib/components/AdminLock.svelte";
   import { dataService } from "$lib/dataService.svelte.js";
-  import { BASE_URL, SECRET_KEY } from "$lib/config.js";
+  import { BASE_URL } from "$lib/config.js";
   import { fade, scale } from "svelte/transition";
   import { authStore } from "$lib/authStore.svelte.js";
 
@@ -113,19 +113,17 @@
     submitting = true;
 
     try {
-      // ✅ Link Auto-Fix: Prepend https:// if missing
       let finalLink = form.link.trim();
+
       if (finalLink && !finalLink.startsWith("http")) {
-        // More robust check: if it contains a dot or doesn't have a protocol, add it
         finalLink = "https://" + finalLink;
       }
 
-      // ✅ FIX: force all values to strings for URLSearchParams
       const response = await fetch(BASE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify({
-          key: SECRET_KEY,
+          idToken: authStore.idToken,
           action: 'addOrder',
           item: form.item,
           company: form.company,

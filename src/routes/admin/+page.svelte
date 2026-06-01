@@ -15,7 +15,7 @@
   } from "$lib/utils.js";
   import { dataService } from "$lib/dataService.svelte.js";
   import { authStore } from "$lib/authStore.svelte.js";
-  import { BASE_URL, SECRET_KEY } from "$lib/config.js";
+  import { BASE_URL } from "$lib/config.js";
   import { goto } from "$app/navigation";
 
   /** @typedef {import('$lib/dataService.svelte.js').Order} Order */
@@ -352,7 +352,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify({
-          key: SECRET_KEY,
+          idToken: authStore.idToken,
           action: 'updateOrderStatus',
           id: currentEditingOrder.id,
           rowIndex: currentEditingOrder.rowIndex.toString(),
@@ -384,7 +384,7 @@
           method: 'POST',
           headers: { 'Content-Type': 'text/plain' },
           body: JSON.stringify({
-            key: SECRET_KEY,
+            idToken: authStore.idToken,
             action: 'updateOrderStatus',
             id: editId,
             rowIndex: String(editRowIndex),
@@ -425,7 +425,7 @@
       const res = await fetch(BASE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ key: SECRET_KEY, action: 'deleteOrder', uuid: editId }),
+        body: JSON.stringify({ idToken: authStore.idToken, action: 'deleteOrder', uuid: editId }),
       });
       const result = JSON.parse(await res.text());
 
@@ -529,7 +529,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify({
-          key: SECRET_KEY,
+          idToken: authStore.idToken,
           action: 'updateFunding',
           rowIndex: String(currentFund.rowIndex),
           Source: String(editFundFields.Source),
@@ -592,7 +592,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify({
-          key: SECRET_KEY,
+          idToken: authStore.idToken,
           action: 'addOrder',
           item: addOrderForm.item,
           company: addOrderForm.company,
@@ -666,7 +666,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify({
-          key: SECRET_KEY,
+          idToken: authStore.idToken,
           action: 'addFundraising',
           type: addFundsForm.type,
           source: addFundsForm.source,
@@ -723,7 +723,7 @@
         fetch(BASE_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify({ key: SECRET_KEY, action: 'updateOrderStatus', id: o.id, rowIndex: String(o.rowIndex), orderUUID: targetUUID }),
+          body: JSON.stringify({ idToken: authStore.idToken, action: 'updateOrderStatus', id: o.id, rowIndex: String(o.rowIndex), orderUUID: targetUUID }),
         }).then((r) => r.text()).then(JSON.parse)
       );
 
@@ -768,7 +768,7 @@
         fetch(BASE_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify({ key: SECRET_KEY, action: 'updateOrderStatus', id: o.id, rowIndex: String(o.rowIndex), status: groupStatus }),
+          body: JSON.stringify({ idToken: authStore.idToken, action: 'updateOrderStatus', id: o.id, rowIndex: String(o.rowIndex), status: groupStatus }),
         }).then((r) => r.text()).then(JSON.parse)
       );
 
@@ -784,7 +784,7 @@
           fetch(BASE_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain' },
-            body: JSON.stringify({ key: SECRET_KEY, action: 'updateOrderStatus', id: prev.id, rowIndex: String(prev.rowIndex), status: prev.status || "" }),
+            body: JSON.stringify({ idToken: authStore.idToken, action: 'updateOrderStatus', id: prev.id, rowIndex: String(prev.rowIndex), status: prev.status || "" }),
           });
         });
         setTimeout(() => dataService.load(true, true), 1000);
@@ -831,7 +831,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify({
-          key: SECRET_KEY,
+          idToken: authStore.idToken,
           action: 'addMember',
           firstName: addMemberForm.firstName.trim(),
           lastName: addMemberForm.lastName.trim(),
@@ -863,7 +863,7 @@
       const res = await fetch(BASE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ key: SECRET_KEY, action: 'removeMember', studentId }),
+        body: JSON.stringify({ idToken: authStore.idToken, action: 'removeMember', studentId }),
       });
       const result = JSON.parse(await res.text());
       if (result.error) throw new Error(result.error);

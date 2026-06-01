@@ -10,7 +10,7 @@
   import LoadingIndicator from "$lib/components/LoadingIndicator.svelte";
   import OrderTable from "$lib/components/OrderTable.svelte";
   import { dataService } from "$lib/dataService.svelte.js";
-  import { BASE_URL, SECRET_KEY } from "$lib/config.js";
+  import { BASE_URL } from "$lib/config.js";
   import AdminLock from "$lib/components/AdminLock.svelte";
   import PieChart from "$lib/components/PieChart.svelte";
   import { browser } from "$app/environment";
