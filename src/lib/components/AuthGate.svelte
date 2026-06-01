@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { authStore } from '$lib/authStore.svelte.js';
-  import { BASE_URL, SECRET_KEY } from '$lib/config.js';
+  import { BASE_URL } from '$lib/config.js';
   import CustomDropdown from '$lib/components/CustomDropdown.svelte';
 
   let { children } = $props();
@@ -52,7 +52,7 @@
     window.google.accounts.id.initialize({
       client_id: GOOGLE_CLIENT_ID,
       callback: handleCredentialResponse,
-      auto_select: false,
+      auto_select: true,
     });
   }
 
@@ -87,7 +87,7 @@
         name: payload.name,
         picture: payload.picture,
         sub: payload.sub,
-      });
+      }, response.credential);
     } catch (e) {
       console.error('Google Sign-In decode failed:', e);
     }
@@ -105,22 +105,20 @@
 
     // Auto-register them in the background if they don't exist yet
     const exists = authStore.membersList.some(m => String(m.studentId) === clean);
-    if (!exists) {
+    if (!exists && authStore.idToken) {
       const [firstName, ...lastNameArr] = (authStore.googleUser?.name || '').split(' ');
       const lastName = lastNameArr.join(' ');
-      
       try {
         fetch(BASE_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain' },
           body: JSON.stringify({
-            key: SECRET_KEY,
-            action: 'addMember',
+            idToken: authStore.idToken,
+            action: 'registerSelf',
             firstName: firstName || '',
             lastName: lastName || '',
             studentId: clean,
             team: selectedTeam,
-            role: '',
             email: authStore.googleUser?.email || '',
           }),
         });

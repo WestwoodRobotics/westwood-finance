@@ -1,10 +1,12 @@
-import { BASE_URL, SECRET_KEY } from './config.js';
+import { BASE_URL } from './config.js';
 
 async function gasPost(payload) {
+  const idToken = authStore.idToken;
+  if (!idToken) throw new Error('Not authenticated');
   const res = await fetch(BASE_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify({ key: SECRET_KEY, ...payload }),
+    body: JSON.stringify({ idToken, ...payload }),
   });
   if (!res.ok) throw new Error(`Network error: ${res.status}`);
   return JSON.parse(await res.text());
@@ -205,10 +207,12 @@ class DataStore {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s timeout
 
+      const idToken = authStore.idToken;
+      if (!idToken) throw new Error('Not authenticated');
       const res = await fetch(BASE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ key: SECRET_KEY, action: 'getAllData' }),
+        body: JSON.stringify({ idToken, action: 'getAllData' }),
         signal: controller.signal,
       });
       clearTimeout(timeoutId);

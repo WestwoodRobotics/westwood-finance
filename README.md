@@ -7,8 +7,6 @@ internal finance tracker for westwood robotics. built with sveltekit + google ap
 ```sh
 pnpm install
 
-# real env value is in the script properties in the google apps script project settings
-cp .env.example .env
 pnpm dev
 ```
 
