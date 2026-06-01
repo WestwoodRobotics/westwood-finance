@@ -200,15 +200,15 @@ class DataStore {
     if (silent) this.isSilentLoading = true;
     
     this.error = null;
+
+    const idToken = authStore.idToken;
+    if (!idToken) return;
+
     console.groupCollapsed('%c DataStore sync', 'color: #888; font-weight: normal');
 
     try {
-      // Add a timeout to prevent infinite loading if Google is slow
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s timeout
-
-      const idToken = authStore.idToken;
-      if (!idToken) return;
+      const timeoutId = setTimeout(() => controller.abort(), 20000);
       const res = await fetch(BASE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
