@@ -142,16 +142,16 @@ class DataStore {
       return;
     }
 
+    this.error = null;
+
+    const idToken = authStore.idToken;
+    if (!idToken) return;
+
     if (this.orders.length === 0 && !silent) {
       this.loading = true;
     }
 
     if (silent) this.isSilentLoading = true;
-
-    this.error = null;
-
-    const idToken = authStore.idToken;
-    if (!idToken) return;
 
     try {
       const controller = new AbortController();

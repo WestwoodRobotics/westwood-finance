@@ -11,7 +11,7 @@
   let { children } = $props();
 
   $effect(() => {
-    if (authStore.isApproved) dataService.load();
+    if (authStore.isApproved && authStore.idToken) dataService.load();
   });
 
   onMount(() => {
