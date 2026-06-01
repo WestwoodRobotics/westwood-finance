@@ -20,7 +20,6 @@
   const TEAM_OPTIONS = ['FRC', 'Kunai', 'Slingshot', 'Hunga Munga', 'Atlatl'];
 
   onMount(() => {
-    if (authStore.status === 'approved') return;
     loadGoogleScript();
   });
 
