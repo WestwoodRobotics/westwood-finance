@@ -243,7 +243,7 @@
   <title>Team Dashboard | Westwood Finance</title>
 </svelte:head>
 
-<PageHeader title="Team" titleAccent="Dashboard">
+<PageHeader title="Team " titleAccent="Dashboard">
   {#snippet actions()}
     <div class="team-selector">
       {#if perms.viewAllTeams}

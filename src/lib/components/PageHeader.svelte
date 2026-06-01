@@ -11,7 +11,7 @@
 
 <div class="page-header">
   <div class="header-left">
-    <h1>{title}{#if titleAccent} <span>{titleAccent}</span>{/if}</h1>
+    <h1>{title}{#if titleAccent}<span>{titleAccent}</span>{/if}</h1>
     {#if subtitle}<p class="text-muted">{subtitle}</p>{/if}
   </div>
   <div class="header-right">

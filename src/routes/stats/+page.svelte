@@ -136,7 +136,7 @@
   <title>Analytics | Westwood Finance</title>
 </svelte:head>
 
-<PageHeader title="Spending" titleAccent="Trends">
+<PageHeader title="Spending " titleAccent="Trends">
   {#snippet actions()}
     {#if perms.viewAllTeams}
     <div class="team-selector">

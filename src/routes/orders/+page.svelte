@@ -172,7 +172,7 @@
   <title>All Orders | Westwood Finance</title>
 </svelte:head>
 
-<PageHeader title="All" titleAccent="Orders">
+<PageHeader title="All " titleAccent="Orders">
   {#snippet actions()}
     <div class="header-actions">
       <button
