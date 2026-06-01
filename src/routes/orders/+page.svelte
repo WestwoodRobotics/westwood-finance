@@ -8,6 +8,7 @@
   import LoadingIndicator from "$lib/components/LoadingIndicator.svelte";
   import { dataService } from "$lib/dataService.svelte.js";
   import { authStore } from "$lib/authStore.svelte.js";
+  import { STATUS_PRIORITY } from "$lib/utils.js";
 
   /** @typedef {import('$lib/dataService.svelte.js').Order} Order */
 
@@ -159,18 +160,8 @@
         return true;
       })
       .sort((/** @type {Order} */ a, /** @type {Order} */ b) => {
-        /** @type {Record<string, number>} */
-        const STATUS_PRIORITY = {
-          "Pending Review": 0,
-          Approved: 1,
-          Ordered: 2,
-          Received: 3,
-          Denied: 4,
-          Void: 5,
-        };
-
-        const priorityA = STATUS_PRIORITY[a.status] ?? 99;
-        const priorityB = STATUS_PRIORITY[b.status] ?? 99;
+        const priorityA = STATUS_PRIORITY[(a.status || '').toLowerCase().trim()] ?? 99;
+        const priorityB = STATUS_PRIORITY[(b.status || '').toLowerCase().trim()] ?? 99;
 
         if (priorityA !== priorityB) {
           return priorityA - priorityB;

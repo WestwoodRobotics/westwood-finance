@@ -3,7 +3,7 @@
   import { Search, CircleX, ListFilter } from '@lucide/svelte';
   import CustomDropdown from './CustomDropdown.svelte';
   import IOSBottomSheet from './IOSBottomSheet.svelte';
-  import { onMount } from 'svelte';
+  import { isMobile } from '$lib/mediaQuery.svelte.js';
   import { authStore } from '$lib/authStore.svelte.js';
 
   const categoryOptions = [
@@ -30,14 +30,7 @@
   /** @type {{ onchange?: (f: any) => void, filters: any }} */
   let { onchange, filters = $bindable() } = $props();
 
-  let isMobile = $state(false);
   let showFilterSheet = $state(false);
-
-  onMount(() => {
-    const mq = window.matchMedia('(max-width: 768px)');
-    isMobile = mq.matches;
-    mq.addEventListener('change', e => { isMobile = e.matches; });
-  });
 
   function emit() {
     onchange?.({ ...filters });
@@ -61,8 +54,8 @@
   );
 </script>
 
-<!-- ── Desktop Filter Bar ─────────────────────────────────────────────────── -->
-{#if !isMobile}
+<!-- dekstop filter -->
+{#if !isMobile.current}
   <div class="filter-bar fade-in">
     <div class="filter-main">
       <div class="search-input">
@@ -112,7 +105,7 @@
     </div>
   </div>
 {:else}
-  <!-- ── iOS Mobile Search Bar ─────────────────────────────────────────────── -->
+  <!-- mobile search -->
   <div class="ios-filter-row fade-in">
     <div class="ios-search-wrap">
       <Search size={15} class="ios-search-icon" />
@@ -145,7 +138,7 @@
     </button>
   </div>
 
-  <!-- iOS Filter Bottom Sheet -->
+  <!--mobile filter -->
   <IOSBottomSheet open={showFilterSheet} onclose={() => showFilterSheet = false} title="Filters">
     {#snippet children()}
       <div class="ios-sheet-filters">
@@ -197,7 +190,6 @@
 {/if}
 
 <style>
-  /* ── Desktop ────────────────────────────────────────────────────── */
   .filter-bar {
     margin-bottom: 24px;
     padding: 20px;
@@ -208,6 +200,8 @@
     flex-direction: column;
     gap: 20px;
   }
+  
+  /* i apologize to your eyes */
   .filter-main { display: flex; gap: 12px; align-items: center; }
   .search-input { flex: 1; }
   .filter-grid { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; }
@@ -225,27 +219,25 @@
   .connector { color: var(--text-dim); font-size: 0.8rem; }
   .reset-button { height: 44px; padding: 0 16px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-sm); font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
 
-  /* ── iOS Mobile ─────────────────────────────────────────────────── */
   .ios-filter-row { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; margin-top: 8px; }
   .ios-search-wrap { flex: 1; position: relative; display: flex; align-items: center; background: rgba(118, 118, 128, 0.18); border-radius: 10px; overflow: hidden; }
   :global(.ios-search-icon) { position: absolute; left: 10px; color: var(--text-dim); pointer-events: none; flex-shrink: 0; }
-  .ios-search-input { flex: 1; background: transparent; border: none; outline: none; padding: 10px 36px 10px 34px; font-size: 16px; color: #fff; font-family: -apple-system, 'SF Pro Text', sans-serif; min-height: 38px; -webkit-appearance: none; appearance: none; }
+  .ios-search-input { flex: 1; background: transparent; border: none; outline: none; padding: 10px 36px 10px 34px; font-size: 16px; color: #fff; min-height: 38px; -webkit-appearance: none; appearance: none; }
   .ios-search-input::placeholder { color: var(--text-dim); }
   .ios-search-clear { position: absolute; right: 8px; background: var(--surface-3); border: none; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); -webkit-tap-highlight-color: transparent; padding: 0; }
-  .ios-filter-btn { display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: rgba(118, 118, 128, 0.18); border: none; border-radius: 10px; color: var(--text-muted); font-size: 14px; font-weight: 600; font-family: -apple-system, 'SF Pro Text', sans-serif; cursor: pointer; white-space: nowrap; -webkit-tap-highlight-color: transparent; transition: background 0.15s; min-height: 38px; }
+  .ios-filter-btn { display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: rgba(118, 118, 128, 0.18); border: none; border-radius: 10px; color: var(--text-muted); font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; -webkit-tap-highlight-color: transparent; transition: background 0.15s; min-height: 38px; }
   .ios-filter-btn:active { background: rgba(118, 118, 128, 0.3); }
   .ios-filter-active { background: rgba(249, 115, 22, 0.15) !important; color: var(--primary); }
   .ios-filter-badge { background: var(--primary); color: #fff; font-size: 11px; font-weight: 700; border-radius: 99px; padding: 1px 6px; min-width: 18px; text-align: center; line-height: 16px; }
 
-  /* ── Sheet Content ──────────────────────────────────────────────── */
   .ios-sheet-filters { padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 16px; }
   .ios-sheet-filter-group { display: flex; flex-direction: column; gap: 6px; }
-  .ios-sheet-filter-label { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; font-family: -apple-system, 'SF Pro Text', sans-serif; }
-  .ios-native-select, .ios-native-input { width: 100%; background: rgba(118, 118, 128, 0.18); border: none; border-radius: 10px; color: #fff; font-size: 16px; font-family: -apple-system, 'SF Pro Text', sans-serif; padding: 12px 14px; -webkit-appearance: none; appearance: none; outline: none; min-height: 44px; }
+  .ios-sheet-filter-label { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; }
+  .ios-native-select, .ios-native-input { width: 100%; background: rgba(118, 118, 128, 0.18); border: none; border-radius: 10px; color: #fff; font-size: 16px; padding: 12px 14px; -webkit-appearance: none; appearance: none; outline: none; min-height: 44px; }
   .ios-native-select option { background: var(--surface-2); }
   .ios-sheet-filter-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
-  .ios-apply-btn { background: var(--primary); color: #fff; border: none; border-radius: 12px; font-size: 17px; font-weight: 600; padding: 14px; cursor: pointer; font-family: -apple-system, 'SF Pro Text', sans-serif; -webkit-tap-highlight-color: transparent; transition: opacity 0.15s; }
+  .ios-apply-btn { background: var(--primary); color: #fff; border: none; border-radius: 12px; font-size: 17px; font-weight: 600; padding: 14px; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: opacity 0.15s; }
   .ios-apply-btn:active { opacity: 0.8; }
-  .ios-reset-btn { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; padding: 12px; cursor: pointer; font-family: -apple-system, 'SF Pro Text', sans-serif; -webkit-tap-highlight-color: transparent; transition: opacity 0.15s; }
+  .ios-reset-btn { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; padding: 12px; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: opacity 0.15s; }
   .ios-reset-btn:active { opacity: 0.7; }
 </style>

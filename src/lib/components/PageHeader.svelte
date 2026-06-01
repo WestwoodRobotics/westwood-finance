@@ -4,13 +4,8 @@
 
   let { title, titleAccent = '', subtitle = '', actions } = $props();
 
-  async function sync() {
-    dataService.isManualRefreshing = true;
-    try {
-      await dataService.load(true);
-    } finally {
-      setTimeout(() => { dataService.isManualRefreshing = false; }, 800);
-    }
+  function sync() {
+    dataService.refresh();
   }
 </script>
 

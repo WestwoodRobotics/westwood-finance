@@ -251,6 +251,18 @@ class DataStore {
   }
 
   /**
+   * Manual refresh — owns the full lifecycle including isManualRefreshing flag.
+   */
+  async refresh() {
+    this.isManualRefreshing = true;
+    try {
+      await this.load(true);
+    } finally {
+      setTimeout(() => { this.isManualRefreshing = false; }, 800);
+    }
+  }
+
+  /**
    * Optimistically add a new order to the local store.
    * Immediately updates UI, then silently syncs with Google Sheets in the background.
    * @param {Partial<Order>} orderData

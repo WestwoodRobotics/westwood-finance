@@ -1,7 +1,7 @@
 <script>
   import { page } from "$app/stores";
-  import { onMount } from "svelte";
   import { authStore } from "$lib/authStore.svelte.js";
+  import { isMobile } from "$lib/mediaQuery.svelte.js";
   import appInfo from "$lib/app-info.json";
   import { LayoutDashboard, PlusCircle, Users, ShoppingCart, BarChart3, User, X, LogOut } from '@lucide/svelte';
 
@@ -26,18 +26,6 @@
   }
 
   let isMobileOpen = $state(false);
-  let isMobile = $state(false);
-
-  function checkMobile() {
-    isMobile = window.matchMedia("(max-width: 768px)").matches;
-  }
-
-  onMount(() => {
-    checkMobile();
-    const mq = window.matchMedia("(max-width: 768px)");
-    mq.addEventListener("change", checkMobile);
-    return () => mq.removeEventListener("change", checkMobile);
-  });
 
   function closeMobileNav() {
     isMobileOpen = false;
@@ -49,14 +37,14 @@
 
   /** @param {string} href */
   function handleNavClick(href) {
-    if (isMobile) {
+    if (isMobile.current) {
       closeMobileNav();
     }
   }
 </script>
 
 <!-- Mobile Backdrop -->
-{#if isMobile && isMobileOpen}
+{#if isMobile.current && isMobileOpen}
   <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_noninteractive_element_interactions -->
   <div 
     class="mobile-backdrop" 
@@ -67,7 +55,7 @@
   ></div>
 {/if}
 
-<aside class="sidebar" class:mobile-open={isMobileOpen} class:is-mobile={isMobile}>
+<aside class="sidebar" class:mobile-open={isMobileOpen} class:is-mobile={isMobile.current}>
   <div class="sidebar-brand">
     <div class="logo-wrapper">
       <img src="/logo-bordered.png" alt="Westwood Logo" class="logo-actual" />
@@ -76,7 +64,7 @@
        <span class="brand-title">WESTWOOD</span>
        <span class="brand-module">FINANCE</span>
     </div>
-    {#if isMobile}
+    {#if isMobile.current}
       <button class="mobile-close-btn" onclick={closeMobileNav} aria-label="Close navigation">
         <X size={18} />
       </button>

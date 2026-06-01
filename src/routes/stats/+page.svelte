@@ -14,15 +14,15 @@
     CATEGORIES,
     STATUS_COLORS,
     truncate,
+    TEAMS,
+    matchesTeam,
   } from "$lib/utils.js";
   import { dataService } from "$lib/dataService.svelte.js";
   import { authStore } from "$lib/authStore.svelte.js";
 
   /** @typedef {import('$lib/dataService.svelte.js').Order} Order */
 
-  const TEAM_OPTIONS = authStore.isAdmin
-    ? ["FRC", "Slingshot", "Hunga Munga", "Atlatl", "Kunai", "Westwood Overall"]
-    : [authStore.userTeam];
+  const TEAM_OPTIONS = authStore.isAdmin ? TEAMS : [authStore.userTeam];
   let selectedTeam = $state(authStore.isAdmin ? "FRC" : authStore.userTeam);
 
   onMount(() => {
@@ -32,22 +32,13 @@
   // ── Stats Calculations ──────────────────────────────────────────────────────
 
   // Use all requested orders for analytics
+  // For non-admins, always enforce their own team regardless of selectedTeam
+  let effectiveTeam = $derived(
+    !authStore.isAdmin && authStore.userTeam ? authStore.userTeam : selectedTeam
+  );
+
   let teamOrders = $derived(
-    selectedTeam === "Westwood Overall"
-      ? dataService.orders
-      : dataService.orders.filter((o) => {
-          const t = (o.team || "").toLowerCase().trim();
-          const s = selectedTeam.toLowerCase().trim();
-          // For non-admins, always enforce their team regardless of selectedTeam
-          const teamToMatch = (!authStore.isAdmin && authStore.userTeam)
-            ? authStore.userTeam.toLowerCase().trim()
-            : s;
-          return (
-            t === teamToMatch ||
-            t.includes(teamToMatch) ||
-            (teamToMatch === "frc" && (t.includes("frc") || /^\d+$/.test(t)))
-          );
-        }),
+    dataService.orders.filter((o) => matchesTeam(o, effectiveTeam)),
   );
 
   let analyticsOrders = $derived(

@@ -1,7 +1,5 @@
-// ─── Shared Utility Functions ─────────────────────────────────────────────────
-
 /** 
- * Format a number as USD currency 
+ * format a number as USD 
  * @param {number} n 
  */
 export function formatCurrency(n) {
@@ -9,13 +7,12 @@ export function formatCurrency(n) {
 }
 
 /** 
- * Format a timestamp to "MM/DD/YYYY"
+ * format a timestamp to "MM/DD/YYYY"
  * @param {string | number | Date} ts 
  */
 export function formatDate(ts) {
   if (!ts) return '—';
   
-  // Clean up raw ISO metadata if present as a string
   let cleanTs = ts;
   if (typeof ts === 'string') {
     cleanTs = ts.replace(/T00:00:00\.000Z$/, '').replace(/ 00:00:00\.000Z$/, '');
@@ -28,26 +25,22 @@ export function formatDate(ts) {
   const DD = String(d.getDate()).padStart(2, '0');
   const YYYY = d.getFullYear();
   
-  // 12-hour formatting with AM/PM
+  // 12-hour formatting 
   let HH = d.getHours();
   const ampm = HH >= 12 ? 'PM' : 'AM';
   HH = HH % 12;
-  HH = HH ? HH : 12; // the hour '0' should be '12'
+  HH = HH ? HH : 12;
   const min = String(d.getMinutes()).padStart(2, '0');
   
   return `${MM}/${DD}/${YYYY} ${HH}:${min} ${ampm}`;
 }
 
-/**
- * Format timestamp to "MM/DD/YYYY" (Standardized across site)
- * @param {string | number | Date} ts 
- */
 export function formatFullDate(ts) {
   return formatDate(ts);
 }
 
 /** 
- * Turn "2025-04" into "Apr 2025" 
+ * "2025-04" -> "Apr 2025" 
  * @param {string} key 
  */
 export function formatMonth(key) {
@@ -57,7 +50,7 @@ export function formatMonth(key) {
 }
 
 /** 
- * Capitalize first letter 
+ * caps first letter 
  * @param {string} str 
  */
 export function capitalize(str) {
@@ -66,7 +59,7 @@ export function capitalize(str) {
 }
 
 /** 
- * Safe truncate 
+ * safe truncate 
  * @param {string} str 
  * @param {number} max 
  */
@@ -75,7 +68,6 @@ export function truncate(str, max = 40) {
   return str.length > max ? str.slice(0, max) + '…' : str;
 }
 
-/** Category color map (CSS var names) */
 export const CATEGORY_COLORS = {
   hardware:      '#e07b30',
   software:      '#4e9af1',
@@ -84,7 +76,6 @@ export const CATEGORY_COLORS = {
   miscellaneous: '#b97cf3',
 };
 
-/** Status color map for charts */
 export const STATUS_COLORS = {
   'Pending Review':  '#4e9af1',
   'Approved':        '#4eeaf1',
@@ -95,14 +86,11 @@ export const STATUS_COLORS = {
   'Void':            '#8a8a8a',
 };
 
-/** Valid categories (mirrors backend config) */
 export const CATEGORIES = ['hardware', 'software', 'outreach', 'food', 'miscellaneous'];
-
-/** Valid teams */
 export const TEAMS = ['FRC', 'Westwood Overall', 'Slingshot', 'Atlatl', 'Kunai', 'Hunga Munga'];
 
 /** 
- * Helper for team badge CSS classes 
+ * team badge css helper 
  * @param {string} team 
  */
 export function getTeamBadgeClass(team) {
@@ -110,14 +98,66 @@ export function getTeamBadgeClass(team) {
   return `badge-${team.toString().toLowerCase().trim().replace(/\s+/g, '-')}`;
 }
 
-/** Contribution types for sponsors */
 export const CONTRIBUTION_TYPES = ['money', 'parts', 'services'];
-
-/** Grant statuses */
 export const GRANT_STATUSES = ['Applied', 'Pending', 'Awarded', 'Rejected'];
+export const CAT_COLORS = {
+  hardware:      '#f97316',
+  software:      '#3b82f6',
+  outreach:      '#10b981',
+  food:          '#eab308',
+  miscellaneous: '#8b5cf6',
+};
+export const STATUS_PRIORITY = {
+  'pending review': 0,
+  approved:         1,
+  ordered:          2,
+  received:         3,
+  denied:           4,
+  cancelled:        5,
+  void:             6,
+};
 
 /**
- * Generate a short 6-character alphanumeric ID
+ * stable color from an order UUID 
+ * @param {string|undefined} uuid
+ */
+export function getOrderColor(uuid) {
+  if (!uuid) return 'transparent';
+  let hash = 0;
+  for (let i = 0; i < uuid.length; i++) {
+    hash = uuid.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const h = Math.abs(Math.floor(hash * 137.5) % 360);
+  return `hsl(${h}, 70%, 40%)`;
+}
+
+/** cache wrapper so getOrderColor is O(1) on repeated calls */
+const _orderColorCache = /** @type {Record<string, string>} */ ({});
+/**
+ * @param {string|undefined} uuid
+ */
+export function getOrderColorCached(uuid) {
+  if (!uuid) return 'transparent';
+  if (_orderColorCache[uuid]) return _orderColorCache[uuid];
+  const c = getOrderColor(uuid);
+  _orderColorCache[uuid] = c;
+  return c;
+}
+
+/**
+ * ret true if an order belongs to the given team selection.
+ * @param {{ team?: string }} order
+ * @param {string} selectedTeam
+ */
+export function matchesTeam(order, selectedTeam) {
+  if (selectedTeam === 'Westwood Overall') return true;
+  const t = String(order.team || '').toLowerCase().trim();
+  const s = selectedTeam.toLowerCase().trim();
+  return t === s || t.includes(s) || (s === 'frc' && (t.includes('frc') || /^\d+$/.test(t)));
+}
+
+/**
+ * gen a short 6-character alphanum ID
  */
 export function generateShortId() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';

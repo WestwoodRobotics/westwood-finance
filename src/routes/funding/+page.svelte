@@ -7,7 +7,9 @@
     formatFullDate,
     getTeamBadgeClass,
     CATEGORIES,
+    matchesTeam,
   } from "$lib/utils.js";
+  import { isMobile } from "$lib/mediaQuery.svelte.js";
   import CustomDropdown from "$lib/components/CustomDropdown.svelte";
   import LoadingIndicator from "$lib/components/LoadingIndicator.svelte";
   import OrderTable from "$lib/components/OrderTable.svelte";
@@ -42,13 +44,7 @@
   let selectedBudgetTeam = $state(authStore.isAdmin ? "FRC" : authStore.userTeam);
 
   let teamSpecificBudgetOrders = $derived(
-    dataService.orders.filter((/** @type {any} */ o) => {
-      // Westwood Overall shows all teams (aggregate)
-      if (selectedBudgetTeam === "Westwood Overall") return true;
-      const t = (o.team || "").toLowerCase().trim();
-      const s = selectedBudgetTeam.toLowerCase().trim();
-      return t === s || t.includes(s) || (s === 'frc' && (t.includes('frc') || /^\d+$/.test(t)));
-    }),
+    dataService.orders.filter((/** @type {any} */ o) => matchesTeam(o, selectedBudgetTeam)),
   );
 
   // ── Lock ─────────────────────────────────────────────────────────────────────
@@ -60,14 +56,8 @@
   );
   let tabCount = $derived(selectedBudgetTeam === 'Westwood Overall' ? 1 : 3);
 
-  // ── Data Loading ─────────────────────────────────────────────────────────────
-  let isMobile = $state(false);
-
   onMount(() => {
     dataService.load(); // Uses cache for instant load
-    const mq = window.matchMedia("(max-width: 768px)");
-    isMobile = mq.matches;
-    mq.addEventListener("change", (e) => { isMobile = e.matches; });
   });
 
   // ── Derived totals ──────────────────────────────────────────────────────────

@@ -5,6 +5,9 @@
     truncate,
     capitalize,
     getTeamBadgeClass,
+    getOrderColorCached,
+    CAT_COLORS,
+    STATUS_PRIORITY,
   } from "../utils.js";
   import { Settings, Code2, Megaphone, UtensilsCrossed, Package, Pencil, ChevronRight } from '@lucide/svelte';
   const PackageIcon = Package;
@@ -35,16 +38,6 @@
           : "asc";
     }
   }
-
-  /** @type {Record<string, number>} */
-  const STATUS_PRIORITY = {
-    "pending review": 0,
-    approved: 1,
-    ordered: 2,
-    received: 3,
-    denied: 4,
-    void: 5,
-  };
 
   let sortedOrders = $derived(
     orders.slice().sort((a, b) => {
@@ -80,31 +73,6 @@
     limit > 0 ? sortedOrders.slice(0, limit) : sortedOrders,
   );
 
-  /** @type {Record<string, string>} */
-  const colorCache = {};
-
-  function getOrderColor(/** @type {string|undefined} */ uuid) {
-    if (!uuid) return "transparent";
-    if (colorCache[uuid]) return colorCache[uuid];
-    let hash = 0;
-    for (let i = 0; i < uuid.length; i++) {
-      hash = uuid.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const h = Math.abs(Math.floor(hash * 137.5) % 360);
-    const color = `hsl(${h}, 70%, 40%)`;
-    colorCache[uuid] = color;
-    return color;
-  }
-
-  /** @type {Record<string, string>} */
-  const CAT_COLORS = {
-    hardware: "#f97316",
-    software: "#3b82f6",
-    outreach: "#10b981",
-    food: "#eab308",
-    miscellaneous: "#8b5cf6",
-  };
-
   const CAT_ICONS = {
     hardware: Settings,
     software: Code2,
@@ -113,14 +81,11 @@
     miscellaneous: Package,
   };
 
-  /** @type {Record<string,string>} */ const CAT_COLORS_MAP = CAT_COLORS;
-  /** @type {Record<string,any>} */ const CAT_ICONS_MAP = CAT_ICONS;
-
   function getCatColor(/** @type {string|undefined} */ cat) {
-    return CAT_COLORS_MAP[(cat || "miscellaneous").toLowerCase()] || "#8b5cf6";
+    return CAT_COLORS[(cat || "miscellaneous").toLowerCase()] || "#8b5cf6";
   }
   function getCatIcon(/** @type {string|undefined} */ cat) {
-    return CAT_ICONS_MAP[(cat || "miscellaneous").toLowerCase()] || CAT_ICONS.miscellaneous;
+    return CAT_ICONS[(cat || "miscellaneous").toLowerCase()] || CAT_ICONS.miscellaneous;
   }
 
   /** @param {string} url */
@@ -132,34 +97,6 @@
 
   /** @type {any} */
   let selectedOrder = /** @type {any|null} */ ($state(null));
-
-  // Swipe gesture variables
-  let touchStartY = 0;
-  let touchCurrentY = 0;
-  let isSwiping = $state(false);
-  let swipeTranslateY = $state(0);
-
-  function handleTouchStart(/** @type {TouchEvent} */ e) {
-    touchStartY = e.touches[0].clientY;
-    isSwiping = true;
-  }
-
-  function handleTouchMove(/** @type {TouchEvent} */ e) {
-    if (!isSwiping) return;
-    touchCurrentY = e.touches[0].clientY;
-    const delta = touchCurrentY - touchStartY;
-    if (delta > 0) {
-      swipeTranslateY = delta;
-    }
-  }
-
-  function handleTouchEnd() {
-    if (swipeTranslateY > 100) {
-      selectedOrder = null;
-    }
-    isSwiping = false;
-    swipeTranslateY = 0;
-  }
 </script>
 
 <!-- ── Desktop Table ─────────────────────────────────────────────────────── -->
@@ -227,7 +164,7 @@
     </thead>
     <tbody>
       {#each display as order (order.id)}
-        {@const orderColor = getOrderColor(order.orderUUID)}
+        {@const orderColor = getOrderColorCached(order.orderUUID)}
         <tr
           class="group-row clickable-row"
           style="--group-color: {orderColor}"
@@ -664,7 +601,6 @@
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    font-family: -apple-system, "SF Pro Text", sans-serif;
   }
 
   .ios-total-amount {
@@ -678,7 +614,6 @@
   .ios-cell-qty {
     font-size: 11px;
     color: var(--text-muted);
-    font-family: -apple-system, "SF Pro Text", sans-serif;
     font-weight: 600;
   }
 </style>

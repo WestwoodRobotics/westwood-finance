@@ -1,12 +1,11 @@
 <script>
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
-  import { onMount } from 'svelte';
   import { authStore } from '$lib/authStore.svelte.js';
+  import { isMobile } from '$lib/mediaQuery.svelte.js';
   import { LayoutDashboard, ShoppingBag, Plus, Users, MoreHorizontal, BarChart3, User, ChevronRight } from '@lucide/svelte';
 
   let showMoreSheet = $state(false);
-  let isMobile = $state(false);
 
   const mainTabs = [
     { href: '/',       label: 'Dashboard', icon: LayoutDashboard },
@@ -24,12 +23,6 @@
   let moreItems = $derived(
     allMoreItems.filter(item => !item.adminOnly || authStore.isAdmin)
   );
-
-  onMount(() => {
-    const mq = window.matchMedia('(max-width: 768px)');
-    isMobile = mq.matches;
-    mq.addEventListener('change', (e) => { isMobile = e.matches; });
-  });
 
   /** @param {string} href */
   function isActive(href) {
@@ -84,7 +77,7 @@
   }
 </script>
 
-{#if isMobile}
+{#if isMobile.current}
   <!-- More Sheet Backdrop -->
   {#if showMoreSheet}
     <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_noninteractive_element_interactions -->
@@ -190,7 +183,7 @@
   }
 
   .ios-tab-icon {
-    color: #636366;
+    color: var(--text-dim);
     transition: color 0.2s, transform 0.15s;
     display: flex;
     align-items: center;
@@ -205,8 +198,7 @@
   .ios-tab-label {
     font-size: 10px;
     font-weight: 500;
-    color: #636366;
-    font-family: -apple-system, 'SF Pro Text', 'Plus Jakarta Sans', sans-serif;
+    color: var(--text-dim);
     letter-spacing: -0.01em;
     transition: color 0.2s;
     line-height: 1;
@@ -259,7 +251,7 @@
     bottom: calc(49px + env(safe-area-inset-bottom, 0px));
     left: 12px;
     right: 12px;
-    background: #1c1c1e;
+    background: var(--surface);
     border-radius: 16px;
     padding: 12px 0 8px;
     z-index: 495;
@@ -287,7 +279,6 @@
     text-transform: uppercase;
     letter-spacing: 0.06em;
     padding: 0 20px 12px;
-    font-family: -apple-system, 'SF Pro Text', sans-serif;
   }
 
   .sheet-items {
@@ -332,7 +323,6 @@
     font-size: 17px;
     font-weight: 600;
     color: #fff;
-    font-family: -apple-system, 'SF Pro Text', sans-serif;
     letter-spacing: -0.02em;
   }
 
@@ -340,7 +330,6 @@
     font-size: 13px;
     color: var(--text-muted);
     margin-top: 2px;
-    font-family: -apple-system, 'SF Pro Text', sans-serif;
   }
 
   .sheet-item-active .sheet-item-label {

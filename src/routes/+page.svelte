@@ -14,6 +14,9 @@
     formatDate,
     CATEGORIES,
     capitalize,
+    getOrderColorCached,
+    matchesTeam,
+    TEAMS,
   } from "$lib/utils.js";
   import { dataService } from "$lib/dataService.svelte.js";
   import { authStore } from "$lib/authStore.svelte.js";
@@ -21,26 +24,12 @@
 
   /** @typedef {import('$lib/dataService.svelte.js').Order} Order */
 
-  const TEAM_OPTIONS = authStore.isAdmin
-    ? ["FRC", "Slingshot", "Hunga Munga", "Atlatl", "Kunai", "Westwood Overall"]
-    : [authStore.userTeam];
+  const TEAM_OPTIONS = authStore.isAdmin ? TEAMS : [authStore.userTeam];
   let selectedTeam = $state(authStore.isAdmin ? "Westwood Overall" : authStore.userTeam);
 
   // ── Derived View Based on Team ─────────────────────────────────────────────
   let teamOrders = $derived(
-    selectedTeam === "Westwood Overall"
-      ? dataService.orders
-      : dataService.orders.filter((o) => {
-          const t = String(o.team || "")
-            .toLowerCase()
-            .trim();
-          const s = selectedTeam.toLowerCase().trim();
-          return (
-            t === s ||
-            t.includes(s) ||
-            (s === "frc" && (t.includes("frc") || /^\d+$/.test(t)))
-          );
-        }),
+    dataService.orders.filter((o) => matchesTeam(o, selectedTeam)),
   );
 
   let teamFunds = $derived(
@@ -122,46 +111,8 @@
     return totalClub + totalPersonal + totalRaised - totalRealExpenses;
   });
 
-  // Generate a stable hue from an order UUID
-  function getOrderColor(/** @type {string|undefined} */ uuid) {
-    if (!uuid) return "transparent";
-    let hash = 0;
-    for (let i = 0; i < uuid.length; i++) {
-      hash = uuid.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const h = Math.abs(hash % 360);
-    return `hsl(${h}, 65%, 45%)`;
-  }
   /** @type {any} */
   let selectedOrder = $state(null);
-
-  // Swipe gesture variables
-  let touchStartY = 0;
-  let touchCurrentY = 0;
-  let isSwiping = $state(false);
-  let swipeTranslateY = $state(0);
-
-  function handleTouchStart(/** @type {TouchEvent} */ e) {
-    touchStartY = e.touches[0].clientY;
-    isSwiping = true;
-  }
-
-  function handleTouchMove(/** @type {TouchEvent} */ e) {
-    if (!isSwiping) return;
-    touchCurrentY = e.touches[0].clientY;
-    const delta = touchCurrentY - touchStartY;
-    if (delta > 0) {
-      swipeTranslateY = delta;
-    }
-  }
-
-  function handleTouchEnd() {
-    if (swipeTranslateY > 100) {
-      selectedOrder = null;
-    }
-    isSwiping = false;
-    swipeTranslateY = 0;
-  }
 </script>
 
 <svelte:head>
@@ -251,7 +202,7 @@
         </div>
         <div class="recent-list">
           {#each recentOrders as order (order.id)}
-            {@const orderColor = getOrderColor(order.orderUUID)}
+            {@const orderColor = getOrderColorCached(order.orderUUID)}
             <div
               class="recent-item group-row"
               style="--group-color: {orderColor}; cursor: pointer;"
@@ -307,7 +258,7 @@
 <IOSBottomSheet open={!!selectedOrder} onclose={() => (selectedOrder = null)} title="Order Details">
   {#snippet children()}
     {#if selectedOrder}
-      {@const orderColor = getOrderColor(selectedOrder.orderUUID)}
+      {@const orderColor = getOrderColorCached(selectedOrder.orderUUID)}
       <div class="ios-receipt-card">
         <div class="ios-receipt-header">
           <div class="ios-receipt-avatar" style="background: {orderColor}22; color: {orderColor};">

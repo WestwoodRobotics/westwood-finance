@@ -170,7 +170,6 @@
     font-size: 17px;
     font-weight: 700;
     color: #fff;
-    font-family: -apple-system, 'SF Pro Text', sans-serif;
     letter-spacing: -0.02em;
   }
 
