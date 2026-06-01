@@ -53,6 +53,22 @@ class AuthStore {
       this.studentId = parsed.studentId || '';
       this.pendingTeam = parsed.pendingTeam || 'FRC';
 
+      // Restore idToken from sessionStorage if still valid (survives page reload)
+      try {
+        const sessionToken = sessionStorage.getItem('westwood_id_token');
+        if (sessionToken) {
+          const payload = JSON.parse(atob(sessionToken.split('.')[1]));
+          if (payload.exp && Date.now() / 1000 < payload.exp - 60) {
+            this.idToken = sessionToken;
+            this.idTokenExp = payload.exp;
+          } else {
+            sessionStorage.removeItem('westwood_id_token');
+          }
+        }
+      } catch (_) {
+        sessionStorage.removeItem('westwood_id_token');
+      }
+
       const cachedMembers = localStorage.getItem('westwood_members');
       if (cachedMembers) {
         try {
@@ -104,6 +120,9 @@ class AuthStore {
       const payload = JSON.parse(atob(credential.split('.')[1]));
       this.idToken = credential;
       this.idTokenExp = payload.exp || 0;
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('westwood_id_token', credential);
+      }
     } catch (_) {
       this.idToken = null;
       this.idTokenExp = 0;
@@ -270,6 +289,7 @@ class AuthStore {
 
     if (typeof window !== 'undefined') {
       localStorage.removeItem('westwood_auth');
+      sessionStorage.removeItem('westwood_id_token');
       // @ts-ignore
       if (window.google?.accounts?.id) {
         // @ts-ignore
