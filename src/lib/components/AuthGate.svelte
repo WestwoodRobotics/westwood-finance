@@ -56,6 +56,13 @@
       callback: handleCredentialResponse,
       auto_select: true,
     });
+
+    // For already-approved users, prompt silently to get a fresh idToken.
+    // This won't show any UI if the user has an active Google session.
+    if (authStore.status === 'approved') {
+      // @ts-ignore
+      window.google.accounts.id.prompt();
+    }
   }
 
   function renderGoogleButton() {
