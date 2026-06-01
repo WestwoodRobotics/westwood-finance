@@ -1,4 +1,14 @@
 import { BASE_URL, SECRET_KEY } from './config.js';
+
+async function gasPost(payload) {
+  const res = await fetch(BASE_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({ key: SECRET_KEY, ...payload }),
+  });
+  if (!res.ok) throw new Error(`Network error: ${res.status}`);
+  return JSON.parse(await res.text());
+}
 import { generateShortId } from './utils.js';
 import { authStore } from './authStore.svelte.js';
 
@@ -58,7 +68,7 @@ class DataStore {
           this.funds = parsed.funds || [];
           this.budget = parsed.budget || null;
           this.lastFetched = parsed.lastFetched || null;
-          console.log("💾 DataStore: Initialized from cache");
+          console.debug("💾 DataStore: restored from cache");
         }
       } catch (e) {
         console.warn("DataStore Cache Load Failed:", e);
@@ -188,21 +198,24 @@ class DataStore {
     if (silent) this.isSilentLoading = true;
     
     this.error = null;
-    console.log("DataStore: Syncing with Google Sheets...");
+    console.groupCollapsed('%c DataStore sync', 'color: #888; font-weight: normal');
 
     try {
       // Add a timeout to prevent infinite loading if Google is slow
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s timeout
 
-      const res = await fetch(`${BASE_URL}?action=getAllData&key=${SECRET_KEY}`, {
-          signal: controller.signal
+      const res = await fetch(BASE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ key: SECRET_KEY, action: 'getAllData' }),
+        signal: controller.signal,
       });
       clearTimeout(timeoutId);
 
       if (!res.ok) throw new Error(`Network error: ${res.status} ${res.statusText}`);
 
-      const data = await res.json();
+      const data = JSON.parse(await res.text());
       
       // Handle GAS internal errors (it returns 200 even for logical errors)
       if (data.error) {
@@ -220,7 +233,8 @@ class DataStore {
       }
       
       this.persist();
-      console.log(`✅ DataStore: Sync complete. Received ${this.orders.length} orders and ${this.funds.length} funding entries.`);
+      console.log(`✅ ${this.orders.length} orders, ${this.funds.length} funding entries`);
+      console.groupEnd();
     } catch (e) {
       if (e instanceof Error) {
         this.error = e.name === 'AbortError' ? "Connection timed out. Trying again..." : e.message;
@@ -228,6 +242,7 @@ class DataStore {
         this.error = "Unknown error occurred while fetching data.";
       }
       console.error("DataStore Load Error:", e);
+      console.groupEnd();
     } finally {
       this.loading = false;
       this.isSilentLoading = false;
@@ -265,7 +280,7 @@ class DataStore {
     // Inject immediately into the reactive store
     this.orders = [...this.orders, newOrder];
     this.persist();
-    console.log(`⚡ DataStore: Optimistic add — "${newOrder.item}" injected instantly.`);
+    console.debug(`⚡ optimistic add — "${newOrder.item}"`);
 
     // Background sync to get the real data from Google Sheets
     setTimeout(() => this.load(true, true), 2000);
@@ -284,7 +299,7 @@ class DataStore {
       return o;
     });
     this.persist();
-    console.log(`⚡ DataStore: Optimistic update — order "${orderId}" updated instantly.`);
+    console.debug(`⚡ optimistic update — order "${orderId}"`);
   }
 
   /**
@@ -294,7 +309,7 @@ class DataStore {
   deleteOrderOptimistic(orderId) {
     this.orders = this.orders.filter(o => o.id !== orderId);
     this.persist();
-    console.log(`⚡ DataStore: Optimistic delete — order "${orderId}" removed instantly.`);
+    console.debug(`⚡ optimistic delete — order "${orderId}"`);
   }
 
   /**
@@ -311,7 +326,7 @@ class DataStore {
     };
     this.funds = [...this.funds, newFund];
     this.persist();
-    console.log(`⚡ DataStore: Optimistic add — funding entry injected instantly.`);
+    console.debug(`⚡ optimistic add — funding entry`);
     setTimeout(() => this.load(true, true), 2000);
   }
 }

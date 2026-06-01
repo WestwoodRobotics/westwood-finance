@@ -221,9 +221,13 @@ class AuthStore {
    */
   async fetchMembers() {
     try {
-      const res = await fetch(`${BASE_URL}?action=getMembers&key=${SECRET_KEY}`);
+      const res = await fetch(BASE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ key: SECRET_KEY, action: 'getMembers' }),
+      });
       if (!res.ok) throw new Error('Failed to fetch members');
-      const data = await res.json();
+      const data = JSON.parse(await res.text());
       
       if (data.members && Array.isArray(data.members)) {
         this.membersList = data.members;
@@ -265,7 +269,7 @@ class AuthStore {
           }
         }
         
-        console.log(`🔐 Auth: Loaded ${data.members.length} approved members`);
+        console.debug(`🔐 Auth: ${data.members.length} members loaded`);
       }
     } catch (e) {
       console.warn('Failed to fetch members list:', e);

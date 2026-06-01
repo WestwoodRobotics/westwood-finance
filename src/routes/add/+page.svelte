@@ -121,30 +121,28 @@
       }
 
       // ✅ FIX: force all values to strings for URLSearchParams
-      const params = new URLSearchParams({
-        action: "addOrder",
-        key: SECRET_KEY,
-        item: form.item,
-        company: form.company,
-        link: finalLink,
-        price: String(form.price),
-        quantity: String(form.quantity),
-        notes: form.notes,
-        category: form.category,
-        team: form.team,
-        // ✅ Spreadsheet Formula for Total: =Dx*Ex
-        total: "=INDIRECT(\"D\"&ROW())*INDIRECT(\"E\"&ROW())",
-        status: form.isExpense ? "Received" : "Pending Review",
-        tracking: "",
-        uuid: form.uuid,
-        timestamp: formatDate(new Date()),
-        orderedBy: form.orderedBy,
+      const response = await fetch(BASE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({
+          key: SECRET_KEY,
+          action: 'addOrder',
+          item: form.item,
+          company: form.company,
+          link: finalLink,
+          price: String(form.price),
+          quantity: String(form.quantity),
+          notes: form.notes,
+          category: form.category,
+          team: form.team,
+          status: form.isExpense ? "Received" : "Pending Review",
+          tracking: "",
+          uuid: form.uuid,
+          timestamp: formatDate(new Date()),
+          orderedBy: form.orderedBy,
+        }),
       });
-
-      const url = `${BASE_URL}?${params.toString()}`;
-
-      const response = await fetch(url);
-      const result = await response.json();
+      const result = JSON.parse(await response.text());
 
       console.log("API result:", result);
 

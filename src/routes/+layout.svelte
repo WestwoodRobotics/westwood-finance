@@ -13,7 +13,7 @@
   // ── Global 3s data poll ─────────────────────────────────────────────────────
   onMount(() => {
     const interval = setInterval(() => {
-      dataService.load(true, true);
+      if (authStore.isApproved) dataService.load(true, true);
     }, 3000);
     return () => clearInterval(interval);
   });

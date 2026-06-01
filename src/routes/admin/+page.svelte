@@ -348,17 +348,20 @@
     actionMsg = "";
     undoFn = null;
     try {
-      const params = new URLSearchParams({
-        action: "updateOrderStatus",
-        key: SECRET_KEY,
-        id: currentEditingOrder.id,
-        rowIndex: currentEditingOrder.rowIndex.toString(),
-        status: editStatus,
-        tracking: editTracking,
-        orderUUID: editUUID,
+      const res = await fetch(BASE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({
+          key: SECRET_KEY,
+          action: 'updateOrderStatus',
+          id: currentEditingOrder.id,
+          rowIndex: currentEditingOrder.rowIndex.toString(),
+          status: editStatus,
+          tracking: editTracking,
+          orderUUID: editUUID,
+        }),
       });
-      const res = await fetch(`${BASE_URL}?${params.toString()}`);
-      const result = await res.json();
+      const result = JSON.parse(await res.text());
       if (!res.ok || result?.error)
         throw new Error(result?.error || "Update failed");
 
@@ -377,16 +380,19 @@
           tracking: prevTracking,
           orderUUID: prevUUID,
         });
-        const revertParams = new URLSearchParams({
-          action: "updateOrderStatus",
-          key: SECRET_KEY,
-          id: editId,
-          rowIndex: String(editRowIndex),
-          status: prevStatus || "",
-          tracking: prevTracking || "",
-          orderUUID: prevUUID || "",
-        });
-        fetch(`${BASE_URL}?${revertParams.toString()}`).then(() => dataService.load(true, true));
+        fetch(BASE_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({
+            key: SECRET_KEY,
+            action: 'updateOrderStatus',
+            id: editId,
+            rowIndex: String(editRowIndex),
+            status: prevStatus || "",
+            tracking: prevTracking || "",
+            orderUUID: prevUUID || "",
+          }),
+        }).then(() => dataService.load(true, true));
       };
 
       closeEdit();
@@ -416,22 +422,12 @@
     actionErr = "";
     undoFn = null;
     try {
-      const params = new URLSearchParams({
-        action: "deleteOrder",
-        key: SECRET_KEY,
-        uuid: editId,
+      const res = await fetch(BASE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ key: SECRET_KEY, action: 'deleteOrder', uuid: editId }),
       });
-      const res = await fetch(`${BASE_URL}?${params.toString()}`);
-
-      let result;
-      const text = await res.text();
-      try {
-        result = JSON.parse(text);
-      } catch (parseErr) {
-        throw new Error(
-          `Server returned invalid response: ${text.slice(0, 100)}`,
-        );
-      }
+      const result = JSON.parse(await res.text());
 
       if (!res.ok || result?.error) {
         throw new Error(result?.error || "Delete failed");
@@ -529,19 +525,22 @@
     editSaving = true;
     actionErr = "";
     try {
-      const params = new URLSearchParams({
-        action: "updateFunding",
-        key: SECRET_KEY,
-        rowIndex: String(currentFund.rowIndex),
-        Source: String(editFundFields.Source),
-        Amount: String(editFundFields.Amount),
-        Recipient: String(editFundFields.Recipient),
-        Notes: String(editFundFields.Notes),
-        Type: String(editFundFields.Type),
-        Date: formatDate(editFundFields.Date),
+      const res = await fetch(BASE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({
+          key: SECRET_KEY,
+          action: 'updateFunding',
+          rowIndex: String(currentFund.rowIndex),
+          Source: String(editFundFields.Source),
+          Amount: String(editFundFields.Amount),
+          Recipient: String(editFundFields.Recipient),
+          Notes: String(editFundFields.Notes),
+          Type: String(editFundFields.Type),
+          Date: formatDate(editFundFields.Date),
+        }),
       });
-      const res = await fetch(`${BASE_URL}?${params.toString()}`);
-      const result = await res.json();
+      const result = JSON.parse(await res.text());
       if (!res.ok || result?.error)
         throw new Error(result?.error || "Update failed");
 
@@ -589,23 +588,25 @@
         finalLink = "https://" + finalLink;
       }
 
-      const params = new URLSearchParams({
-        action: "addOrder",
-        key: SECRET_KEY,
-        item: addOrderForm.item,
-        company: addOrderForm.company,
-        link: finalLink,
-        price: String(addOrderForm.price),
-        quantity: String(addOrderForm.quantity),
-        notes: addOrderForm.notes,
-        category: addOrderForm.category,
-        team: addOrderForm.team,
-        total: '=INDIRECT("D"&ROW())*INDIRECT("E"&ROW())',
-        status: addOrderForm.status,
-        timestamp: formatDate(new Date()),
+      const res = await fetch(BASE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({
+          key: SECRET_KEY,
+          action: 'addOrder',
+          item: addOrderForm.item,
+          company: addOrderForm.company,
+          link: finalLink,
+          price: String(addOrderForm.price),
+          quantity: String(addOrderForm.quantity),
+          notes: addOrderForm.notes,
+          category: addOrderForm.category,
+          team: addOrderForm.team,
+          status: addOrderForm.status,
+          timestamp: formatDate(new Date()),
+        }),
       });
-      const res = await fetch(`${BASE_URL}?${params.toString()}`);
-      const result = await res.json();
+      const result = JSON.parse(await res.text());
       if (!res.ok || result?.error)
         throw new Error(result?.error || "Request failed");
 
@@ -661,18 +662,21 @@
 
     addFundsSubmitting = true;
     try {
-      const params = new URLSearchParams({
-        action: "addFundraising",
-        key: SECRET_KEY,
-        type: addFundsForm.type,
-        source: addFundsForm.source,
-        amount: addFundsForm.amount,
-        date: addFundsForm.date,
-        notes: addFundsForm.notes,
-        recipient: addFundsForm.recipient,
+      const res = await fetch(BASE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({
+          key: SECRET_KEY,
+          action: 'addFundraising',
+          type: addFundsForm.type,
+          source: addFundsForm.source,
+          amount: addFundsForm.amount,
+          date: addFundsForm.date,
+          notes: addFundsForm.notes,
+          recipient: addFundsForm.recipient,
+        }),
       });
-      const res = await fetch(`${BASE_URL}?${params.toString()}`);
-      const result = await res.json();
+      const result = JSON.parse(await res.text());
       if (!res.ok || result?.error)
         throw new Error(result?.error || "Request failed");
 
@@ -715,16 +719,13 @@
       orders.find((o) => o.orderUUID)?.orderUUID || generateShortId();
 
     try {
-      const promises = orders.map((/** @type {any} */ o) => {
-        const params = new URLSearchParams({
-          action: "updateOrderStatus",
-          key: SECRET_KEY,
-          id: o.id,
-          rowIndex: String(o.rowIndex),
-          orderUUID: targetUUID,
-        });
-        return fetch(`${BASE_URL}?${params.toString()}`).then((r) => r.json());
-      });
+      const promises = orders.map((/** @type {any} */ o) =>
+        fetch(BASE_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({ key: SECRET_KEY, action: 'updateOrderStatus', id: o.id, rowIndex: String(o.rowIndex), orderUUID: targetUUID }),
+        }).then((r) => r.text()).then(JSON.parse)
+      );
 
       const results = await Promise.all(promises);
       if (results.some((r) => r.error)) throw new Error("Batch link failed");
@@ -763,16 +764,13 @@
     actionMsg = `Updating status for ${editingGroupOrders.length} orders...`;
     
     try {
-      const promises = editingGroupOrders.map((/** @type {any} */ o) => {
-        const params = new URLSearchParams({
-          action: "updateOrderStatus",
-          key: SECRET_KEY,
-          id: o.id,
-          rowIndex: String(o.rowIndex),
-          status: groupStatus,
-        });
-        return fetch(`${BASE_URL}?${params.toString()}`).then((r) => r.json());
-      });
+      const promises = editingGroupOrders.map((/** @type {any} */ o) =>
+        fetch(BASE_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({ key: SECRET_KEY, action: 'updateOrderStatus', id: o.id, rowIndex: String(o.rowIndex), status: groupStatus }),
+        }).then((r) => r.text()).then(JSON.parse)
+      );
 
       const results = await Promise.all(promises);
       if (results.some((/** @type {any} */ r) => r.error)) throw new Error("Batch status update failed");
@@ -783,14 +781,11 @@
       undoFn = () => {
         prevStates.forEach((prev) => {
           dataService.updateOrderOptimistic(prev.id, { status: prev.status });
-          const revertParams = new URLSearchParams({
-            action: "updateOrderStatus",
-            key: SECRET_KEY,
-            id: prev.id,
-            rowIndex: String(prev.rowIndex),
-            status: prev.status || "",
+          fetch(BASE_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({ key: SECRET_KEY, action: 'updateOrderStatus', id: prev.id, rowIndex: String(prev.rowIndex), status: prev.status || "" }),
           });
-          fetch(`${BASE_URL}?${revertParams.toString()}`);
         });
         setTimeout(() => dataService.load(true, true), 1000);
       };
@@ -832,17 +827,20 @@
 
     addMemberSubmitting = true;
     try {
-      const params = new URLSearchParams({
-        action: 'addMember',
-        key: SECRET_KEY,
-        firstName: addMemberForm.firstName.trim(),
-        lastName: addMemberForm.lastName.trim(),
-        studentId: cleanId,
-        team: addMemberForm.team,
-        role: addMemberForm.isAdmin ? 'admin' : '',
+      const res = await fetch(BASE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({
+          key: SECRET_KEY,
+          action: 'addMember',
+          firstName: addMemberForm.firstName.trim(),
+          lastName: addMemberForm.lastName.trim(),
+          studentId: cleanId,
+          team: addMemberForm.team,
+          role: addMemberForm.isAdmin ? 'admin' : '',
+        }),
       });
-      const res = await fetch(`${BASE_URL}?${params.toString()}`);
-      const result = await res.json();
+      const result = JSON.parse(await res.text());
       if (result.error) throw new Error(result.error);
 
       memberActionMsg = `✓ ${addMemberForm.firstName} ${addMemberForm.lastName} approved!`;
@@ -862,13 +860,12 @@
     memberActionMsg = '';
     memberActionErr = '';
     try {
-      const params = new URLSearchParams({
-        action: 'removeMember',
-        key: SECRET_KEY,
-        studentId: studentId,
+      const res = await fetch(BASE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ key: SECRET_KEY, action: 'removeMember', studentId }),
       });
-      const res = await fetch(`${BASE_URL}?${params.toString()}`);
-      const result = await res.json();
+      const result = JSON.parse(await res.text());
       if (result.error) throw new Error(result.error);
 
       memberActionMsg = '✓ Member removed.';

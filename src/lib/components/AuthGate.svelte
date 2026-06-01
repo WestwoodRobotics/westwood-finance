@@ -110,18 +110,20 @@
       const lastName = lastNameArr.join(' ');
       
       try {
-        const params = new URLSearchParams({
-          action: 'addMember',
-          key: SECRET_KEY,
-          firstName: firstName || '',
-          lastName: lastName || '',
-          studentId: clean,
-          team: selectedTeam,
-          role: '', // empty role = pending approval
-          email: authStore.googleUser?.email || ''
+        fetch(BASE_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({
+            key: SECRET_KEY,
+            action: 'addMember',
+            firstName: firstName || '',
+            lastName: lastName || '',
+            studentId: clean,
+            team: selectedTeam,
+            role: '',
+            email: authStore.googleUser?.email || '',
+          }),
         });
-        // Fire and forget
-        fetch(`${BASE_URL}?${params.toString()}`);
       } catch (e) {
         console.error('Failed to auto-register:', e);
       }
