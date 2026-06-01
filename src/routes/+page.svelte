@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { DollarSign, TrendingUp, ShoppingCart, BarChart3 } from '@lucide/svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import StatCard from "$lib/components/StatCard.svelte";
@@ -19,8 +19,6 @@
   import { authStore } from "$lib/authStore.svelte.js";
   import { perms } from "$lib/perms.js";
   import appInfo from "$lib/app-info.json";
-
-  /** @typedef {import('$lib/dataService.svelte.js').Order} Order */
 
   const TEAM_OPTIONS = perms.viewAllTeams ? TEAMS : [authStore.userTeam];
   let selectedTeam = $state(perms.viewAllTeams ? "Westwood Overall" : authStore.userTeam);
@@ -45,7 +43,7 @@
   // ── Derived Stats ───────────────────────────────────────────────────────────
   // All orders for the full year expense count (regardless of status)
   let allYearExpenses = $derived(
-    teamOrders.filter((/** @type {Order} */ o) => {
+    teamOrders.filter((o) => {
       const ts = o.timestamp || "";
       const year = new Date().getFullYear().toString();
       return ts.includes(year);
@@ -54,7 +52,7 @@
 
   // "Expenses" are orders that have been received or ordered
   let expenses = $derived(
-    teamOrders.filter((/** @type {Order} */ o) => {
+    teamOrders.filter((o) => {
       const s = (o.status || "").toLowerCase().trim();
       return s === "received" || s === "ordered";
     }),
@@ -62,7 +60,7 @@
 
   let totalRaised = $derived(
     teamFunds.reduce(
-      (/** @type {number} */ sum, /** @type {any} */ f) =>
+      (sum, f) =>
         sum + (Number(f.Amount) || 0),
       0,
     ),
@@ -70,16 +68,15 @@
 
   let totalSpent = $derived(
     expenses.reduce(
-      (/** @type {number} */ s, /** @type {Order} */ e) => s + (e.total || 0),
+      (s, e) => s + (e.total || 0),
       0,
     ),
   );
   let netBalance = $derived(totalRaised - totalSpent);
 
   let monthlyTrends = $derived.by(() => {
-    /** @type {Record<string, number>} */
     const map = {};
-    expenses.forEach((/** @type {Order} */ e) => {
+    expenses.forEach((e) => {
       const d = new Date(e.timestamp || "");
       if (isNaN(d.getTime())) return;
       const month = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
@@ -105,7 +102,6 @@
     return totalClub + totalPersonal + totalRaised - totalRealExpenses;
   });
 
-  /** @type {any} */
   let selectedOrder = $state(null);
 </script>
 

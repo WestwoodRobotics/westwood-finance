@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { formatCurrency } from '../utils.js';
 
   let {

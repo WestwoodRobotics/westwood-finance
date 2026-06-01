@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { onMount } from 'svelte';
   import { onNavigate } from '$app/navigation';
   import { dataService } from '$lib/dataService.svelte.js';
@@ -45,12 +45,12 @@
     const main = document.querySelector('.main-content');
     if (!main) return;
 
-    function onTouchStart(/** @type {any} */ e) {
+    function onTouchStart(e) {
       if (window.innerWidth > 768) return;
       ptrTouchStartY = e.touches[0].clientY;
     }
  
-    async function onTouchEnd(/** @type {any} */ e) {
+    async function onTouchEnd(e) {
       if (window.innerWidth > 768 || dataService.isManualRefreshing) return;
       const delta = e.changedTouches[0].clientY - ptrTouchStartY;
       // Only fire if pulled down AND scroll is at top

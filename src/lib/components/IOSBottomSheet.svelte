@@ -1,12 +1,11 @@
-<script>
+<script lang="ts">
   import { onMount } from 'svelte';
   import { X } from '@lucide/svelte';
   import { browser } from '$app/environment';
 
-  /** @type {{ open: boolean, onclose: () => void, title?: string, children: import('svelte').Snippet }} */
   let { open = false, onclose, title = '', children } = $props();
 
-  let sheetEl = /** @type {HTMLElement|null} */ ($state(null));
+  let sheetEl = ($state(null));
   let dragStartY = 0;
   let currentY = $state(0);
   let isDragging = $state(false);
@@ -15,14 +14,12 @@
     if ('vibrate' in navigator) navigator.vibrate(8);
   }
 
-  /** @param {TouchEvent} e */
   function onTouchStart(e) {
     dragStartY = e.touches[0].clientY;
     currentY = 0;
     isDragging = true;
   }
 
-  /** @param {TouchEvent} e */
   function onTouchMove(e) {
     if (!isDragging) return;
     const delta = e.touches[0].clientY - dragStartY;
@@ -31,7 +28,6 @@
     }
   }
 
-  /** @param {TouchEvent} e */
   function onTouchEnd(e) {
     isDragging = false;
     const delta = e.changedTouches[0].clientY - dragStartY;

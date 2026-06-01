@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import { perms } from '$lib/perms.js';
@@ -24,7 +24,6 @@
     allMoreItems.filter(item => !item.adminOnly || perms.admin)
   );
 
-  /** @param {string} href */
   function isActive(href) {
     if (href === '#more') {
       const p = $page.url.pathname;
@@ -35,11 +34,10 @@
     return current === target;
   }
 
-  function haptic(/** @type {number} */ duration = 8) {
+  function haptic(duration = 8) {
     if ('vibrate' in navigator) navigator.vibrate(duration);
   }
 
-  /** @param {typeof mainTabs[0]} tab */
   function handleTabClick(tab) {
     haptic();
     if (tab.isMore) {
@@ -50,7 +48,6 @@
     goto(tab.href);
   }
 
-  /** @param {string} href */
   function handleMoreItemClick(href) {
     haptic();
     showMoreSheet = false;
@@ -63,14 +60,12 @@
 
   // Drag-to-dismiss
   let dragStartY = 0;
-  let sheetEl = /** @type {HTMLElement|null} */ ($state(null));
+  let sheetEl = ($state(null));
 
-  /** @param {TouchEvent} e */
   function onSheetTouchStart(e) {
     dragStartY = e.touches[0].clientY;
   }
 
-  /** @param {TouchEvent} e */
   function onSheetTouchEnd(e) {
     const delta = e.changedTouches[0].clientY - dragStartY;
     if (delta > 60) closeSheet();

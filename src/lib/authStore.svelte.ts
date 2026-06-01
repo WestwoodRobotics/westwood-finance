@@ -1,71 +1,35 @@
 import { BASE_URL } from './config.js';
-
-/**
- * @typedef {Object} GoogleUser
- * @property {string} email
- * @property {string} name
- * @property {string} picture
- * @property {string} sub - Google unique user ID
- */
-
-/**
- * @typedef {Object} ApprovedMember
- * @property {string} firstName
- * @property {string} lastName
- * @property {string} team
- * @property {string} studentId
- * @property {string} [role]
- * @property {string} [email]
- */
+import type { AuthStatus, GoogleUser, ApprovedMember, MemberMatch } from './types.js';
 
 class AuthStore {
-  /** @type {'signed_out' | 'needs_student_id' | 'pending_approval' | 'approved' | 'unauthorized'} */
-  status = $state('signed_out');
-
-  /** @type {GoogleUser | null} */
-  googleUser = $state(null);
-
-  /** @type {ApprovedMember | null} */
-  member = $state(null);
-
-  /** @type {string} */
+  status = $state<AuthStatus>('signed_out');
+  googleUser = $state<GoogleUser | null>(null);
+  member = $state<ApprovedMember | null>(null);
   studentId = $state('');
-
-  /** @type {string} */
   pendingTeam = $state('FRC');
-
-  /** @type {boolean} */
   initialized = $state(typeof window === 'undefined');
-
-  /** @type {ApprovedMember[]} */
-  membersList = $state([]);
-
-  /** @type {boolean} */
+  membersList = $state<ApprovedMember[]>([]);
   membersLoaded = $state(false);
-
-  /** @type {string | null} */
-  idToken = $state(null);
-
-  /** @type {number} */
+  idToken = $state<string | null>(null);
   idTokenExp = $state(0);
 
-  get isAdmin() {
+  get isAdmin(): boolean {
     return this.member?.role === 'admin';
   }
 
-  get isApproved() {
+  get isApproved(): boolean {
     return this.status === 'approved' && this.member !== null;
   }
 
-  get hasValidToken() {
+  get hasValidToken(): boolean {
     return !!this.idToken && Date.now() / 1000 < this.idTokenExp - 60;
   }
 
-  get userTeam() {
+  get userTeam(): string {
     return this.member?.team || '';
   }
 
-  get displayName() {
+  get displayName(): string {
     if (this.member) return `${this.member.firstName} ${this.member.lastName}`;
     return this.googleUser?.name || '';
   }
@@ -76,7 +40,7 @@ class AuthStore {
     }
   }
 
-  _restoreSession() {
+  _restoreSession(): void {
     try {
       const saved = localStorage.getItem('westwood_auth');
       if (!saved) {
@@ -106,7 +70,7 @@ class AuthStore {
           if (match.member.email &&
               this.googleUser.email &&
               match.member.email.toLowerCase() !== this.googleUser.email.toLowerCase()) {
-            console.warn('🔐 Auth: Email mismatch for student ID', this.studentId);
+            console.warn('Auth: Email mismatch for student ID', this.studentId);
           }
           this._applyMatch(match);
         } else if (this.studentId) {
@@ -122,7 +86,7 @@ class AuthStore {
     }
   }
 
-  _persist() {
+  _persist(): void {
     if (typeof window === 'undefined') return;
     try {
       localStorage.setItem('westwood_auth', JSON.stringify({
@@ -135,8 +99,7 @@ class AuthStore {
     }
   }
 
-  /** @param {string} credential */
-  _setCredential(credential) {
+  _setCredential(credential: string): void {
     try {
       const payload = JSON.parse(atob(credential.split('.')[1]));
       this.idToken = credential;
@@ -147,11 +110,7 @@ class AuthStore {
     }
   }
 
-  /**
-   * @param {ApprovedMember | null} m
-   * @returns {'approved' | 'unauthorized' | 'pending_approval'}
-   */
-  _evaluateStatus(m) {
+  _evaluateStatus(m: ApprovedMember | null): 'approved' | 'unauthorized' | 'pending_approval' {
     if (!m) return 'pending_approval';
     const role = (m.role || '').trim().toLowerCase();
     if (role === 'unauthorized') return 'unauthorized';
@@ -159,25 +118,23 @@ class AuthStore {
     return 'pending_approval';
   }
 
-  /** @param {string} sid */
-  _findMember(sid) {
+  _findMember(sid: string): MemberMatch | null {
     const clean = sid.replace(/^s/i, '').trim();
     const found = this.membersList.find(
-      (/** @type {ApprovedMember} */ m) => String(m.studentId) === clean
+      (m) => String(m.studentId) === clean
     ) || null;
     if (found) return { member: found, evalStatus: this._evaluateStatus(found) };
     return null;
   }
 
-  /** @param {string} email */
-  _findMemberByEmail(email) {
+  _findMemberByEmail(email: string): MemberMatch | null {
     if (!email) return null;
     const found = this.membersList.find(m => m.email && m.email.toLowerCase() === email.toLowerCase()) || null;
     if (found) return { member: found, evalStatus: this._evaluateStatus(found) };
     return null;
   }
 
-  async fetchMembers() {
+  async fetchMembers(): Promise<void> {
     if (!this.idToken) return;
     try {
       const res = await fetch(BASE_URL, {
@@ -193,15 +150,14 @@ class AuthStore {
         this.membersLoaded = true;
         localStorage.setItem('westwood_members', JSON.stringify(data.members));
         this._revalidate();
-        console.debug(`🔐 Auth: ${data.members.length} members loaded`);
+        console.debug(`Auth: ${data.members.length} members loaded`);
       }
     } catch (e) {
       console.warn('Failed to fetch members list:', e);
     }
   }
 
-  /** @param {{ member: ApprovedMember, evalStatus: string }} match */
-  _applyMatch(match) {
+  _applyMatch(match: MemberMatch): void {
     const conflictingEmail = match.member.email &&
       this.googleUser?.email &&
       match.member.email.toLowerCase() !== this.googleUser.email.toLowerCase();
@@ -218,11 +174,11 @@ class AuthStore {
       this.member = null;
       this.status = 'pending_approval';
     }
-    this.studentId = match.member.studentId;
+    this.studentId = String(match.member.studentId);
     this.pendingTeam = match.member.team;
   }
 
-  _revalidate() {
+  _revalidate(): void {
     if (!this.googleUser) return;
     const emailMatch = this._findMemberByEmail(this.googleUser.email);
     const sidMatch = this.studentId ? this._findMember(this.studentId) : null;
@@ -236,8 +192,7 @@ class AuthStore {
     }
   }
 
-  /** @param {ApprovedMember[]} members */
-  updateMembersList(members) {
+  updateMembersList(members: ApprovedMember[]): void {
     if (!Array.isArray(members)) return;
     this.membersList = members;
     this.membersLoaded = true;
@@ -247,11 +202,7 @@ class AuthStore {
     this._revalidate();
   }
 
-  /**
-   * @param {GoogleUser} user
-   * @param {string} credential - raw Google ID token JWT
-   */
-  handleGoogleSignIn(user, credential) {
+  handleGoogleSignIn(user: GoogleUser, credential: string): void {
     this.googleUser = user;
     this._setCredential(credential);
     this.fetchMembers();
@@ -259,11 +210,11 @@ class AuthStore {
     const emailMatch = this._findMemberByEmail(user.email);
     if (emailMatch) {
       this.member = emailMatch.evalStatus === 'approved' ? emailMatch.member : null;
-      this.studentId = emailMatch.member.studentId;
+      this.studentId = String(emailMatch.member.studentId);
       this.pendingTeam = emailMatch.member.team;
       this.status = emailMatch.evalStatus;
       this._persist();
-      console.log(`🔐 Auth: Logged in via Email (${this.status}) —`, user.email);
+      console.log(`Auth: Logged in via Email (${this.status}) —`, user.email);
       return;
     }
 
@@ -280,14 +231,10 @@ class AuthStore {
     }
 
     this._persist();
-    console.log('🔐 Auth: Google sign-in complete —', user.email);
+    console.log('Auth: Google sign-in complete —', user.email);
   }
 
-  /**
-   * @param {string} sid
-   * @param {string} team
-   */
-  submitStudentId(sid, team) {
+  submitStudentId(sid: string, team: string): void {
     const clean = sid.replace(/^s/i, '').trim();
     this.studentId = clean;
     this.pendingTeam = team;
@@ -297,22 +244,22 @@ class AuthStore {
       const existingEmail = sidMatch.member.email;
       const currentEmail = this.googleUser?.email;
       if (existingEmail && currentEmail && existingEmail.toLowerCase() !== currentEmail.toLowerCase()) {
-        console.warn('🔐 Auth: Student ID already linked to another email');
+        console.warn('Auth: Student ID already linked to another email');
         this.status = 'pending_approval';
       } else {
         this.member = sidMatch.evalStatus === 'approved' ? sidMatch.member : null;
         this.status = sidMatch.evalStatus;
-        console.log(`✅ Auth: Student ID submitted (${this.status}) —`, clean);
+        console.log(`Auth: Student ID submitted (${this.status}) —`, clean);
       }
     } else {
       this.status = 'pending_approval';
-      console.log('⏳ Auth: Pending approval — Student ID:', clean, 'Team:', team);
+      console.log('Auth: Pending approval — Student ID:', clean, 'Team:', team);
     }
 
     this._persist();
   }
 
-  signOut() {
+  signOut(): void {
     this.googleUser = null;
     this.member = null;
     this.studentId = '';
@@ -330,7 +277,7 @@ class AuthStore {
       }
     }
 
-    console.log('🔓 Auth: Signed out');
+    console.log('Auth: Signed out');
   }
 }
 

@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import {
     formatCurrency,
     formatFullDate,
@@ -14,7 +14,6 @@
   import OrderStatusBadge from "./OrderStatusBadge.svelte";
   import OrderDetailSheet from "./OrderDetailSheet.svelte";
 
-  /** @type {{ orders: any[], limit?: number, hideTeamColumn?: boolean, hideCategoryColumn?: boolean, hideCompanyColumn?: boolean, onmanage?: (order: any) => void }} */
   let {
     orders = [],
     limit = 0,
@@ -27,7 +26,7 @@
   let sortCol = $state("status");
   let sortDir = $state("asc");
 
-  function toggleSort(/** @type {string} */ col) {
+  function toggleSort(col) {
     if (sortCol === col) {
       sortDir = sortDir === "asc" ? "desc" : "asc";
     } else {
@@ -81,20 +80,18 @@
     miscellaneous: Package,
   };
 
-  function getCatIcon(/** @type {string|undefined} */ cat) {
-    const key = /** @type {keyof typeof CAT_ICONS} */ ((cat || "miscellaneous").toLowerCase());
+  function getCatIcon(cat) {
+    const key = ((cat || "miscellaneous").toLowerCase());
     return CAT_ICONS[key] || CAT_ICONS.miscellaneous;
   }
 
-  /** @param {string} url */
   function openExternal(url) {
     if (!url) return;
     const href = url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`;
     window.open(href, '_blank', 'noopener,noreferrer');
   }
 
-  /** @type {any} */
-  let selectedOrder = /** @type {any|null} */ ($state(null));
+  let selectedOrder = ($state(null));
 </script>
 
 <!-- ── Desktop Table ─────────────────────────────────────────────────────── -->

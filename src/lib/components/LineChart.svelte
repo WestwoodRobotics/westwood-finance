@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import {
     Chart, LineElement, PointElement, LinearScale, CategoryScale,
@@ -13,9 +13,7 @@
   let labels = $derived(data.map(d => formatMonth(d.month)));
   let values = $derived(data.map(d => d.amount));
 
-  /** @type {any} */
   let canvas;
-  /** @type {any} */
   let chart;
 
   $effect(() => {
@@ -37,7 +35,7 @@
           label: 'Spending',
           data: data.map(d => d.amount),
           borderColor: '#f97316',
-          backgroundColor: (/** @type {any} */ context) => {
+          backgroundColor: (context) => {
              const chart = context.chart;
              const {ctx, chartArea} = chart;
              if (!chartArea) return null;
@@ -74,7 +72,7 @@
             borderColor: '#27272a',
             borderWidth: 1,
             callbacks: {
-              label: (/** @type {any} */ ctx) => ` $${ctx.parsed.y.toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
+              label: (ctx) => ` $${ctx.parsed.y.toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
             },
           },
         },

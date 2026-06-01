@@ -1,15 +1,14 @@
-<script>
+<script lang="ts">
   import { formatCurrency, formatDate, truncate, capitalize, getTeamBadgeClass } from '../utils.js';
   import { Settings, Code2, Megaphone, UtensilsCrossed, Package, ClipboardList, Clipboard, Pencil } from '@lucide/svelte';
   import IOSBottomSheet from './IOSBottomSheet.svelte';
 
-  /** @type {{ expenses?: any[], limit?: number, hideTeam?: boolean }} */
   let { expenses = [], limit = 0, hideTeam = false } = $props();
 
   let sortCol = $state("timestamp");
   let sortDir = $state("desc");
 
-  function toggleSort(/** @type {string} */ col) {
+  function toggleSort(col) {
     if (sortCol === col) {
       sortDir = sortDir === "asc" ? "desc" : "asc";
     } else {
@@ -36,7 +35,6 @@
 
   let display = $derived(limit > 0 ? sortedExpenses.slice(0, limit) : sortedExpenses);
 
-  /** @type {Record<string, string>} */
   const CAT_COLORS = {
     hardware: '#f97316',
     software: '#3b82f6',
@@ -53,24 +51,22 @@
     miscellaneous: Package,
   };
 
-  /** @type {Record<string,string>} */ const CAT_COLORS_MAP = CAT_COLORS;
-  /** @type {Record<string,any>} */ const CAT_ICONS_MAP = CAT_ICONS;
+  const CAT_COLORS_MAP = CAT_COLORS;
+  const CAT_ICONS_MAP = CAT_ICONS;
 
-  function getCatColor(/** @type {string|undefined} */ cat) {
+  function getCatColor(cat) {
     return CAT_COLORS_MAP[(cat || 'miscellaneous').toLowerCase()] || '#8b5cf6';
   }
-  function getCatIcon(/** @type {string|undefined} */ cat) {
+  function getCatIcon(cat) {
     return CAT_ICONS_MAP[(cat || 'miscellaneous').toLowerCase()] || CAT_ICONS.miscellaneous;
   }
 
-/** @param {string} url */
 function openExternal(url) {
   if (!url) return;
   const href = url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`;
   window.open(href, '_blank', 'noopener,noreferrer');
 }
 
-  /** @type {any} */
   let selectedExpense = $state(null);
 </script>
 
@@ -369,8 +365,6 @@ function openExternal(url) {
     color: var(--text-muted);
     font-family: -apple-system, 'SF Pro Text', sans-serif;
   }
-
-
 
   .stat-sub {
     font-size: 0.78rem;

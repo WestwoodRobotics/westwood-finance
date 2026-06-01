@@ -1,74 +1,54 @@
-/** 
- * format a number as USD 
- * @param {number} n 
- */
-export function formatCurrency(n) {
+import type { Order } from './types.js';
+
+export function formatCurrency(n: number): string {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n ?? 0);
 }
 
-/** 
- * format a timestamp to "MM/DD/YYYY"
- * @param {string | number | Date} ts 
- */
-export function formatDate(ts) {
+export function formatDate(ts: string | number | Date): string {
   if (!ts) return '—';
-  
-  let cleanTs = ts;
+
+  let cleanTs: string | number | Date = ts;
   if (typeof ts === 'string') {
     cleanTs = ts.replace(/T00:00:00\.000Z$/, '').replace(/ 00:00:00\.000Z$/, '');
   }
-  
+
   const d = new Date(cleanTs);
   if (isNaN(d.getTime())) return String(ts);
-  
+
   const MM = String(d.getMonth() + 1).padStart(2, '0');
   const DD = String(d.getDate()).padStart(2, '0');
   const YYYY = d.getFullYear();
-  
-  // 12-hour formatting 
+
   let HH = d.getHours();
   const ampm = HH >= 12 ? 'PM' : 'AM';
   HH = HH % 12;
   HH = HH ? HH : 12;
   const min = String(d.getMinutes()).padStart(2, '0');
-  
+
   return `${MM}/${DD}/${YYYY} ${HH}:${min} ${ampm}`;
 }
 
-export function formatFullDate(ts) {
+export function formatFullDate(ts: string | number | Date): string {
   return formatDate(ts);
 }
 
-/** 
- * "2025-04" -> "Apr 2025" 
- * @param {string} key 
- */
-export function formatMonth(key) {
+export function formatMonth(key: string): string {
   if (!key) return '';
   const [y, m] = key.split('-');
   return new Date(parseInt(y), parseInt(m) - 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 }
 
-/** 
- * caps first letter 
- * @param {string} str 
- */
-export function capitalize(str) {
+export function capitalize(str: string): string {
   if (!str) return '';
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-/** 
- * safe truncate 
- * @param {string} str 
- * @param {number} max 
- */
-export function truncate(str, max = 40) {
+export function truncate(str: string, max = 40): string {
   if (!str) return '—';
   return str.length > max ? str.slice(0, max) + '…' : str;
 }
 
-export const CATEGORY_COLORS = {
+export const CATEGORY_COLORS: Record<string, string> = {
   hardware:      '#e07b30',
   software:      '#4e9af1',
   outreach:      '#6bcb77',
@@ -76,7 +56,7 @@ export const CATEGORY_COLORS = {
   miscellaneous: '#b97cf3',
 };
 
-export const STATUS_COLORS = {
+export const STATUS_COLORS: Record<string, string> = {
   'Pending Review':  '#4e9af1',
   'Approved':        '#4eeaf1',
   'Ordered':         '#f19a4e',
@@ -86,21 +66,18 @@ export const STATUS_COLORS = {
   'Void':            '#8a8a8a',
 };
 
-export const CATEGORIES = ['hardware', 'software', 'outreach', 'food', 'miscellaneous'];
-export const TEAMS = ['FRC', 'Westwood Overall', 'Slingshot', 'Atlatl', 'Kunai', 'Hunga Munga'];
+export const CATEGORIES = ['hardware', 'software', 'outreach', 'food', 'miscellaneous'] as const;
+export const TEAMS = ['FRC', 'Westwood Overall', 'Slingshot', 'Atlatl', 'Kunai', 'Hunga Munga'] as const;
 
-/** 
- * team badge css helper 
- * @param {string} team 
- */
-export function getTeamBadgeClass(team) {
+export function getTeamBadgeClass(team: string): string {
   if (!team || team === 'All' || team === 'Westwood Overall') return '';
   return `badge-${team.toString().toLowerCase().trim().replace(/\s+/g, '-')}`;
 }
 
-export const CONTRIBUTION_TYPES = ['money', 'parts', 'services'];
-export const GRANT_STATUSES = ['Applied', 'Pending', 'Awarded', 'Rejected'];
-export const CAT_COLORS = {
+export const CONTRIBUTION_TYPES = ['money', 'parts', 'services'] as const;
+export const GRANT_STATUSES = ['Applied', 'Pending', 'Awarded', 'Rejected'] as const;
+
+export const CAT_COLORS: Record<string, string> = {
   hardware:      '#f97316',
   software:      '#3b82f6',
   outreach:      '#10b981',
@@ -108,12 +85,12 @@ export const CAT_COLORS = {
   miscellaneous: '#8b5cf6',
 };
 
-/** @param {string|undefined} cat */
-export function getCatColor(cat) {
-  const key = /** @type {keyof typeof CAT_COLORS} */ ((cat || 'miscellaneous').toLowerCase());
-  return CAT_COLORS[key] || CAT_COLORS.miscellaneous;
+export function getCatColor(cat: string | undefined): string {
+  const key = (cat || 'miscellaneous').toLowerCase();
+  return CAT_COLORS[key] ?? CAT_COLORS['miscellaneous'];
 }
-export const STATUS_PRIORITY = {
+
+export const STATUS_PRIORITY: Record<string, number> = {
   'pending review': 0,
   approved:         1,
   ordered:          2,
@@ -123,11 +100,7 @@ export const STATUS_PRIORITY = {
   void:             6,
 };
 
-/**
- * stable color from an order UUID 
- * @param {string|undefined} uuid
- */
-export function getOrderColor(uuid) {
+export function getOrderColor(uuid: string | undefined): string {
   if (!uuid) return 'transparent';
   let hash = 0;
   for (let i = 0; i < uuid.length; i++) {
@@ -137,12 +110,9 @@ export function getOrderColor(uuid) {
   return `hsl(${h}, 70%, 40%)`;
 }
 
-/** cache wrapper so getOrderColor is O(1) on repeated calls */
-const _orderColorCache = /** @type {Record<string, string>} */ ({});
-/**
- * @param {string|undefined} uuid
- */
-export function getOrderColorCached(uuid) {
+const _orderColorCache: Record<string, string> = {};
+
+export function getOrderColorCached(uuid: string | undefined): string {
   if (!uuid) return 'transparent';
   if (_orderColorCache[uuid]) return _orderColorCache[uuid];
   const c = getOrderColor(uuid);
@@ -150,22 +120,14 @@ export function getOrderColorCached(uuid) {
   return c;
 }
 
-/**
- * ret true if an order belongs to the given team selection.
- * @param {{ team?: string }} order
- * @param {string} selectedTeam
- */
-export function matchesTeam(order, selectedTeam) {
+export function matchesTeam(order: Pick<Order, 'team'>, selectedTeam: string): boolean {
   if (selectedTeam === 'Westwood Overall') return true;
   const t = String(order.team || '').toLowerCase().trim();
   const s = selectedTeam.toLowerCase().trim();
   return t === s || t.includes(s) || (s === 'frc' && (t.includes('frc') || /^\d+$/.test(t)));
 }
 
-/**
- * gen a short 6-character alphanum ID
- */
-export function generateShortId() {
+export function generateShortId(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let result = '';
   for (let i = 0; i < 6; i++) {

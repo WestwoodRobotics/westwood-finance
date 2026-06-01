@@ -1,7 +1,6 @@
-<script>
+<script lang="ts">
   import { Clock, ShoppingBag, Check, CircleCheck, CircleX, Ban } from '@lucide/svelte';
 
-  /** @type {{ status: string }} */
   let { status } = $props();
 
   const config = {
@@ -14,7 +13,6 @@
     'Cancelled':      { color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.08)',   border: 'rgba(245, 158, 11, 0.2)',  icon: CircleX },
   };
 
-  /** @type {Record<string, {color:string,bg:string,border:string,icon:any}>} */
   const cfgMap = config;
   let cfg = $derived(cfgMap[status] ?? { color: '#71717a', bg: 'rgba(113, 113, 122, 0.08)', border: 'rgba(113, 113, 122, 0.2)', icon: null });
 </script>

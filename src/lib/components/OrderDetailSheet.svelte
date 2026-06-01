@@ -1,10 +1,9 @@
-<script>
+<script lang="ts">
   import { Settings, Code2, Megaphone, UtensilsCrossed, Package, Pencil } from '@lucide/svelte';
   import IOSBottomSheet from './IOSBottomSheet.svelte';
   import OrderStatusBadge from './OrderStatusBadge.svelte';
   import { formatCurrency, formatFullDate, capitalize, getCatColor } from '../utils.js';
 
-  /** @type {{ order: any|null, open: boolean, onclose: () => void, onmanage?: (o: any) => void }} */
   let { order, open, onclose, onmanage } = $props();
 
   const CAT_ICONS = {
@@ -15,13 +14,11 @@
     miscellaneous: Package,
   };
 
-  /** @param {string|undefined} cat */
   function getCatIcon(cat) {
-    const key = /** @type {keyof typeof CAT_ICONS} */ ((cat || 'miscellaneous').toLowerCase());
+    const key = ((cat || 'miscellaneous').toLowerCase());
     return CAT_ICONS[key] || CAT_ICONS.miscellaneous;
   }
 
-  /** @param {string} url */
   function openExternal(url) {
     if (!url) return;
     const href = url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`;

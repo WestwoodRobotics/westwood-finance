@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { page } from "$app/stores";
   import { authStore } from "$lib/authStore.svelte.js";
   import { perms } from "$lib/perms.js";
@@ -19,7 +19,6 @@
     allNavItems.filter(item => !item.adminOnly || perms.admin)
   );
 
-  /** @param {string} href */
   function isActive(href) {
     const current = $page.url.pathname.replace(/\/$/, '') || '/';
     const target = href.replace(/\/$/, '') || '/';
@@ -36,7 +35,6 @@
     isMobileOpen = !isMobileOpen;
   }
 
-  /** @param {string} href */
   function handleNavClick(href) {
     if (isMobile.current) {
       closeMobileNav();

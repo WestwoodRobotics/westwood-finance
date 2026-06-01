@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { ChevronDown, BarChart3, Receipt } from '@lucide/svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import {
@@ -42,7 +42,7 @@
   let selectedBudgetTeam = $state(perms.viewAllTeams ? "FRC" : authStore.userTeam);
 
   let teamSpecificBudgetOrders = $derived(
-    dataService.orders.filter((/** @type {any} */ o) => matchesTeam(o, selectedBudgetTeam)),
+    dataService.orders.filter((o) => matchesTeam(o, selectedBudgetTeam)),
   );
 
   let unlocked = $state(false);
@@ -53,14 +53,13 @@
 
   let totalRaised = $derived(
     dataService.funds.reduce(
-      (/** @type {number} */ sum, /** @type {any} */ f) =>
+      (sum, f) =>
         sum + (Number(f.Amount) || 0),
       0,
     ),
   );
 
   let byType = $derived(() => {
-    /** @type {Record<string, number>} */
     const map = {};
     for (const f of dataService.funds) {
       const t = f.Type || "Other";
@@ -82,11 +81,11 @@
   );
 
   let budgetTotal = $derived(
-    /** @type {any} */ (dataService.budget)?.["Total"] || null
+    (dataService.budget)?.["Total"] || null
   );
 
   let currentBudgetObj = $derived(
-    /** @type {any} */ (dataService.budget)?.[selectedBudgetTeam === 'Westwood Overall' ? 'Total' : selectedBudgetTeam] || {}
+    (dataService.budget)?.[selectedBudgetTeam === 'Westwood Overall' ? 'Total' : selectedBudgetTeam] || {}
   );
 
   let realExpenses = $derived(
@@ -107,7 +106,7 @@
       .reduce((sum, o) => sum + (o.total || 0), 0)
   );
   let teamSpecificFunds = $derived(
-    dataService.funds.filter((/** @type {any} */ f) => {
+    dataService.funds.filter((f) => {
       if (selectedBudgetTeam === "Westwood Overall") return true;
       const r = String(f.Recipient || "")
         .toLowerCase()
@@ -120,7 +119,7 @@
   let sortedFunds = $derived(
     teamSpecificFunds
       .slice()
-      .sort((/** @type {any} */ a, /** @type {any} */ b) => {
+      .sort((a, b) => {
         let valA = a[sortCol] || "";
         let valB = b[sortCol] || "";
         if (sortCol === "Amount") {
@@ -133,7 +132,7 @@
       }),
   );
 
-  function toggleSort(/** @type {string} */ col) {
+  function toggleSort(col) {
     if (sortCol === col) {
       sortDir = sortDir === "asc" ? "desc" : "asc";
     } else {
@@ -142,7 +141,7 @@
     }
   }
 
-  const TYPE_COLORS = /** @type {Record<string,string>} */ ({
+  const TYPE_COLORS = ({
     Fundraiser: "var(--primary)",
     Grant: "#b97cf3",
     Dues: "#4e9af1",
@@ -150,7 +149,7 @@
     Other: "#f1a94e",
   });
 
-  const CATEGORY_LABELS = /** @type {Record<string,string>} */ ({
+  const CATEGORY_LABELS = ({
     hardware: "Hardware",
     software: "Software",
     outreach: "Outreach",
@@ -159,7 +158,7 @@
   });
 
   let spentByCategory = $derived.by(() => {
-    const map = /** @type {Record<string,number>} */ ({});
+    const map = ({});
     CATEGORIES.forEach((c) => (map[c] = 0));
 
     const expenses = teamSpecificBudgetOrders.filter((o) => {
@@ -179,10 +178,9 @@
   );
 
   let teamMasterTransactions = $derived.by(() => {
-    /** @type {any[]} */
     const arr = [];
 
-    const expenses = teamSpecificBudgetOrders.filter((/** @type {any} */ o) => {
+    const expenses = teamSpecificBudgetOrders.filter((o) => {
       const s = (o.status || "").toLowerCase().trim();
       return s === "received" || s === "ordered";
     });
@@ -198,7 +196,7 @@
       });
     }
 
-    const income = dataService.funds.filter((/** @type {any} */ f) => {
+    const income = dataService.funds.filter((f) => {
       if (selectedBudgetTeam === "Westwood Overall") return true;
       const t = (f.Recipient || "").toLowerCase().trim();
       const s = selectedBudgetTeam.toLowerCase().trim();
@@ -589,8 +587,6 @@
     </div>
   </section>
 {/if}
-
-
 
 <style>
   .team-selector {

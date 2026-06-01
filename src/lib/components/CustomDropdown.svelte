@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { onMount, tick } from 'svelte';
   import { ChevronDown, Check } from '@lucide/svelte';
 
@@ -21,20 +21,20 @@
     isOpen = nextOpen;
   }
 
-  function select(/** @type {string} */ optValue) {
+  function select(optValue) {
     value = optValue;
     isOpen = false;
     onchange?.({ target: { value: optValue } });
   }
 
-  function handleClickOutside(/** @type {MouseEvent} */ event) {
+  function handleClickOutside(event) {
     if (dropdownRef && !dropdownRef.contains(event.target)) {
       isOpen = false;
     }
   }
 
   onMount(() => {
-    const handleCloseOthers = (/** @type {any} */ e) => {
+    const handleCloseOthers = (e) => {
       if (e.detail && e.detail.caller !== dropdownRef) {
         isOpen = false;
       }

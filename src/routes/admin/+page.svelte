@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { onMount } from "svelte";
   import { Check, Info, Grid2x2, Package, DollarSign, Receipt, TriangleAlert, X } from '@lucide/svelte';
   import OrderStatusBadge from "$lib/components/OrderStatusBadge.svelte";
@@ -20,8 +20,6 @@
   import { BASE_URL } from "$lib/config.js";
   import { goto } from "$app/navigation";
 
-  /** @typedef {import('$lib/dataService.svelte.js').Order} Order */
-
   $effect(() => {
     if (authStore && authStore.initialized && !perms.admin) goto('/');
   });
@@ -38,7 +36,6 @@
 
   let syncing = $state(false);
 
-  /** @type {Record<string, number>} */
   const STATUS_PRIORITY = {
     "pending review": 0,
     approved: 1,
@@ -52,7 +49,7 @@
   let adminSortCol = $state("status");
   let adminSortDir = $state("asc");
 
-  function toggleAdminSort(/** @type {string} */ col) {
+  function toggleAdminSort(col) {
     if (adminSortCol === col) {
       adminSortDir = adminSortDir === "asc" ? "desc" : "asc";
     } else {
@@ -80,8 +77,8 @@
       if (adminSortCol === "total") {
         return adminSortDir === "asc" ? (a.total || 0) - (b.total || 0) : (b.total || 0) - (a.total || 0);
       }
-      let valA = String((/** @type {any} */ (a))[adminSortCol] || "").toLowerCase();
-      let valB = String((/** @type {any} */ (b))[adminSortCol] || "").toLowerCase();
+      let valA = String(((a))[adminSortCol] || "").toLowerCase();
+      let valB = String(((b))[adminSortCol] || "").toLowerCase();
       if (valA < valB) return adminSortDir === "asc" ? -1 : 1;
       if (valA > valB) return adminSortDir === "asc" ? 1 : -1;
       return 0;
@@ -89,14 +86,13 @@
   });
 
   let newTabOrders = $derived.by(() => {
-    return dataService.orders.filter((/** @type {Order} */ o) => {
+    return dataService.orders.filter((o) => {
       const s = (o.status || "").toLowerCase().trim();
       return !["received", "void", "denied", "ordered"].includes(s);
     });
   });
 
   let groupedCompanyOrders = $derived.by(() => {
-    /** @type {Record<string, Order[]>} */
     const groups = {};
 
     const sorted = newTabOrders.slice().sort((a, b) => {
@@ -113,9 +109,6 @@
     return groups;
   });
 
-
-
-  /** @type {(() => void) | null} */
   let undoFn = $state(null);
 
   async function sync() {
@@ -234,7 +227,7 @@
   });
   let addOrderSubmitting = $state(false);
 
-  const TYPE_COLORS = /** @type {Record<string,string>} */ ({
+  const TYPE_COLORS = ({
     Fundraiser: "var(--primary)",
     Grant: "#b97cf3",
     Dues: "#4e9af1",
@@ -243,12 +236,11 @@
   });
 
   let masterTransactions = $derived.by(() => {
-    /** @type {any[]} */
     const arr = [];
 
     // ordered/received/approved
 
-    const expenses = dataService.orders.filter((/** @type {Order} */ o) => {
+    const expenses = dataService.orders.filter((o) => {
       const s = o.status?.toLowerCase().trim();
       return s === "received" || s === "ordered";
     });
@@ -309,14 +301,13 @@
     }
   });
 
-  /** @param {string} url */
   function openExternal(url) {
     if (!url) return;
     const href = url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`;
     window.open(href, '_blank', 'noopener,noreferrer');
   }
 
-  function openEdit(/** @type {Order} */ order) {
+  function openEdit(order) {
     editingOrderId = order.id;
     editStatus = order.status || "Pending Review";
     editTracking = order.tracking || "";
@@ -484,7 +475,7 @@
     URL.revokeObjectURL(url);
   }
 
-  function getOrderColor(/** @type {string|undefined} */ uuid) {
+  function getOrderColor(uuid) {
     if (!uuid) return "var(--border)";
     let hash = 0;
     for (let i = 0; i < uuid.length; i++) {
@@ -494,9 +485,6 @@
     return `hsl(${h}, 65%, 45%)`;
   }
 
-  /**
-   * @param {any} fund
-   */
   function openEditFund(fund) {
     editingFund = fund;
     editFundFields = {
@@ -513,7 +501,7 @@
 
   async function saveFundEdit() {
     if (!editingFund) return;
-    const currentFund = /** @type {any} */ (editingFund);
+    const currentFund = (editingFund);
     editSaving = true;
     actionErr = "";
     try {
@@ -696,7 +684,6 @@
     }
   }
 
-  /** @param {any[]} orders */
   async function linkGroupOrders(orders) {
     if (!orders || orders.length < 2) return;
 
@@ -707,7 +694,7 @@
       orders.find((o) => o.orderUUID)?.orderUUID || generateShortId();
 
     try {
-      const promises = orders.map((/** @type {any} */ o) =>
+      const promises = orders.map((o) =>
         fetch(BASE_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain' },
@@ -720,7 +707,7 @@
 
       actionMsg = "✓ Linked into Order #" + targetUUID;
 
-      orders.forEach((/** @type {any} */ o) =>
+      orders.forEach((o) =>
         dataService.updateOrderOptimistic(o.id, { orderUUID: targetUUID }),
       );
       dataService.load(true, true);
@@ -731,11 +718,9 @@
     }
   }
 
-  /** @type {any[] | null} */
   let editingGroupOrders = $state(null);
   let groupStatus = $state("Ordered");
 
-  /** @param {any[]} orders */
   function openGroupStatusModal(orders) {
     editingGroupOrders = orders;
     groupStatus = "Ordered";
@@ -744,7 +729,7 @@
   async function saveGroupStatus() {
     if (!editingGroupOrders) return;
     
-    const prevStates = editingGroupOrders.map((/** @type {any} */ o) => ({ id: o.id, rowIndex: o.rowIndex, status: o.status }));
+    const prevStates = editingGroupOrders.map((o) => ({ id: o.id, rowIndex: o.rowIndex, status: o.status }));
     
     syncing = true;
     actionErr = "";
@@ -752,7 +737,7 @@
     actionMsg = `Updating status for ${editingGroupOrders.length} orders...`;
     
     try {
-      const promises = editingGroupOrders.map((/** @type {any} */ o) =>
+      const promises = editingGroupOrders.map((o) =>
         fetch(BASE_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain' },
@@ -761,10 +746,10 @@
       );
 
       const results = await Promise.all(promises);
-      if (results.some((/** @type {any} */ r) => r.error)) throw new Error("Batch status update failed");
+      if (results.some((r) => r.error)) throw new Error("Batch status update failed");
 
       actionMsg = `✓ Status updated to ${groupStatus}`;
-      editingGroupOrders.forEach((/** @type {any} */ o) => dataService.updateOrderOptimistic(o.id, { status: groupStatus }));
+      editingGroupOrders.forEach((o) => dataService.updateOrderOptimistic(o.id, { status: groupStatus }));
       
       undoFn = () => {
         prevStates.forEach((prev) => {
@@ -841,7 +826,6 @@
     }
   }
 
-  /** @param {string} studentId */
   async function removeMember(studentId) {
     memberActionMsg = '';
     memberActionErr = '';
@@ -1819,7 +1803,7 @@
 
 <!-- ── Funding Edit Modal ──────────────────────────────────────────────────────── -->
 {#if editingFund}
-  {@const currentFund = /** @type {any} */ (editingFund)}
+  {@const currentFund = (editingFund)}
   <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_noninteractive_element_interactions -->
   <div
     class="modal-backdrop"
@@ -1983,7 +1967,7 @@
                   <CustomDropdown
                     options={groupingOptions}
                     bind:value={editUUID}
-                    onchange={(/** @type {any} */ e) => {
+                    onchange={(e) => {
                       if (e.target.value === "__NEW__") {
                         editUUID = generateShortId();
                       }

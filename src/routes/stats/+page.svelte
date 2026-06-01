@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { ChevronDown, DollarSign, ShoppingBag, Home, BarChart3 } from '@lucide/svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import StatCard from "$lib/components/StatCard.svelte";
@@ -20,8 +20,6 @@
   import { authStore } from "$lib/authStore.svelte.js";
   import { perms } from "$lib/perms.js";
 
-  /** @typedef {import('$lib/dataService.svelte.js').Order} Order */
-
   const TEAM_OPTIONS = perms.viewAllTeams ? TEAMS : [authStore.userTeam];
   let selectedTeam = $state(perms.viewAllTeams ? "FRC" : authStore.userTeam);
 
@@ -32,7 +30,7 @@
   );
 
   let analyticsOrders = $derived(
-    teamOrders.map((/** @type {Order} */ o) => {
+    teamOrders.map((o) => {
       const d = new Date(o.timestamp || "");
       const month = isNaN(d.getTime())
         ? ""
@@ -72,7 +70,6 @@
 
   let topVendor = $derived.by(() => {
     if (financialOrders.length === 0) return null;
-    /** @type {Record<string, number>} */
     const map = {};
     financialOrders.forEach((e) => {
       const comp = e.company || "Unknown";
@@ -84,7 +81,6 @@
   });
 
   let byCategory = $derived.by(() => {
-    /** @type {Record<string, number>} */
     const map = {};
     // Ensure all standard categories exist even if 0
     CATEGORIES.forEach((c) => (map[c] = 0));
@@ -101,7 +97,6 @@
   });
 
   let monthlyTrends = $derived.by(() => {
-    /** @type {Record<string, number>} */
     const map = {};
     financialOrders.forEach((e) => {
       if (e.month) {
@@ -114,7 +109,6 @@
   });
 
   let byVendorDollars = $derived.by(() => {
-    /** @type {Record<string, number>} */
     const map = {};
     financialOrders.forEach((e) => {
       const vendor = e.company || "Unknown";
@@ -129,7 +123,6 @@
   });
 
   let statusDistribution = $derived.by(() => {
-    /** @type {Record<string, number>} */
     const map = {};
     analyticsOrders.forEach((e) => {
       const status = e.status || "Unknown";
@@ -272,7 +265,6 @@
     margin-bottom: 4px;
   }
 
-
   .chart-container {
     height: 260px;
     width: 100%;
@@ -286,7 +278,6 @@
   .chart-card-wide {
     grid-column: 1 / -1;
   }
-
 
   @media (max-width: 1000px) {
     .charts-grid {

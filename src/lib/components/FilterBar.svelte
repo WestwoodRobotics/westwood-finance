@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { CATEGORIES, TEAMS } from '../utils.js';
   import { Search, CircleX, ListFilter } from '@lucide/svelte';
   import CustomDropdown from './CustomDropdown.svelte';
@@ -27,7 +27,6 @@
     { label: 'Void', value: 'Void' }
   ];
 
-  /** @type {{ filters: any }} */
   let { filters = $bindable() } = $props();
 
   let showFilterSheet = $state(false);

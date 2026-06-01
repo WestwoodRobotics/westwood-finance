@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { onMount } from 'svelte';
   import { Info, Clock } from '@lucide/svelte';
   import { authStore } from '$lib/authStore.svelte.js';
@@ -78,10 +78,6 @@
     });
   }
 
-  /**
-   * Decode JWT credential from Google
-   * @param {{ credential: string }} response
-   */
   function handleCredentialResponse(response) {
     try {
       const payload = JSON.parse(atob(response.credential.split('.')[1]));
@@ -518,7 +514,6 @@
     color: var(--text-dim, #52525b);
     font-weight: 400;
   }
-
 
   /* ── Buttons ───────────────────────────────────────────────────── */
   .auth-submit-btn {

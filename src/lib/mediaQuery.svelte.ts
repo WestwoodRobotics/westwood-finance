@@ -10,7 +10,7 @@ function createIsMobile() {
   }
 
   return {
-    get current() { return value; },
+    get current(): boolean { return value; },
   };
 }
 

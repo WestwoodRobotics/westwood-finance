@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { CATEGORIES, TEAMS, formatDate } from "$lib/utils.js";
   import { DollarSign, Info, Check, Plus } from '@lucide/svelte';
   import { goto } from "$app/navigation";
@@ -11,7 +11,7 @@
   import { perms } from "$lib/perms.js";
 
   const teamOptions = perms.manageOrders
-    ? TEAMS.filter(t => t !== "Westwood Overall").map((/** @type {string} */ team) => ({
+    ? TEAMS.filter(t => t !== "Westwood Overall").map((team) => ({
         label: team,
         value: team,
       }))
@@ -27,7 +27,6 @@
     { label: "Polymaker", value: "Polymaker" },
     { label: "Other", value: "Other" }
   ];
-
 
   let form = $state({
     destination: "sheets",
@@ -54,7 +53,6 @@
   let showPassword = $state(false);
   let showTestLock = $state(false);
   let testModalError = $state("");
-
 
   $effect(() => {
     if (vendorSelect && vendorSelect !== 'Other') {
@@ -437,7 +435,6 @@
     margin-bottom: 32px;
   }
 
-
   .message-bar {
     display: flex;
     align-items: center;
@@ -461,7 +458,6 @@
     border-color: rgba(239, 68, 68, 0.2);
     color: var(--status-rejected);
   }
-
 
   .summary-section {
     padding: 24px;

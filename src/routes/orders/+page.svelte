@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { onMount } from "svelte";
   import { Download, Plus, Package } from '@lucide/svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
@@ -10,8 +10,6 @@
   import { authStore } from "$lib/authStore.svelte.js";
   import { perms } from "$lib/perms.js";
   import { STATUS_PRIORITY } from "$lib/utils.js";
-
-  /** @typedef {import('$lib/dataService.svelte.js').Order} Order */
 
   let filters = $state({
     search: "",
@@ -60,10 +58,6 @@
     return () => clearTimeout(t);
   });
 
-  /**
-   * @param {Order} exp
-   * @param {string} s
-   */
   function matchSearch(exp, s) {
     if (!s) return true;
     s = s.toLowerCase();
@@ -129,7 +123,7 @@
 
   let filtered = $derived.by(() => {
     return dataService.orders
-      .filter((/** @type {Order} */ e) => {
+      .filter((e) => {
         // HARD GUARD: Non-admin members can ONLY see their own team's data
         if (!perms.viewAllTeams && authStore.userTeam) {
           const orderTeam = (e.team || '').toLowerCase().trim();
@@ -159,7 +153,7 @@
         if (!matchSearch(e, filters.search)) return false;
         return true;
       })
-      .sort((/** @type {Order} */ a, /** @type {Order} */ b) => {
+      .sort((a, b) => {
         const priorityA = STATUS_PRIORITY[(a.status || '').toLowerCase().trim()] ?? 99;
         const priorityB = STATUS_PRIORITY[(b.status || '').toLowerCase().trim()] ?? 99;
 

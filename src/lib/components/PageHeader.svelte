@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { RefreshCw, TriangleAlert } from '@lucide/svelte';
   import { dataService } from '$lib/dataService.svelte.js';
 
