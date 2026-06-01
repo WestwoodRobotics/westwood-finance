@@ -13,6 +13,8 @@
   let studentIdInput = $state('');
   let selectedTeam = $state('FRC');
   let idError = $state('');
+  let registering = $state(false);
+  let registerError = $state('');
 
   const TEAM_OPTIONS = ['FRC', 'Kunai', 'Slingshot', 'Hunga Munga', 'Atlatl'];
 
@@ -93,7 +95,7 @@
     }
   }
 
-  function submitStudentId() {
+  async function submitStudentId() {
     const clean = studentIdInput.replace(/^s/i, '').trim();
 
     if (!clean || clean.length !== 6 || !/^\d{6}$/.test(clean)) {
@@ -102,14 +104,15 @@
     }
 
     idError = '';
+    registerError = '';
 
-    // Auto-register them in the background if they don't exist yet
     const exists = authStore.membersList.some(m => String(m.studentId) === clean);
     if (!exists && authStore.idToken) {
       const [firstName, ...lastNameArr] = (authStore.googleUser?.name || '').split(' ');
       const lastName = lastNameArr.join(' ');
+      registering = true;
       try {
-        fetch(BASE_URL, {
+        const res = await fetch(BASE_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain' },
           body: JSON.stringify({
@@ -122,9 +125,18 @@
             email: authStore.googleUser?.email || '',
           }),
         });
+        const data = JSON.parse(await res.text());
+        if (data.error) {
+          registerError = 'Registration failed: ' + data.error;
+          registering = false;
+          return;
+        }
       } catch (e) {
-        console.error('Failed to auto-register:', e);
+        registerError = 'Could not reach server. Check your connection and try again.';
+        registering = false;
+        return;
       }
+      registering = false;
     }
 
     authStore.submitStudentId(clean, selectedTeam);
@@ -230,6 +242,12 @@
           {idError}
         </div>
       {/if}
+      {#if registerError}
+        <div class="auth-error">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          {registerError}
+        </div>
+      {/if}
 
       <form onsubmit={(e) => { e.preventDefault(); submitStudentId(); }} class="auth-form">
         <div class="auth-field">
@@ -255,7 +273,13 @@
           />
         </div>
 
-        <button type="submit" class="auth-submit-btn">Continue</button>
+        <button type="submit" class="auth-submit-btn" disabled={registering}>
+          {#if registering}
+            <span class="auth-spinner-inline"></span> Registering...
+          {:else}
+            Continue
+          {/if}
+        </button>
       </form>
 
       <div class="pending-actions" style="margin-top: 8px;">
@@ -297,6 +321,7 @@
       </div>
 
       <div class="pending-actions" style="margin-top: 24px;">
+        <button class="auth-submit-btn" style="max-width: 240px; margin: 0 auto; height: 44px; font-size: 0.9rem;" onclick={() => authStore.fetchMembers()}>Check Again</button>
         <button class="auth-back-btn" onclick={signOut}>Sign in with another account</button>
       </div>
 
@@ -603,6 +628,18 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+  }
+
+  .auth-spinner-inline {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: authSpin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
   }
 
   /* ── Loading ───────────────────────────────────────────────────── */

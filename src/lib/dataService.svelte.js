@@ -208,7 +208,7 @@ class DataStore {
       const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s timeout
 
       const idToken = authStore.idToken;
-      if (!idToken) throw new Error('Not authenticated');
+      if (!idToken) return;
       const res = await fetch(BASE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },

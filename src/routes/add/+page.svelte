@@ -170,18 +170,17 @@
       form = {
         destination: "sheets",
         item: "",
-        company: "",
+        company: form.company,
         link: "",
         price: "",
         quantity: "1",
         notes: "",
-        team: form.team, // Preserve team for convenience
+        team: form.team,
         category: "hardware",
         uuid: "",
-        orderedBy: authStore.displayName || form.orderedBy, // Always reset to verified name
+        orderedBy: authStore.displayName || form.orderedBy,
         isExpense: false,
       };
-      vendorSelect = "";
 
       setTimeout(() => goto("/orders"), 2500);
     } catch (e) {
@@ -386,7 +385,7 @@
               {form.isExpense ? "Confirm Immediate Expense" : "Submit Order Request"}
             {/if}
           </button>
-          <a href="/orders" class="btn btn-ghost btn-block">Abort Transaction</a>
+          <a href="/orders" class="btn btn-ghost btn-block">Cancel</a>
         </div>
       </form>
     </div>
