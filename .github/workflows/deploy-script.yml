@@ -48,3 +48,8 @@ jobs:
 
       - name: push to Apps Script
         run: clasp push -f
+
+      - name: deploy web app
+        env:
+          DEPLOYMENT_ID: ${{ secrets.GAS_DEPLOYMENT_ID }}
+        run: clasp deploy --deploymentId "$DEPLOYMENT_ID" --description "deploy $(date -u +%Y-%m-%dT%H:%M:%SZ)"
