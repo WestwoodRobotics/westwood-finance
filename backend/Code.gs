@@ -1,4 +1,5 @@
-const SECRET_KEY = "YOUR_SECRET_KEY";
+const scriptProperties = PropertiesService.getScriptProperties();
+const SECRET_KEY = scriptProperties.getProperty('SECRET_KEY');
 
 function doGet(e) {
   return txtResponse({ error: "GET not supported. Use POST." });
@@ -231,4 +232,4 @@ function sheetToObjects(sheet) {
 
 function txtResponse(data) {
   return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.TEXT);
-}
+Y}
