@@ -11,9 +11,19 @@ try {
     // 1. Read current info
     const info = JSON.parse(fs.readFileSync(infoPath, 'utf8'));
 
-    // 2. Increment version (patch)
+    // 2. Increment version
+    const bumpType = process.argv[2] || 'patch';
     const versionParts = info.version.split('.');
-    versionParts[2] = (parseInt(versionParts[2]) + 1).toString();
+    if (bumpType === 'major') {
+        versionParts[0] = (parseInt(versionParts[0]) + 1).toString();
+        versionParts[1] = '0';
+        versionParts[2] = '0';
+    } else if (bumpType === 'minor') {
+        versionParts[1] = (parseInt(versionParts[1]) + 1).toString();
+        versionParts[2] = '0';
+    } else {
+        versionParts[2] = (parseInt(versionParts[2]) + 1).toString();
+    }
     const newVersion = versionParts.join('.');
 
     // 3. Get CST Timestamp

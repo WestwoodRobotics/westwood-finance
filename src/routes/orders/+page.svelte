@@ -1,6 +1,7 @@
 <script>
   import { onMount } from "svelte";
-  import { TriangleAlert, Download, Plus, Package } from '@lucide/svelte';
+  import { Download, Plus, Package } from '@lucide/svelte';
+  import PageHeader from '$lib/components/PageHeader.svelte';
   import { browser } from "$app/environment";
   import FilterBar from "$lib/components/FilterBar.svelte";
   import OrderTable from "$lib/components/OrderTable.svelte";
@@ -9,8 +10,6 @@
   import { authStore } from "$lib/authStore.svelte.js";
 
   /** @typedef {import('$lib/dataService.svelte.js').Order} Order */
-
-  let syncing = $state(false);
 
   let filters = $state({
     search: "",
@@ -21,15 +20,6 @@
     dateFrom: "",
     dateTo: "",
   });
-
-  async function sync() {
-    dataService.isManualRefreshing = true;
-    try {
-      await dataService.load(true);
-    } finally {
-      setTimeout(() => { dataService.isManualRefreshing = false; }, 800);
-    }
-  }
 
   onMount(() => {
     dataService.load();
@@ -197,19 +187,8 @@
   <title>All Orders | Westwood Finance</title>
 </svelte:head>
 
-<div class="page-header">
-  <div class="header-left">
-    <h1>All <span>Orders</span></h1>
-  </div>
-
-  <div class="header-right">
-    {#if dataService.error}
-      <span class="error-text" style="display:inline-flex;align-items:center;">
-        <TriangleAlert size={14} style="margin-right:6px;" />
-        {dataService.error}
-      </span>
-    {/if}
-
+<PageHeader title="All" titleAccent="Orders">
+  {#snippet actions()}
     <div class="header-actions">
       <button
         class="btn btn-ghost btn-sm hide-mobile"
@@ -225,13 +204,8 @@
         <span>New Request</span>
       </a>
     </div>
-
-    <button class="btn btn-ghost btn-sm refresh-btn" onclick={sync} disabled={dataService.isManualRefreshing}>
-      <span class:spinning={dataService.isManualRefreshing}>↻</span>
-      <span class="hide-mobile">{dataService.isManualRefreshing ? "Syncing..." : "Refresh"}</span>
-    </button>
-  </div>
-</div>
+  {/snippet}
+</PageHeader>
 
 <FilterBar bind:filters />
 
@@ -255,12 +229,6 @@
 {/if}
 
 <style>
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-
   .header-actions {
     display: flex;
     gap: 12px;
@@ -269,12 +237,5 @@
 
   @media (max-width: 768px) {
     .btn { height: 42px; display: inline-flex; align-items: center; justify-content: center; }
-    .refresh-btn { aspect-ratio: 1/1; width: 42px; padding: 0 !important; flex: none !important; }
-  }
-
-  .error-text {
-    color: var(--status-rejected);
-    font-size: 0.8rem;
-    font-weight: 600;
   }
 </style>

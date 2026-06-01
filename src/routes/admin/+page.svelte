@@ -35,7 +35,6 @@
     "Void",
   ];
 
-  // ── State ───────────────────────────────────────────────────────────────────
   let syncing = $state(false);
 
   /** @type {Record<string, number>} */
@@ -98,7 +97,7 @@
   let groupedCompanyOrders = $derived.by(() => {
     /** @type {Record<string, Order[]>} */
     const groups = {};
-    // Ensure all sorted keys so output is consistent
+
     const sorted = newTabOrders.slice().sort((a, b) => {
       let tA = new Date(a.timestamp || 0).getTime();
       let tB = new Date(b.timestamp || 0).getTime();
@@ -127,7 +126,6 @@
   let actionMsg = $state("");
   let actionErr = $state("");
 
-  // ── Modal state ─────────────────────────────────────────────────────────────
   let editingOrderId = $state("");
   let currentEditingOrder = $derived(
     dataService.orders.find((o) => o.id === editingOrderId) || null,
@@ -141,11 +139,10 @@
   let showDeleteConfirm = $state(false);
   let deleteSaving = $state(false);
 
-  // Derived state for the grouping dropdown targets
   let groupingOptions = $derived.by(() => {
     if (!currentEditingOrder) return [];
 
-    // 1. Get all other orders from same company (any status)
+    //get all same-company ordders
     const otherPending = dataService.orders.filter(
       (o) =>
         o.company === currentEditingOrder.company &&
@@ -159,7 +156,7 @@
     );
     const seenUUIDs = new Set();
 
-    // 2. Identify unique targets for grouping
+    // unique targets by orderuuid
     const uniqueTargets = otherPending.filter((o) => {
       if (!o.orderUUID || seenUUIDs.has(o.orderUUID)) return false;
       seenUUIDs.add(o.orderUUID);
@@ -186,7 +183,6 @@
     ];
   });
 
-  // ── Funding Edit State ──────────────────────────────────────────────────────
   let editingFund = $state(null);
   let editFundFields = $state({
     Source: "",
@@ -249,7 +245,8 @@
     /** @type {any[]} */
     const arr = [];
 
-    // Expenses (Ordered, Received, Approved)
+    // ordered/received/approved
+
     const expenses = dataService.orders.filter((/** @type {Order} */ o) => {
       const s = o.status?.toLowerCase().trim();
       return s === "received" || s === "ordered";
@@ -267,7 +264,6 @@
       });
     }
 
-    // Income
     for (let f of dataService.funds) {
       arr.push({
         id: f.id,
@@ -289,19 +285,17 @@
     return arr;
   });
 
-  // ── Data Loading ─────────────────────────────────────────────────────────────
   let isMobile = $state(false);
   let showTabMenu = $state(false);
 
   onMount(() => {
-    dataService.load(); // Uses persistent cache for instant load
+    dataService.load();
 
-    // Mobile detection
+    // detection
     const mq = window.matchMedia("(max-width: 768px)");
     isMobile = mq.matches;
     mq.addEventListener("change", (e) => { isMobile = e.matches; });
     
-    // Check for view parameter in URL
     const urlParams = new URLSearchParams(window.location.search);
     const view = urlParams.get("view");
     const validViews = ["orderHistory", "orders", "master", "funding", "add", "addOrder", "members"];
@@ -309,13 +303,11 @@
       activeView = view;
     }
 
-    // Redirect non-admins away from admin page
     if (!authStore.isAdmin) {
       goto('/');
     }
   });
 
-  // ── Modal helpers ─────────────────────────────────────────────────────────────
   /** @param {string} url */
   function openExternal(url) {
     if (!url) return;
@@ -341,7 +333,6 @@
   async function saveEdit() {
     if (!currentEditingOrder) return;
     
-    // Store previous state for undo
     const prevStatus = currentEditingOrder.status;
     const prevTracking = currentEditingOrder.tracking;
     const prevUUID = currentEditingOrder.orderUUID;
@@ -372,7 +363,6 @@
 
       actionMsg = `"${currentEditingOrder.item}" updated!`;
 
-      // ⚡ Optimistic: update local store immediately
       dataService.updateOrderOptimistic(currentEditingOrder.id, {
         status: editStatus,
         tracking: editTracking,
@@ -401,7 +391,7 @@
       };
 
       closeEdit();
-      // Silent background sync for authoritative data
+
       dataService.load(true, true);
     } catch (e) {
       actionErr = e instanceof Error ? e.message : "Update failed";
@@ -440,13 +430,11 @@
 
       actionMsg = "Order deleted permanently.";
 
-      // 🔥 Optimistic UI Update: Remove from local state
       dataService.deleteOrderOptimistic(editId);
 
       closeEdit();
       showDeleteConfirm = false;
       
-      // Perform background re-sync
       dataService.load(true, true);
     } catch (e) {
       actionErr = e instanceof Error ? e.message : "Delete failed";
@@ -495,7 +483,6 @@
     URL.revokeObjectURL(url);
   }
 
-  // Generate a stable hue from an order UUID
   function getOrderColor(/** @type {string|undefined} */ uuid) {
     if (!uuid) return "var(--border)";
     let hash = 0;
@@ -506,7 +493,6 @@
     return `hsl(${h}, 65%, 45%)`;
   }
 
-  // ── Funding Edit Helpers ──────────────────────────────────────────────────────
   /**
    * @param {any} fund
    */
@@ -551,7 +537,6 @@
 
       actionMsg = `Funding entry updated!`;
 
-      // ⚡ Optimistic: update local store immediately
       dataService.funds = dataService.funds.map((f) => {
         if (f.id === currentFund.id) {
           return { ...f, ...editFundFields };
@@ -561,7 +546,7 @@
       dataService.persist();
 
       editingFund = null;
-      // Silent background sync
+
       dataService.load(true, true);
     } catch (e) {
       actionErr = e instanceof Error ? e.message : "Update failed";
@@ -617,7 +602,6 @@
 
       actionMsg = "Order recorded successfully!";
 
-      // ⚡ Optimistic: inject into local store instantly
       dataService.addOrderOptimistic({
         item: addOrderForm.item,
         company: addOrderForm.company,
@@ -687,7 +671,6 @@
 
       actionMsg = "Funding entry added!";
 
-      // ⚡ Optimistic: inject into local store instantly
       dataService.addFundOptimistic({
         Type: addFundsForm.type,
         Source: addFundsForm.source,
@@ -719,7 +702,6 @@
     syncing = true;
     actionMsg = "Linking " + orders.length + " orders...";
 
-    // Pick first valid UUID or generate new
     const targetUUID =
       orders.find((o) => o.orderUUID)?.orderUUID || generateShortId();
 
@@ -804,7 +786,6 @@
     }
   }
 
-  // ── Members Management ──────────────────────────────────────────────────────
   let addMemberForm = $state({
     firstName: '',
     lastName: '',
@@ -851,7 +832,6 @@
       memberActionMsg = `✓ ${addMemberForm.firstName} ${addMemberForm.lastName} approved!`;
       addMemberForm = { firstName: '', lastName: '', studentId: '', team: 'FRC', isAdmin: false };
 
-      // Refresh members list
       await authStore.fetchMembers();
     } catch (e) {
       memberActionErr = e instanceof Error ? e.message : 'Failed to add member';

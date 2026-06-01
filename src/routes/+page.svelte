@@ -1,6 +1,7 @@
 <script>
   import { onMount } from "svelte";
-  import { TriangleAlert, DollarSign, TrendingUp, ShoppingCart, BarChart3, Settings, Monitor, Navigation, UtensilsCrossed, Package, Pencil } from '@lucide/svelte';
+  import { DollarSign, TrendingUp, ShoppingCart, BarChart3, Settings, Monitor, Navigation, UtensilsCrossed, Package, Pencil } from '@lucide/svelte';
+  import PageHeader from '$lib/components/PageHeader.svelte';
   import StatCard from "$lib/components/StatCard.svelte";
   import ExpenseTable from "$lib/components/ExpenseTable.svelte";
   import LoadingIndicator from "$lib/components/LoadingIndicator.svelte";
@@ -18,8 +19,6 @@
   import appInfo from "$lib/app-info.json";
 
   /** @typedef {import('$lib/dataService.svelte.js').Order} Order */
-
-  let syncing = $state(false);
 
   const TEAM_OPTIONS = authStore.isAdmin
     ? ["FRC", "Slingshot", "Hunga Munga", "Atlatl", "Kunai", "Westwood Overall"]
@@ -54,17 +53,6 @@
           return r === s || r.includes(s) || r === "all";
         }),
   );
-
-  async function sync() {
-    dataService.isManualRefreshing = true;
-    try {
-      await dataService.load(true);
-    } finally {
-      setTimeout(() => {
-        dataService.isManualRefreshing = false;
-      }, 800);
-    }
-  }
 
   onMount(() => {
     dataService.load(); // uses cache if available
@@ -165,37 +153,15 @@
   <title>Dashboard | Westwood Finance</title>
 </svelte:head>
 
-<div class="page-header">
-  <div class="header-left">
-    <h1>Dashboard</h1>
-  </div>
-
-  <div class="header-right">
-    {#if dataService.error}
-      <span class="error-text" style="display:inline-flex;align-items:center;">
-        <TriangleAlert size={14} style="margin-right:6px;" />
-        {dataService.error}
-      </span>
-    {/if}
-
-    <button
-      class="btn btn-ghost btn-sm refresh-btn"
-      onclick={sync}
-      disabled={dataService.isManualRefreshing}
-    >
-      <span class:spinning={dataService.isManualRefreshing}>↻</span>
-      <span class="hide-mobile"
-        >{dataService.isManualRefreshing ? "Syncing..." : "Refresh"}</span
-      >
-    </button>
-
+<PageHeader title="Dashboard">
+  {#snippet actions()}
     {#if authStore.isAdmin}
     <div class="team-selector">
       <CustomDropdown options={TEAM_OPTIONS} bind:value={selectedTeam} />
     </div>
     {/if}
-  </div>
-</div>
+  {/snippet}
+</PageHeader>
 
 {#if dataService.loading && !dataService.orders.length && !dataService.funds.length}
   <LoadingIndicator text="Initializing workspace..." />
@@ -404,15 +370,6 @@
 </div>
 
 <style>
-  .header-left h1 {
-    margin-bottom: 2px;
-  }
-  .header-right {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-  }
-
   .team-selector {
     width: 180px;
   }
@@ -595,12 +552,6 @@
     padding: 4px 10px;
   }
 
-  .error-text {
-    color: var(--status-rejected);
-    font-size: 0.8rem;
-    font-weight: 600;
-  }
-
   .mobile-version-footer {
     display: none;
     text-align: center;
@@ -619,6 +570,5 @@
     .mobile-version-footer {
       display: block;
     }
-    .refresh-btn { width: 42px; padding: 0; justify-content: center; }
   }
 </style>

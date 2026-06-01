@@ -1,6 +1,7 @@
 <script>
   import { onMount } from "svelte";
-  import { TriangleAlert, ChevronDown, DollarSign, ShoppingBag, Home, BarChart3 } from '@lucide/svelte';
+  import { ChevronDown, DollarSign, ShoppingBag, Home, BarChart3 } from '@lucide/svelte';
+  import PageHeader from '$lib/components/PageHeader.svelte';
   import StatCard from "$lib/components/StatCard.svelte";
   import PieChart from "$lib/components/PieChart.svelte";
   import LineChart from "$lib/components/LineChart.svelte";
@@ -19,21 +20,10 @@
 
   /** @typedef {import('$lib/dataService.svelte.js').Order} Order */
 
-  let syncing = $state(false);
-
   const TEAM_OPTIONS = authStore.isAdmin
     ? ["FRC", "Slingshot", "Hunga Munga", "Atlatl", "Kunai", "Westwood Overall"]
     : [authStore.userTeam];
   let selectedTeam = $state(authStore.isAdmin ? "FRC" : authStore.userTeam);
-
-  async function sync() {
-    dataService.isManualRefreshing = true;
-    try {
-      await dataService.load(true);
-    } finally {
-      setTimeout(() => { dataService.isManualRefreshing = false; }, 800);
-    }
-  }
 
   onMount(() => {
     dataService.load();
@@ -172,41 +162,20 @@
   <title>Analytics | Westwood Finance</title>
 </svelte:head>
 
-<div class="page-header">
-  <div class="header-left">
-    <h1>Spending <span>Trends</span></h1>
-  </div>
-
-  <div
-    class="header-right"
-    style="display: flex; align-items: center; gap: 24px;"
-  >
-    {#if dataService.error}
-      <span class="error-text" style="display:inline-flex;align-items:center;">
-        <TriangleAlert size={14} style="margin-right:6px;" />
-        {dataService.error}
-      </span>
-    {/if}
-
-    <div style="display: flex; align-items: center; gap: 12px;">
-      <button class="btn btn-ghost btn-sm refresh-btn" onclick={sync} disabled={dataService.isManualRefreshing}>
-        <span class:spinning={dataService.isManualRefreshing}>↻</span>
-        <span class="hide-mobile">{dataService.isManualRefreshing ? "Syncing..." : "Refresh"}</span>
-      </button>
-
-      {#if authStore.isAdmin}
-      <div class="team-selector" style="width: 180px;">
-        <CustomDropdown options={TEAM_OPTIONS} bind:value={selectedTeam} />
-      </div>
-      {:else}
-      <div class="team-preview-box">
-        <span>{selectedTeam}</span>
-        <ChevronDown size={12} style="opacity: 0.3;" />
-      </div>
-      {/if}
+<PageHeader title="Spending" titleAccent="Trends">
+  {#snippet actions()}
+    {#if authStore.isAdmin}
+    <div class="team-selector">
+      <CustomDropdown options={TEAM_OPTIONS} bind:value={selectedTeam} />
     </div>
-  </div>
-</div>
+    {:else}
+    <div class="team-preview-box">
+      <span>{selectedTeam}</span>
+      <ChevronDown size={12} style="opacity: 0.3;" />
+    </div>
+    {/if}
+  {/snippet}
+</PageHeader>
 
 {#if dataService.loading && !dataService.orders.length}
   <LoadingIndicator text="Analyzing ledger data..." />
@@ -275,11 +244,6 @@
 {/if}
 
 <style>
-  .header-right {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-  }
   .team-selector {
     width: 170px;
   }
@@ -324,13 +288,6 @@
   }
 
 
-  .error-text {
-    color: var(--status-rejected);
-    font-size: 0.8rem;
-    font-weight: 600;
-    margin-right: 12px;
-  }
-
   @media (max-width: 1000px) {
     .charts-grid {
       grid-template-columns: 1fr;
@@ -338,7 +295,6 @@
   }
   @media (max-width: 768px) {
     .btn { height: 42px; line-height: 1; display: inline-flex; align-items: center; }
-    .refresh-btn { width: 42px; padding: 0; justify-content: center; flex-shrink: 0; }
     .team-selector { width: 175px; }
   }
 

@@ -1,9 +1,4 @@
-/* ─── Westwood Finance — Bespoke Design System ─────────────────────────────── */
-/* Using System Fonts for Premium Apple Aesthetic */
-
-/* ── Design Tokens ─────────────────────────────────────────────────────────── */
 :root {
-  /* Colors - Zinc based (Linear style) */
   --bg:           #09090b;
   --surface:      #121214;
   --surface-2:    #18181b;
@@ -19,35 +14,29 @@
   --text-muted:   #a1a1aa;
   --text-dim:     #52525b;
 
-  /* Category colors - Refined */
   --cat-hardware:      #f97316;
   --cat-software:      #3b82f6;
   --cat-outreach:      #10b981;
   --cat-miscellaneous: #8b5cf6;
 
-  /* Status colors */
   --status-applied:  #3b82f6;
   --status-pending:  #eab308;
   --status-awarded:  #10b981;
   --status-rejected: #ef4444;
 
-  /* Spacing */
   --radius:    8px;
   --radius-sm: 6px;
   --radius-lg: 12px;
 
-  /* Shadows - Layered & subtle */
   --shadow-sm:  0 1px 2px rgba(0, 0, 0, 0.5);
   --shadow:     0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
   --shadow-lg:  0 20px 25px -5px rgba(0, 0, 0, 0.5);
   --shadow-xl:  0 30px 50px -10px rgba(0, 0, 0, 0.6);
   --shadow-2xl: 0 50px 80px -20px rgba(0, 0, 0, 0.7);
 
-  /* Sidebar */
   --sidebar-width: 240px;
 }
 
-/* ── Reset & Base ───────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html { font-size: 15px; scroll-behavior: smooth; overflow-x: hidden; max-width: 100vw; }
@@ -74,7 +63,7 @@ input, select, textarea, button {
   font-size: inherit;
 }
 
-/* ── Layout ─────────────────────────────────────────────────────────────────── */
+/*layout*/
 .app-shell {
   display: flex;
   min-height: 100vh;
@@ -89,7 +78,7 @@ input, select, textarea, button {
   min-width: 0;
 }
 
-/* Modal Close Circle */
+
 .modal-close-circle {
   position: absolute;
   top: 0;
@@ -117,7 +106,7 @@ input, select, textarea, button {
   box-shadow: 0 0 12px rgba(249, 115, 22, 0.4);
 }
 
-/* ── Typography ─────────────────────────────────────────────────────────────── */
+/* txt/typgraphy */
 h1, h2, h3, .brand-title { 
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif; 
   letter-spacing: -0.02em; 
@@ -136,7 +125,7 @@ h3 { font-size: 1.1rem; font-weight: 600; }
 }
 .page-header h1 span { color: var(--primary); }
 
-/* ── Cards ──────────────────────────────────────────────────────────────────── */
+
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -167,7 +156,7 @@ h3 { font-size: 1.1rem; font-weight: 600; }
   margin-bottom: 12px;
 }
 
-/* ── Buttons ─────────────────────────────────────────────────────────────────── */
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -212,7 +201,7 @@ h3 { font-size: 1.1rem; font-weight: 600; }
 }
 .btn-icon { padding: 8px; width: 36px; height: 36px; justify-content: center; }
 
-/* ── Form Controls ───────────────────────────────────────────────────────────── */
+
 .form-group { display: flex; flex-direction: column; gap: 8px; }
 
 label {
@@ -250,7 +239,7 @@ textarea { resize: vertical; min-height: 100px; }
   gap: 20px;
 }
 
-/* ── Badges & Tags ───────────────────────────────────────────────────────────── */
+
 .badge {
   display: inline-flex;
   align-items: center;
@@ -281,7 +270,7 @@ textarea { resize: vertical; min-height: 100px; }
 .badge-awarded  { background: rgba(16,185,129,0.1);  color: var(--status-awarded); border-color: rgba(16,185,129,0.2); }
 .badge-rejected { background: rgba(239,68,68,0.1);   color: var(--status-rejected); border-color: rgba(239,68,68,0.2); }
 
-/* ── Table ───────────────────────────────────────────────────────────────────── */
+
 .table-wrap { 
   overflow-x: auto; 
   max-width: 100vw; 
@@ -331,7 +320,7 @@ tbody td {
   vertical-align: middle;
 }
 
-/* ── Table Totals ───────────────────────────────────────────────────────────── */
+
 .total-row {
   background: var(--surface-2);
   border-top: 2px solid var(--border-bright);
@@ -354,7 +343,7 @@ tbody td {
   padding: 14px 16px;
 }
 
-/* ── Stat Grids ──────────────────────────────────────────────────────────────── */
+
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -362,7 +351,7 @@ tbody td {
   margin-bottom: 32px;
 }
 
-/* ── Tabs ─────────────────────────────────────────────────────────────────────── */
+
 .tabs {
   display: flex;
   gap: 8px;
@@ -393,7 +382,6 @@ tbody td {
   box-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
-/* ── Utility ─────────────────────────────────────────────────────────────────── */
 .text-muted  { color: var(--text-muted); }
 .text-primary { color: var(--primary); }
 .text-right  { text-align: right; }
@@ -434,9 +422,7 @@ tbody td {
   margin-bottom: 20px;
 }
 
-/* ── Responsive ──────────────────────────────────────────────────────────────── */
 
-/* Tablet */
 @media (max-width: 1200px) {
   .main-content { padding: 32px 24px; }
   .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
@@ -446,7 +432,6 @@ tbody td {
   .main-content { padding: 28px 20px; }
 }
 
-/* ── iOS / Mobile (≤768px) ───────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   :root {
     --sidebar-width: 0px;
@@ -455,21 +440,18 @@ tbody td {
     --safe-top: env(safe-area-inset-top, 0px);
   }
 
-  /* Prevent tap highlight flashes on all interactive elements */
   *, *::before, *::after {
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* Main content: account for tab bar + safe area */
   .main-content {
     margin-left: 0;
     padding: 16px 16px;
     max-width: 100vw;
     padding-bottom: calc(var(--ios-tab-height) + var(--safe-bottom) + 32px);
-    padding-top: calc(var(--safe-top) + 36px); /* Increased for notch comfort */
+    padding-top: calc(var(--safe-top) + 36px);
   }
 
-  /* ── Apple App Aesthetic Overrides ── */
   :root {
     --radius: 14px;
     --radius-sm: 10px;
@@ -479,7 +461,6 @@ tbody td {
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
   }
 
-  /* ── iOS Large Title Header ── */
   .page-header {
     flex-direction: column;
     align-items: flex-start;
@@ -507,7 +488,6 @@ tbody td {
     line-height: 1.1;
   }
 
-  /* Action buttons: ghost pill style in header */
   .header-actions {
     width: 100%;
     flex-wrap: nowrap;
@@ -520,35 +500,30 @@ tbody td {
   }
   .header-actions::-webkit-scrollbar { display: none; }
 
-  /* ── iOS-style button press states (no hover on touch) ── */
   .btn:active {
     transform: scale(0.96);
     opacity: 0.8;
   }
 
-  /* Stat grid: 2-column on mobile for compactness */
   .stat-grid {
     grid-template-columns: 1fr 1fr;
     gap: 10px;
     margin-bottom: 20px;
   }
 
-  /* Cards: iOS inset style */
   .card {
     padding: 16px;
     border-radius: 14px;
     border-color: rgba(255,255,255,0.06);
   }
 
-  /* Form grid: single column */
   .form-grid {
     grid-template-columns: 1fr;
     gap: 12px;
   }
 
-  /* ── iOS Inputs: prevent zoom, large tap targets ── */
   input, select, textarea {
-    font-size: 16px !important; /* Prevents iOS auto-zoom */
+    font-size: 16px !important;
     border-radius: 10px;
     background: rgba(118, 118, 128, 0.12);
     border-color: rgba(255,255,255,0.08);
@@ -561,17 +536,14 @@ tbody td {
     box-shadow: 0 0 0 2px var(--primary);
   }
 
-  /* Tabs scroll on mobile */
   .tabs-wrapper {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     padding-bottom: 4px;
   }
 
-  /* Empty states: compact */
   .empty-state { padding: 40px 16px; }
 
-  /* Tables: scroll horizontally on mobile (still used on desktop-like tablets) */
   .table-wrap { border-radius: 12px; }
 
   .hide-mobile { display: none !important; }
@@ -589,7 +561,6 @@ tbody td {
     .card { padding: 12px; margin: 0; width: 100%; border-radius: 0; border-left: none; border-right: none; }
   }
 
-/* ── Hover effects: desktop pointer only ─────────────────────────────────────── */
 @media (hover: none) {
   .btn:hover { transform: none !important; box-shadow: none !important; }
   .nav-link:hover { background: none; }
@@ -597,13 +568,11 @@ tbody td {
   th.sortable:hover { background: var(--surface-2); color: var(--text-muted); }
 }
 
-/* Touch press feedback for table rows */
 @media (hover: none) {
   tbody tr:active { background: rgba(255,255,255,0.04); }
   .btn:active { transform: scale(0.97); }
 }
 
-/* ── iOS List Cells ──────────────────────────────────────────────────────────── */
 .ios-list-section {
   margin-bottom: 28px;
 }
@@ -712,7 +681,6 @@ tbody td {
   flex-shrink: 0;
 }
 
-/* ── iOS Segmented Control ───────────────────────────────────────────────────── */
 .ios-segmented {
   display: grid;
   background: rgba(118, 118, 128, 0.24);
@@ -755,7 +723,6 @@ tbody td {
   color: #000;
 }
 
-/* ── Pull-to-Refresh Indicator ───────────────────────────────────────────────── */
 .ptr-indicator {
   position: fixed;
   top: calc(var(--safe-top, 0px) + 8px);
@@ -794,7 +761,6 @@ tbody td {
   to { transform: rotate(360deg); }
 }
 
-/* ── View Transitions (iOS push slide) ───────────────────────────────────────── */
 @keyframes ios-slide-from-right {
   from { transform: translateX(28px); opacity: 0; }
   to   { transform: translateX(0);    opacity: 1; }
@@ -814,7 +780,6 @@ tbody td {
   }
 }
 
-/* ── iOS Detail Popup / Bottom Sheet ───────────────────────────────────────── */
 .ios-popup-overlay {
   position: fixed;
   inset: 0;
@@ -927,7 +892,7 @@ tbody td {
   line-height: 1.4;
 }
 
-/* ── Premium Receipt Style Mobile Popup ── */
+
 .ios-receipt-card {
   display: flex;
   flex-direction: column;
@@ -994,7 +959,7 @@ tbody td {
   top: -6px;
   width: 12px;
   height: 12px;
-  background: #1c1c1e; /* Match bottom sheet background */
+  background: #1c1c1e;
   border-radius: 50%;
 }
 
