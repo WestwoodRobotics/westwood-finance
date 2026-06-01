@@ -20,6 +20,10 @@
 
   /** @typedef {import('$lib/dataService.svelte.js').Order} Order */
 
+  $effect(() => {
+    if (authStore.initialized && !authStore.isAdmin) goto('/');
+  });
+
   const ORDER_STATUSES = [
     "Pending Review",
     "Approved",

@@ -35,7 +35,7 @@ class AuthStore {
   pendingTeam = $state('FRC');
 
   /** @type {boolean} */
-  initialized = $state(false);
+  initialized = $state(typeof window === 'undefined');
 
   /** @type {ApprovedMember[]} */
   membersList = $state([]);

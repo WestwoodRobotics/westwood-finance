@@ -265,19 +265,6 @@
           </div>
 
           <div class="form-group">
-            <label for="ae-category">Category *</label>
-            <CustomDropdown
-              options={[
-                { label: "Hardware", value: "hardware" },
-                { label: "Software", value: "software" },
-                { label: "Outreach", value: "outreach" },
-                { label: "Miscellaneous", value: "miscellaneous" },
-              ]}
-              bind:value={form.category}
-            />
-          </div>
-
-          <div class="form-group">
             <label for="ae-team">Team *</label>
             {#if authStore.isAdmin}
               <CustomDropdown
@@ -318,6 +305,19 @@
               step="1"
               placeholder="1"
               required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="ae-category">Category *</label>
+            <CustomDropdown
+              options={[
+                { label: "Hardware", value: "hardware" },
+                { label: "Software", value: "software" },
+                { label: "Outreach", value: "outreach" },
+                { label: "Miscellaneous", value: "miscellaneous" },
+              ]}
+              bind:value={form.category}
             />
           </div>
 
@@ -377,11 +377,13 @@
             type="submit"
             class="btn btn-primary btn-block"
             disabled={submitting}
+            aria-busy={submitting}
+            aria-label={submitting ? "Processing order" : form.isExpense ? "Confirm Immediate Expense" : "Submit Order Request"}
           >
             {#if submitting}
-              <span class="spinning" style="margin-right: 8px;">↻</span> Processing...
+              <span class="submit-spinner" aria-hidden="true"></span> Processing...
             {:else}
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
               {form.isExpense ? "Confirm Immediate Expense" : "Submit Order Request"}
             {/if}
           </button>
@@ -499,6 +501,22 @@
     color: var(--text-muted) !important;
     cursor: not-allowed !important;
     border-color: transparent !important;
+  }
+
+  .submit-spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
   }
 
 </style>
