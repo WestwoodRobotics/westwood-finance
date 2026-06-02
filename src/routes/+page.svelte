@@ -8,56 +8,25 @@
   import OrderDetailSheet from '$lib/components/OrderDetailSheet.svelte';
   import LineChart from '$lib/components/LineChart.svelte';
   import CustomDropdown from '$lib/components/CustomDropdown.svelte';
-  import { formatCurrency, matchesTeam, TEAMS } from '$lib/utils.js';
+  import { formatCurrency, TEAMS } from '$lib/utils.js';
   import { dataService } from '$lib/dataService.svelte.js';
   import { authStore } from '$lib/authStore.svelte.js';
   import { perms } from '$lib/perms.js';
+  import { createTeamView } from '$lib/derived.svelte.js';
   import appInfo from '$lib/app-info.json';
   import type { Order } from '$lib/types.js';
 
   const TEAM_OPTIONS = perms.viewAllTeams ? TEAMS : [authStore.userTeam];
   let selectedTeam = $state(perms.viewAllTeams ? 'Westwood Overall' : authStore.userTeam);
 
-  let teamOrders = $derived(dataService.orders.filter(o => matchesTeam(o, selectedTeam)));
-
-  let teamFunds = $derived(
-    selectedTeam === 'Westwood Overall'
-      ? dataService.funds
-      : dataService.funds.filter(f => {
-          const r = String(f.Recipient || '').toLowerCase().trim();
-          const s = selectedTeam.toLowerCase().trim();
-          return r === s || r.includes(s) || r === 'all';
-        })
-  );
+  const view = createTeamView(() => selectedTeam);
 
   let allYearExpenses = $derived(
-    teamOrders.filter(o => {
-      const ts = o.timestamp || '';
-      return ts.includes(new Date().getFullYear().toString());
-    })
+    view.teamOrders.filter(o => (o.timestamp || '').includes(new Date().getFullYear().toString()))
   );
 
-  let expenses = $derived(
-    teamOrders.filter(o => { const s = (o.status || '').toLowerCase().trim(); return s === 'received' || s === 'ordered'; })
-  );
-
-  let totalRaised = $derived(teamFunds.reduce((sum, f) => sum + (Number(f.Amount) || 0), 0));
-  let totalSpent = $derived(expenses.reduce((s, e) => s + (e.total || 0), 0));
-  let netBalance = $derived(totalRaised - totalSpent);
-
-  let monthlyTrends = $derived.by(() => {
-    const map: Record<string, number> = {};
-    expenses.forEach(e => {
-      const d = new Date(e.timestamp || '');
-      if (isNaN(d.getTime())) return;
-      const month = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      map[month] = (map[month] || 0) + (e.total || 0);
-    });
-    return Object.entries(map).map(([month, amount]) => ({ month, amount })).sort((a, b) => a.month.localeCompare(b.month));
-  });
-
-  let recentExpenses = $derived(expenses.slice(-5).reverse());
-  let recentOrders = $derived(teamOrders.slice(-5).reverse());
+  let recentExpenses = $derived(view.financialOrders.slice(-5).reverse());
+  let recentOrders = $derived(view.teamOrders.slice(-5).reverse());
 
   let budgetTotalValue = $derived.by(() => {
     const totalClub = dataService.budget?.Total?.['Club Funds'] || 0;
@@ -65,7 +34,7 @@
     const totalRealExpenses = dataService.orders
       .filter(o => { const st = (o.status || '').toLowerCase().trim(); return st === 'received' || st === 'ordered'; })
       .reduce((sum, o) => sum + (o.total || 0), 0);
-    return totalClub + totalPersonal + totalRaised - totalRealExpenses;
+    return totalClub + totalPersonal + view.totalRaised - totalRealExpenses;
   });
 
   let selectedOrder = $state<Order | null>(null);
@@ -89,22 +58,22 @@
   <LoadingIndicator text="Initializing workspace..." />
 {:else}
   <div class="stat-grid fade-in">
-    <StatCard label="Net Balance" value={netBalance.toString()} isCurrency={true} sub="Total Raised - Total Spent" accentColor={netBalance >= 0 ? 'var(--status-awarded)' : 'var(--status-rejected)'}>
+    <StatCard label="Net Balance" value={view.netBalance.toString()} isCurrency={true} sub="Total Raised - Total Spent" accentColor={view.netBalance >= 0 ? 'var(--status-awarded)' : 'var(--status-rejected)'}>
       {#snippet icon()}<DollarSign size={18} />{/snippet}
     </StatCard>
     <div class="total-raised-card">
-      <StatCard label="Total Raised" value={totalRaised.toString()} isCurrency={true} sub={`${dataService.funds.length} contributions`} accentColor="var(--status-awarded)">
+      <StatCard label="Total Raised" value={view.totalRaised.toString()} isCurrency={true} sub={`${dataService.funds.length} contributions`} accentColor="var(--status-awarded)">
         {#snippet icon()}<TrendingUp size={18} />{/snippet}
       </StatCard>
     </div>
-    <StatCard label="Total Spent" value={totalSpent.toString()} isCurrency={true} sub={`${allYearExpenses.length} expenses this year`} accentColor="var(--status-rejected)">
+    <StatCard label="Total Spent" value={view.totalSpent.toString()} isCurrency={true} sub={`${allYearExpenses.length} expenses this year`} accentColor="var(--status-rejected)">
       {#snippet icon()}<ShoppingCart size={18} />{/snippet}
     </StatCard>
     <StatCard
       label="Budget Progress"
-      value={budgetTotalValue > 0 ? ((totalSpent / budgetTotalValue) * 100).toFixed(2) + '%' : '0%'}
-      progress={budgetTotalValue > 0 ? (totalSpent / budgetTotalValue) * 100 : 0}
-      sub={budgetTotalValue > 0 ? `${formatCurrency(totalSpent)} of ${formatCurrency(budgetTotalValue)}` : 'No active budget'}
+      value={budgetTotalValue > 0 ? ((view.totalSpent / budgetTotalValue) * 100).toFixed(2) + '%' : '0%'}
+      progress={budgetTotalValue > 0 ? (view.totalSpent / budgetTotalValue) * 100 : 0}
+      sub={budgetTotalValue > 0 ? `${formatCurrency(view.totalSpent)} of ${formatCurrency(budgetTotalValue)}` : 'No active budget'}
       accentColor="var(--cat-miscellaneous)"
     >
       {#snippet icon()}<BarChart3 size={18} />{/snippet}
@@ -135,14 +104,14 @@
     </aside>
   </div>
 
-  {#if monthlyTrends.length > 1}
+  {#if view.monthlyTrends.length > 1}
     <div class="card trend-card fade-in">
       <div class="section-header" style="margin-bottom: 20px;">
         <div class="section-title-group"><h2>Spending Trend</h2></div>
         <a href="/stats" class="btn btn-ghost btn-xs">Full Analytics</a>
       </div>
       <div class="trend-chart-container">
-        <LineChart data={monthlyTrends} />
+        <LineChart data={view.monthlyTrends} />
       </div>
     </div>
   {/if}

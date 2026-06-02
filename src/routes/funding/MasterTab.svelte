@@ -4,35 +4,19 @@
   import LoadingIndicator from '$lib/components/LoadingIndicator.svelte';
   import { dataService } from '$lib/dataService.svelte.js';
   import { formatCurrency } from '$lib/utils.js';
+  import { createTeamView } from '$lib/derived.svelte.js';
 
   let { selectedBudgetTeam }: { selectedBudgetTeam: string } = $props();
+
+  const view = createTeamView(() => selectedBudgetTeam);
 
   let transactions = $derived.by(() => {
     const arr: { id: string; type: string; source: string | undefined; category: string | undefined; date: string; amount: number; status: string }[] = [];
 
-    const expenses = dataService.orders.filter(o => {
-      const s = (o.status || '').toLowerCase().trim();
-      return s === 'received' || s === 'ordered';
-    });
-    const teamExpenses = selectedBudgetTeam === 'Westwood Overall'
-      ? expenses
-      : expenses.filter(o => {
-          const t = (o.team || '').toLowerCase().trim();
-          const s = selectedBudgetTeam.toLowerCase().trim();
-          return t === s || t.includes(s) || (s === 'frc' && (t.includes('frc') || /^\d+$/.test(t)));
-        });
-
-    for (const e of teamExpenses) {
+    for (const e of view.financialOrders) {
       arr.push({ id: e.id, type: 'Expense', source: e.company || e.item, category: e.category, date: e.timestamp?.slice(0, 10) || '—', amount: -(e.total || 0), status: e.status });
     }
-
-    const income = dataService.funds.filter(f => {
-      if (selectedBudgetTeam === 'Westwood Overall') return true;
-      const t = (f.Recipient || '').toLowerCase().trim();
-      const s = selectedBudgetTeam.toLowerCase().trim();
-      return t === s || t.includes(s) || t === 'all' || t === 'westwood overall';
-    });
-    for (const f of income) {
+    for (const f of view.teamFunds) {
       arr.push({ id: f.id, type: 'Income', source: String(f.Source), category: String(f.Type), date: String(f.Date || '—'), amount: Number(f.Amount) || 0, status: 'Received' });
     }
 
@@ -43,9 +27,7 @@
   let netBalance = $derived.by(() => {
     const budgetKey = selectedBudgetTeam === 'Westwood Overall' ? 'Total' : selectedBudgetTeam;
     const budgetObj = (dataService.budget as Record<string, Record<string, number>> | null)?.[budgetKey] || {};
-    const income = transactions.filter(tx => tx.type === 'Income').reduce((s, tx) => s + tx.amount, 0);
-    const expenses = transactions.filter(tx => tx.type === 'Expense').reduce((s, tx) => s + Math.abs(tx.amount), 0);
-    return (budgetObj['Club Funds'] || 0) + (budgetObj['Personal Funds'] || 0) + income - expenses;
+    return (budgetObj['Club Funds'] || 0) + (budgetObj['Personal Funds'] || 0) + view.totalRaised - view.totalSpent;
   });
 </script>
 

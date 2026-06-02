@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { dataService } from '$lib/dataService.svelte.js';
   import { formatCurrency } from '$lib/utils.js';
+  import { createTeamView } from '$lib/derived.svelte.js';
 
   const TYPE_COLORS: Record<string, string> = {
     Fundraiser: 'var(--primary)', Grant: '#b97cf3', Dues: '#4e9af1', Sponsor: '#6bcb77', Other: '#f1a94e',
@@ -8,20 +8,13 @@
 
   let { selectedBudgetTeam }: { selectedBudgetTeam: string } = $props();
 
+  const view = createTeamView(() => selectedBudgetTeam);
+
   let sortCol = $state('Date');
   let sortDir = $state('desc');
 
-  let teamFunds = $derived(
-    dataService.funds.filter(f => {
-      if (selectedBudgetTeam === 'Westwood Overall') return true;
-      const r = String(f.Recipient || '').toLowerCase().trim();
-      const s = selectedBudgetTeam.toLowerCase().trim();
-      return r === s || r === 'all';
-    })
-  );
-
   let sorted = $derived(
-    teamFunds.slice().sort((a, b) => {
+    view.teamFunds.slice().sort((a, b) => {
       let valA: string | number = (a as Record<string, unknown>)[sortCol] as string | number || '';
       let valB: string | number = (b as Record<string, unknown>)[sortCol] as string | number || '';
       if (sortCol === 'Amount') { valA = Number(valA) || 0; valB = Number(valB) || 0; }

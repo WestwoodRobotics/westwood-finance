@@ -9,69 +9,35 @@
   import CustomDropdown from "$lib/components/CustomDropdown.svelte";
   import {
     formatCurrency,
-    formatDate,
     CATEGORIES,
     STATUS_COLORS,
-    truncate,
     TEAMS,
-    matchesTeam,
   } from "$lib/utils.js";
   import { dataService } from "$lib/dataService.svelte.js";
   import { authStore } from "$lib/authStore.svelte.js";
   import { perms } from "$lib/perms.js";
+  import { createTeamView } from "$lib/derived.svelte.js";
 
   const TEAM_OPTIONS = perms.viewAllTeams ? TEAMS : [authStore.userTeam];
   let selectedTeam = $state(perms.viewAllTeams ? "FRC" : authStore.userTeam);
 
   let effectiveTeam = $derived(!perms.viewAllTeams && authStore.userTeam ? authStore.userTeam : selectedTeam);
 
-  let teamOrders = $derived(
-    dataService.orders.filter((o) => matchesTeam(o, effectiveTeam)),
-  );
+  const view = createTeamView(() => effectiveTeam);
 
-  let analyticsOrders = $derived(
-    teamOrders.map((o) => {
-      const d = new Date(o.timestamp || "");
-      const month = isNaN(d.getTime())
-        ? ""
-        : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-      return {
-        ...o,
-        month,
-      };
-    }),
-  );
-
-  // Financial orders include only definitively spent items (Received/Ordered)
-  let financialOrders = $derived(
-    analyticsOrders.filter((o) => {
-      const s = String(o.status || "")
-        .toLowerCase()
-        .trim();
-      return s === "received" || s === "ordered";
-    }),
-  );
-
-  // ── Stats Calculations (Split into individual runes for perfect reactivity) ──
-
-  let totalSpent = $derived(
-    financialOrders.reduce((sum, e) => sum + (e.total || 0), 0),
-  );
-  let totalItems = $derived(financialOrders.length);
-  let avgCost = $derived(
-    financialOrders.length > 0 ? totalSpent / financialOrders.length : 0,
-  );
+  let totalItems = $derived(view.financialOrders.length);
+  let avgCost = $derived(view.financialOrders.length > 0 ? view.totalSpent / view.financialOrders.length : 0);
 
   let mostExpensive = $derived(
-    financialOrders.length > 0
-      ? [...financialOrders].sort((a, b) => (b.total || 0) - (a.total || 0))[0]
+    view.financialOrders.length > 0
+      ? [...view.financialOrders].sort((a, b) => (b.total || 0) - (a.total || 0))[0]
       : null,
   );
 
   let topVendor = $derived.by(() => {
-    if (financialOrders.length === 0) return null;
-    const map = {};
-    financialOrders.forEach((e) => {
+    if (view.financialOrders.length === 0) return null;
+    const map: Record<string, number> = {};
+    view.financialOrders.forEach((e) => {
       const comp = e.company || "Unknown";
       map[comp] = (map[comp] || 0) + 1;
     });
@@ -81,50 +47,28 @@
   });
 
   let byCategory = $derived.by(() => {
-    const map = {};
-    // Ensure all standard categories exist even if 0
+    const map: Record<string, number> = {};
     CATEGORIES.forEach((c) => (map[c] = 0));
-
-    financialOrders.forEach((e) => {
+    view.financialOrders.forEach((e) => {
       const cat = (e.category || "miscellaneous").toLowerCase().trim();
-      if (map[cat] !== undefined) {
-        map[cat] = (map[cat] || 0) + (e.total || 0);
-      } else {
-        map["miscellaneous"] = (map["miscellaneous"] || 0) + (e.total || 0);
-      }
+      if (map[cat] !== undefined) map[cat] = (map[cat] || 0) + (e.total || 0);
+      else map["miscellaneous"] = (map["miscellaneous"] || 0) + (e.total || 0);
     });
     return map;
   });
 
-  let monthlyTrends = $derived.by(() => {
-    const map = {};
-    financialOrders.forEach((e) => {
-      if (e.month) {
-        map[e.month] = (map[e.month] || 0) + (e.total || 0);
-      }
-    });
-    return Object.entries(map)
-      .map(([month, amount]) => ({ month, amount }))
-      .sort((a, b) => a.month.localeCompare(b.month));
-  });
-
   let byVendorDollars = $derived.by(() => {
-    const map = {};
-    financialOrders.forEach((e) => {
+    const map: Record<string, number> = {};
+    view.financialOrders.forEach((e) => {
       const vendor = e.company || "Unknown";
       map[vendor] = (map[vendor] || 0) + (e.total || 0);
     });
-    // Sort and take top 8 for clarity
-    return Object.fromEntries(
-      Object.entries(map)
-        .sort(([, a], [, b]) => b - a)
-        .slice(0, 8),
-    );
+    return Object.fromEntries(Object.entries(map).sort(([, a], [, b]) => b - a).slice(0, 8));
   });
 
   let statusDistribution = $derived.by(() => {
-    const map = {};
-    analyticsOrders.forEach((e) => {
+    const map: Record<string, number> = {};
+    view.teamOrders.forEach((e) => {
       const status = e.status || "Unknown";
       map[status] = (map[status] || 0) + 1;
     });
@@ -153,10 +97,10 @@
 
 {#if dataService.loading && !dataService.orders.length}
   <LoadingIndicator text="Analyzing ledger data..." />
-{:else if analyticsOrders.length > 0}
+{:else if view.teamOrders.length > 0}
   <div class={!dataService.hasLoadedOnce ? "fade-in" : ""}>
     <div class="stat-grid" style="margin-bottom: 32px">
-      <StatCard label="Total Spend" value={totalSpent.toString()} isCurrency={true} accentColor="var(--status-rejected)">
+      <StatCard label="Total Spend" value={view.totalSpent.toString()} isCurrency={true} accentColor="var(--status-rejected)">
         {#snippet icon()}<DollarSign size={18} />{/snippet}
       </StatCard>
       <StatCard label="Request Count" value={totalItems.toString()} sub="Valid entries" accentColor="var(--status-ordered)">
@@ -195,9 +139,9 @@
         <div class="card-header-group">
           <h3 class="chart-title">Spending over Time</h3>
         </div>
-        {#if monthlyTrends.length > 0}
+        {#if view.monthlyTrends.length > 0}
           <div class="chart-container">
-            <LineChart data={monthlyTrends} />
+            <LineChart data={view.monthlyTrends} />
           </div>
         {:else}
           <div class="empty-state" style="padding: 48px">

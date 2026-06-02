@@ -4,7 +4,8 @@
   import OrderTable from '$lib/components/OrderTable.svelte';
   import LoadingIndicator from '$lib/components/LoadingIndicator.svelte';
   import { dataService } from '$lib/dataService.svelte.js';
-  import { formatCurrency, matchesTeam, CATEGORIES } from '$lib/utils.js';
+  import { formatCurrency, CATEGORIES } from '$lib/utils.js';
+  import { createTeamView } from '$lib/derived.svelte.js';
 
   const CATEGORY_LABELS: Record<string, string> = {
     hardware: 'Hardware', software: 'Software', outreach: 'Outreach', food: 'Food', miscellaneous: 'Misc',
@@ -12,16 +13,12 @@
 
   let { selectedBudgetTeam }: { selectedBudgetTeam: string } = $props();
 
-  let teamOrders = $derived(dataService.orders.filter(o => matchesTeam(o, selectedBudgetTeam)));
-
-  let realExpenses = $derived(
-    teamOrders.filter(o => { const s = (o.status || '').toLowerCase().trim(); return s === 'received' || s === 'ordered'; })
-              .reduce((sum, o) => sum + (o.total || 0), 0)
-  );
+  const view = createTeamView(() => selectedBudgetTeam);
 
   let pendingExpenses = $derived(
-    teamOrders.filter(o => { const s = (o.status || '').toLowerCase().trim(); return s === 'pending review' || s === 'approved'; })
-              .reduce((sum, o) => sum + (o.total || 0), 0)
+    view.teamOrders
+      .filter(o => { const s = (o.status || '').toLowerCase().trim(); return s === 'pending review' || s === 'approved'; })
+      .reduce((sum, o) => sum + (o.total || 0), 0)
   );
 
   let budgetTeams = $derived(
@@ -34,14 +31,15 @@
 
   let budgetTotal = $derived(dataService.budget?.['Total'] || null);
 
-  let totalRaised = $derived(dataService.funds.reduce((sum, f) => sum + (Number(f.Amount) || 0), 0));
+  let allFundsRaised = $derived(dataService.funds.reduce((sum, f) => sum + (Number(f.Amount) || 0), 0));
 
   let spentByCategory = $derived.by(() => {
     const map: Record<string, number> = {};
     CATEGORIES.forEach(c => (map[c] = 0));
-    teamOrders
-      .filter(o => { const s = (o.status || '').toLowerCase().trim(); return s === 'received' || s === 'ordered'; })
-      .forEach(e => { const cat = (e.category || 'miscellaneous').toLowerCase().trim(); map[cat] = (map[cat] || 0) + (e.total || 0); });
+    view.financialOrders.forEach(e => {
+      const cat = (e.category || 'miscellaneous').toLowerCase().trim();
+      map[cat] = (map[cat] || 0) + (e.total || 0);
+    });
     return map;
   });
 </script>
@@ -85,8 +83,8 @@
               return st === 'received' || st === 'ordered';
             }).reduce((sum, o) => sum + (o.total || 0), 0)}
             {@const final = clubFunds + personalFunds + teamFundsRaised - teamRealExpenses}
-            {@const pct = budgetTotal && ((budgetTotal as Record<string, number>)['Club Funds'] + totalRaised) > 0
-              ? Math.min(100, (Math.max(0, final) / ((budgetTotal as Record<string, number>)['Club Funds'] + totalRaised)) * 100)
+            {@const pct = budgetTotal && ((budgetTotal as Record<string, number>)['Club Funds'] + allFundsRaised) > 0
+              ? Math.min(100, (Math.max(0, final) / ((budgetTotal as Record<string, number>)['Club Funds'] + allFundsRaised)) * 100)
               : 0}
             <tr class="overall-row">
               <td><span class="overall-team-name">{team}</span></td>
@@ -104,12 +102,12 @@
           {@const totalClub = (budgetTotal as Record<string, number>)['Club Funds'] || 0}
           {@const totalPersonal = (budgetTotal as Record<string, number>)['Personal Funds'] || 0}
           {@const totalRealExpenses = dataService.orders.filter(o => { const st = (o.status || '').toLowerCase().trim(); return st === 'received' || st === 'ordered'; }).reduce((sum, o) => sum + (o.total || 0), 0)}
-          {@const totalFinal = totalClub + totalPersonal + totalRaised - totalRealExpenses}
+          {@const totalFinal = totalClub + totalPersonal + allFundsRaised - totalRealExpenses}
           <tfoot>
             <tr class="total-row">
               <td class="total-label" style="text-align:left; padding-left:20px;">Westwood Total</td>
               <td class="text-right monospace total-amount" style="font-size:0.9rem">{formatCurrency(totalClub)}</td>
-              <td class="text-right monospace total-amount amount-positive" style="font-size:0.9rem">+{formatCurrency(totalRaised)}</td>
+              <td class="text-right monospace total-amount amount-positive" style="font-size:0.9rem">+{formatCurrency(allFundsRaised)}</td>
               <td class="text-right monospace total-amount amount-negative" style="font-size:0.9rem">{formatCurrency(Math.abs(totalRealExpenses))}</td>
               <td class="text-right monospace total-amount" style="color:{totalFinal >= 0 ? 'var(--status-awarded)' : 'var(--status-rejected)'}">{formatCurrency(totalFinal)}</td>
               <td></td>
@@ -131,8 +129,8 @@
     {@const clubFunds = (data as Record<string, number>)['Club Funds'] ?? 0}
     {@const personal = (data as Record<string, number>)['Personal Funds'] ?? 0}
     {@const teamBudgetOnly = teamFundsRaised + personal}
-    {@const final = clubFunds + personal + teamFundsRaised - realExpenses}
-    {@const usagePct = teamBudgetOnly > 0 ? (realExpenses / teamBudgetOnly) * 100 : 0}
+    {@const final = clubFunds + personal + teamFundsRaised - view.totalSpent}
+    {@const usagePct = teamBudgetOnly > 0 ? (view.totalSpent / teamBudgetOnly) * 100 : 0}
     {@const pctColor = usagePct > 90 ? 'var(--status-rejected)' : (usagePct > 60 ? '#f97316' : 'var(--status-awarded)')}
     {@const pctBg = usagePct > 90 ? 'rgba(239,68,68,0.1)' : (usagePct > 60 ? 'rgba(249,115,22,0.1)' : 'rgba(16,185,129,0.1)')}
 
@@ -151,7 +149,7 @@
           <div class="budget-details">
             <div class="budget-detail-row"><span class="text-muted">Raised</span><span class="monospace amount-positive">+{formatCurrency(teamFundsRaised)}</span></div>
             <div class="budget-detail-row"><span class="text-muted">Personal</span><span class="monospace" style="color:#4e9af1">{formatCurrency(personal)}</span></div>
-            <div class="budget-detail-row"><span class="text-muted">Expenses</span><span class="monospace amount-negative">{formatCurrency(Math.abs(realExpenses))}</span></div>
+            <div class="budget-detail-row"><span class="text-muted">Expenses</span><span class="monospace amount-negative">{formatCurrency(Math.abs(view.totalSpent))}</span></div>
             <div class="budget-detail-row"><span class="text-muted">Pending Expenses</span><span class="monospace text-muted">{formatCurrency(pendingExpenses)}</span></div>
           </div>
           <div class="budget-bar-track"><div class="budget-bar-fill"></div></div>
@@ -165,7 +163,7 @@
 
   <div class="team-dashboard-content fade-in">
     <div class="section-title">{selectedBudgetTeam} Orders</div>
-    <OrderTable orders={teamOrders} hideTeamColumn={true} />
+    <OrderTable orders={view.teamOrders} hideTeamColumn={true} />
   </div>
 {/if}
 
