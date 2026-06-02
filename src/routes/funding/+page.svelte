@@ -2,9 +2,9 @@
   import { ChevronDown } from '@lucide/svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
   import CustomDropdown from '$lib/components/CustomDropdown.svelte';
-  import BudgetTab from '$lib/components/funding/BudgetTab.svelte';
-  import HistoryTab from '$lib/components/funding/HistoryTab.svelte';
-  import MasterTab from '$lib/components/funding/MasterTab.svelte';
+  import BudgetTab from './BudgetTab.svelte';
+  import HistoryTab from './HistoryTab.svelte';
+  import MasterTab from './MasterTab.svelte';
   import { authStore } from '$lib/authStore.svelte.js';
   import { perms } from '$lib/perms.js';
 

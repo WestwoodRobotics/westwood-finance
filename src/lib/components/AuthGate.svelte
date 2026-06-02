@@ -330,7 +330,6 @@
 {/if}
 
 <style>
-  /* ── Auth Screen Base ──────────────────────────────────────────── */
   .auth-screen {
     position: fixed;
     inset: 0;
@@ -359,8 +358,6 @@
     from { opacity: 0; transform: translateY(20px) scale(0.97); }
     to { opacity: 1; transform: translateY(0) scale(1); }
   }
-
-  /* ── Logo ──────────────────────────────────────────────────────── */
   .auth-logo {
     width: 80px;
     height: 80px;
@@ -377,8 +374,6 @@
     height: 100%;
     object-fit: cover;
   }
-
-  /* ── Title & Text ─────────────────────────────────────────────── */
   .auth-title {
     font-size: 1.5rem;
     font-weight: 800;
@@ -424,8 +419,6 @@
     border: 1px solid rgba(249, 115, 22, 0.15);
     display: inline-block;
   }
-
-  /* ── Google Button ─────────────────────────────────────────────── */
   .google-btn-wrapper {
     display: flex;
     justify-content: center;
@@ -440,8 +433,6 @@
     letter-spacing: 0.1em;
     font-weight: 600;
   }
-
-  /* ── User Info Badge ───────────────────────────────────────────── */
   .auth-user-info {
     margin-bottom: 28px;
     display: flex;
@@ -469,8 +460,6 @@
     font-size: 0.8rem;
     color: var(--text-muted, #71717a);
   }
-
-  /* ── Form ──────────────────────────────────────────────────────── */
   .auth-form {
     text-align: left;
     display: flex;
@@ -520,8 +509,6 @@
     color: var(--text-dim, #52525b);
     font-weight: 400;
   }
-
-  /* ── Buttons ───────────────────────────────────────────────────── */
   .auth-submit-btn {
     width: 100%;
     height: 50px;
@@ -557,8 +544,6 @@
   .auth-back-btn:hover {
     color: #fff;
   }
-
-  /* ── Error ─────────────────────────────────────────────────────── */
   .auth-error {
     display: flex;
     align-items: center;
@@ -573,8 +558,6 @@
     margin-bottom: 20px;
     text-align: left;
   }
-
-  /* ── Pending Approval ──────────────────────────────────────────── */
   .pending-icon {
     color: var(--primary, #f97316);
     opacity: 0.6;
@@ -640,8 +623,6 @@
     vertical-align: middle;
     margin-right: 6px;
   }
-
-  /* ── Loading ───────────────────────────────────────────────────── */
   .auth-loading {
     position: fixed;
     inset: 0;
@@ -664,8 +645,6 @@
   @keyframes authSpin {
     to { transform: rotate(360deg); }
   }
-
-  /* ── Mobile ────────────────────────────────────────────────────── */
   @media (max-width: 500px) {
     .auth-card {
       padding: 36px 24px;

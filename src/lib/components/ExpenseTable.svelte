@@ -332,7 +332,6 @@ function openExternal(url) {
   .text-dim { color: var(--text-dim); }
   .font-medium { font-weight: 500; }
 
-  /* iOS list extras */
   .ios-list-wrap { margin-bottom: 1.5rem; }
 
   .ios-total-row {

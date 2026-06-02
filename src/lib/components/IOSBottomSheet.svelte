@@ -129,7 +129,7 @@
       width: 90%;
       max-width: 550px;
       border-radius: 16px;
-      bottom: 40px; /* Elevated on desktop */
+      bottom: 40px;
       box-shadow: 0 10px 40px rgba(0,0,0,0.5);
       animation: sheetSlideUpDesktop 0.32s cubic-bezier(0.34, 1.2, 0.64, 1);
     }

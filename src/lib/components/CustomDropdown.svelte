@@ -222,7 +222,6 @@
     flex-shrink: 0;
   }
 
-  /* Scrollbar styling */
   .dropdown-menu::-webkit-scrollbar {
     width: 4px;
   }

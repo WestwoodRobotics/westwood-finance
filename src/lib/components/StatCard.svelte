@@ -152,8 +152,6 @@
     background: rgba(255,255,255,0.05);
     border-radius: 6px;
   }
-
-  /* ── Progress Section ────────────────────────────────────────────────── */
   .progress-section {
     display: flex;
     flex-direction: column;

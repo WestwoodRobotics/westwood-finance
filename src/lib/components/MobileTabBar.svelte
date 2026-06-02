@@ -139,7 +139,6 @@
 {/if}
 
 <style>
-  /* ── iOS Tab Bar ───────────────────────────────────────────────── */
   .ios-tab-bar {
     position: fixed;
     bottom: 0;
@@ -203,8 +202,6 @@
     color: var(--primary);
     font-weight: 600;
   }
-
-  /* Center submit button */
   .ios-tab-center {
     margin-top: -12px;
   }
@@ -224,8 +221,6 @@
   .ios-tab-center:active .ios-tab-center-pill {
     transform: scale(0.94);
   }
-
-  /* ── More Sheet ────────────────────────────────────────────────── */
   .sheet-backdrop {
     position: fixed;
     inset: 0;

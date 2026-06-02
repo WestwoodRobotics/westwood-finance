@@ -117,7 +117,6 @@
 <!-- Mobile FAB removed — MobileTabBar handles navigation on mobile -->
 
 <style>
-  /* ── Desktop Sidebar (unchanged) ─────────────────────────────── */
   .sidebar {
     position: fixed;
     top: 0;
@@ -131,8 +130,6 @@
     z-index: 200;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
-
-  /* ── Mobile Sidebar ───────────────────────────────────────────── */
   .sidebar.is-mobile {
     transform: translateX(-100%);
     box-shadow: none;
@@ -143,8 +140,6 @@
     transform: translateX(0);
     box-shadow: 4px 0 32px rgba(0, 0, 0, 0.6);
   }
-
-  /* ── Mobile Backdrop ─────────────────────────────────────────── */
   .mobile-backdrop {
     position: fixed;
     inset: 0;
@@ -158,8 +153,6 @@
     from { opacity: 0; }
     to   { opacity: 1; }
   }
-
-  /* ── Mobile Close Button (inside sidebar header) ─────────────── */
   .mobile-close-btn {
     margin-left: auto;
     background: var(--surface-3);
@@ -181,8 +174,6 @@
     color: #fff;
     border-color: var(--primary);
   }
-
-  /* ── Brand / Nav / Footer (shared desktop + mobile) ─────────── */
   .sidebar-brand {
     display: flex;
     align-items: center;
@@ -287,8 +278,6 @@
   .nav-link.active .nav-icon {
     opacity: 1;
   }
-
-  /* ── User Info Section ───────────────────────────────────────── */
   .sidebar-user {
     padding: 16px 18px;
     border-top: 1px solid var(--border);

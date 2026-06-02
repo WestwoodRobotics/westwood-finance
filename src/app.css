@@ -63,7 +63,6 @@ input, select, textarea, button {
   font-size: inherit;
 }
 
-/*layout*/
 .app-shell {
   display: flex;
   min-height: 100vh;
@@ -106,7 +105,6 @@ input, select, textarea, button {
   box-shadow: 0 0 12px rgba(249, 115, 22, 0.4);
 }
 
-/* txt/typgraphy */
 h1, h2, h3, .brand-title { 
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif; 
   letter-spacing: -0.02em; 
@@ -1071,7 +1069,6 @@ tbody td {
   }
 }
 
-/* ── Modal ──────────────────────────────────────────────────────────────── */
 @keyframes modal-enter {
   from { opacity: 0; transform: scale(0.96) translateY(8px); }
   to   { opacity: 1; transform: scale(1) translateY(0); }
@@ -1128,7 +1125,6 @@ tbody td {
   gap: 10px;
 }
 
-/* ── Message Bars ───────────────────────────────────────────────────────── */
 .message-bar {
   display: flex;
   align-items: center;
@@ -1147,7 +1143,6 @@ tbody td {
   color: var(--status-awarded);
 }
 
-/* ── Segmented Control ──────────────────────────────────────────────────── */
 .segmented-control {
   display: grid;
   grid-template-columns: repeat(var(--tab-count, 3), 1fr);
@@ -1191,7 +1186,6 @@ tbody td {
 .segment:hover { color: var(--text); }
 .segment.active { color: var(--primary); }
 
-/* ── Dot Loading ────────────────────────────────────────────────────────── */
 .dot-loading {
   display: inline-block;
   width: 1.5em;

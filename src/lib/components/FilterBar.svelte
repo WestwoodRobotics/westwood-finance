@@ -193,7 +193,6 @@
     flex-direction: column;
     gap: 20px;
   }
-  
   /* i apologize to your eyes */
   .filter-main { display: flex; gap: 12px; align-items: center; }
   .search-input { flex: 1; }

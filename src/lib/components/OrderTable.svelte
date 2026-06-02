@@ -354,7 +354,6 @@
 />
 
 <style>
-  /* ── Desktop: show table, hide list ─────────────────────────── */
   .desktop-table {
     display: block;
   }
@@ -370,8 +369,6 @@
       display: block;
     }
   }
-
-  /* ── Desktop Table Styles ────────────────────────────────────── */
   .table-wrap {
     box-shadow: var(--shadow-sm);
     margin-bottom: 2rem;
@@ -487,8 +484,6 @@
       border-bottom-color: currentColor;
     }
   }
-
-  /* ── iOS List Styles ─────────────────────────────────────────── */
   .ios-list-wrap {
     margin-bottom: 1.5rem;
   }

@@ -35,7 +35,7 @@
     width: 200px;
     height: 6px;
     background: var(--surface-2);
-    border-radius: 999px; /* rounded ends */
+    border-radius: 999px;
     overflow: hidden;
     position: relative;
   }
