@@ -1,15 +1,15 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { Check, Info, Grid2x2 } from '@lucide/svelte';
-  import OrderEditModal from './OrderEditModal.svelte';
-  import FundEditModal from './FundEditModal.svelte';
-  import GroupStatusModal from './GroupStatusModal.svelte';
+  import OrderModal from './OrderModal.svelte';
+  import FundModal from './FundModal.svelte';
+  import GroupModal from './GroupModal.svelte';
   import AddFundsForm from './AddFundsForm.svelte';
   import AddExpenseForm from './AddExpenseForm.svelte';
   import MembersView from './MembersView.svelte';
-  import OrderHistoryTab from './OrderHistoryTab.svelte';
-  import PendingOrdersTab from './PendingOrdersTab.svelte';
-  import FinanceMasterTab from './FinanceMasterTab.svelte';
+  import HistoryTab from './HistoryTab.svelte';
+  import OrdersTab from './OrdersTab.svelte';
+  import MasterTab from './MasterTab.svelte';
   import FundingTab from './FundingTab.svelte';
   import { generateShortId } from '$lib/utils.js';
   import { dataService } from '$lib/dataService.svelte.js';
@@ -120,11 +120,11 @@
   {/if}
 
   {#if activeView === 'orderHistory'}
-    <OrderHistoryTab {syncing} onmanage={(o) => (editingOrder = o)} />
+    <HistoryTab {syncing} onmanage={(o) => (editingOrder = o)} />
   {:else if activeView === 'orders'}
-    <PendingOrdersTab {syncing} onmanage={(o) => (editingOrder = o)} onlinkgroup={linkGroupOrders} oneditgroup={(orders) => (editingGroupOrders = orders)} />
+    <OrdersTab {syncing} onmanage={(o) => (editingOrder = o)} onlinkgroup={linkGroupOrders} oneditgroup={(orders) => (editingGroupOrders = orders)} />
   {:else if activeView === 'master'}
-    <FinanceMasterTab {syncing} />
+    <MasterTab {syncing} />
   {:else if activeView === 'funding'}
     <FundingTab {syncing} oneditfund={(f) => (editingFund = f)} />
   {:else if activeView === 'add'}
@@ -153,7 +153,7 @@
 
 {#if editingOrder}
   {#key editingOrder.id}
-    <OrderEditModal
+    <OrderModal
       order={editingOrder}
       onclose={() => (editingOrder = null)}
       onsaved={(msg, undo) => { actionMsg = msg; actionErr = ''; undoFn = undo; editingOrder = null; }}
@@ -163,7 +163,7 @@
 
 {#if editingFund}
   {#key editingFund.id}
-    <FundEditModal
+    <FundModal
       fund={editingFund}
       onclose={() => (editingFund = null)}
       onsaved={(msg) => { actionMsg = msg; actionErr = ''; editingFund = null; }}
@@ -172,7 +172,7 @@
 {/if}
 
 {#if editingGroupOrders}
-  <GroupStatusModal
+  <GroupModal
     orders={editingGroupOrders}
     onclose={() => (editingGroupOrders = null)}
     onsaved={(msg, undo) => { actionMsg = msg; actionErr = ''; undoFn = undo; editingGroupOrders = null; }}
