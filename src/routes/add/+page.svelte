@@ -52,8 +52,8 @@
 
   let showPassword = $state(false);
 
-  function validateField(name: string, value: string) {
-    if (!value || !value.trim()) {
+  function validateField(name: string, value: string | number) {
+    if (!value && value !== 0 || !String(value).trim()) {
       fieldErrors[name] = 'Required';
     } else if (name === 'price' && (isNaN(parseFloat(value)) || parseFloat(value) < 0)) {
       fieldErrors[name] = 'Enter a valid price';

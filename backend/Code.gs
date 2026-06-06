@@ -118,7 +118,7 @@ function isApprovedMember(email) {
   const m = getMemberByEmail(email);
   if (!m) return false;
   const role = (m.role || '').trim().toLowerCase();
-  return role !== '' && role !== 'unauthorized';
+  return role !== 'unauthorized';
 }
 
 function sanitizeCell(val) {
