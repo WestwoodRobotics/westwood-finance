@@ -145,7 +145,7 @@
       {/each}
     </div>
   {/if}
-  <button class="page-fab" onclick={() => (showTabMenu = !showTabMenu)} aria-label="Switch admin view">
+  <button class="page-fab" onclick={() => (showTabMenu = !showTabMenu)} aria-label={`Admin view: ${[['orderHistory','Order History'],['orders','Orders'],['master','Finance History'],['funding','Funding'],['add','Add Funds +'],['addOrder','Add Expense +'],['members','Members']].find(([k]) => k === activeView)?.[1] ?? activeView}. Switch view`}>
     <Grid2x2 size={20} />
   </button>
 {/if}

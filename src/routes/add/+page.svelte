@@ -175,7 +175,6 @@
         isExpense: false,
       };
 
-      setTimeout(() => goto("/orders"), 1500);
     } catch (e) {
       // ✅ FIX: proper error typing
       if (e instanceof Error) {

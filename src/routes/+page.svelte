@@ -68,6 +68,12 @@
 {#if dataService.loading && !dataService.orders.length && !dataService.funds.length}
   <LoadingIndicator text="Initializing workspace..." />
 {:else}
+  {#if dataService.hasLoadedOnce && yearFinancialOrders.length === 0 && yearFunds.length === 0}
+    <div class="empty-year-notice fade-in">
+      No financial activity recorded for {currentYear} yet.
+    </div>
+  {/if}
+
   <div class="stat-grid fade-in">
     <StatCard label="Net Balance" value={yearNetBalance.toString()} isCurrency={true} sub={`${currentYear} Raised − Spent`} accentColor={yearNetBalance >= 0 ? 'var(--status-awarded)' : 'var(--status-rejected)'}>
       {#snippet icon()}<DollarSign size={18} />{/snippet}
@@ -183,6 +189,17 @@
 
   .trend-card { margin-top: 24px; padding: 24px; }
   .trend-chart-container { height: 220px; width: 100%; position: relative; }
+
+  .empty-year-notice {
+    text-align: center;
+    padding: 12px 20px;
+    margin-bottom: 24px;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
 
   .mobile-version-footer {
     display: none;
