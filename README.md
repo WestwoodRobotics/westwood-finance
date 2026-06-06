@@ -24,6 +24,6 @@ npm works too
 pnpm deploy   # deploys to gh-pages + outputs to /build w/o push to gh on wtv branch
 ```
 
-deployed via `.github/workflows/deploy.yml` to github pages in the `gh-pages` branch
+deployed via `.github/workflows/deploy.yml` to github pages, view in the deployemnts
 
 to update the backend, edit `backend/Code.gs` and push. automatically syncs with google apps script via clasp(pre-configured) and `.github/workflos/deploy-script.yml`
