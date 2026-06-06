@@ -619,6 +619,11 @@ tbody td {
   background: rgba(255, 255, 255, 0.04);
 }
 
+.ios-cell:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
 .ios-cell-icon {
   width: 36px;
   height: 36px;
@@ -1202,4 +1207,24 @@ tbody td {
   40%      { content: '.'; }
   60%      { content: '..'; }
   80%, 100%{ content: '...'; }
+}
+
+
+.skip-to-main {
+  position: absolute;
+  top: -100%;
+  left: 12px;
+  z-index: 10000;
+  padding: 8px 16px;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-decoration: none;
+  transition: top 0.15s;
+}
+
+.skip-to-main:focus {
+  top: 0;
 }

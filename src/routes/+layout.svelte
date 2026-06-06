@@ -19,7 +19,7 @@
       if (authStore.isApproved && document.visibilityState === 'visible') {
         dataService.load(true, true);
       }
-    }, 3000);
+    }, 30000);
     return () => clearInterval(interval);
   });
 
@@ -83,6 +83,8 @@
   <meta name="description" content="Finance management system for Westwood Robotics" />
 </svelte:head>
 
+<a href="#main-content" class="skip-to-main">Skip to main content</a>
+
 <AuthGate>
   {#snippet children()}
     <!-- Pull-to-Refresh Indicator -->
@@ -95,7 +97,7 @@
 
     <div class="app-shell">
       <Sidebar />
-      <main class="main-content">
+      <main id="main-content" class="main-content">
         {@render children()}
       </main>
     </div>

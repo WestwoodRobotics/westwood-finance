@@ -21,9 +21,17 @@
 
   const view = createTeamView(() => selectedTeam);
 
-  let allYearExpenses = $derived(
-    view.teamOrders.filter(o => (o.timestamp || '').includes(new Date().getFullYear().toString()))
+  const currentYear = new Date().getFullYear().toString();
+
+  let yearFinancialOrders = $derived(
+    view.financialOrders.filter(o => (o.timestamp || '').includes(currentYear))
   );
+  let yearFunds = $derived(
+    view.teamFunds.filter(f => String(f.Date || '').includes(currentYear))
+  );
+  let yearRaised = $derived(yearFunds.reduce((sum, f) => sum + (Number(f.Amount) || 0), 0));
+  let yearSpent = $derived(yearFinancialOrders.reduce((sum, o) => sum + (o.total || 0), 0));
+  let yearNetBalance = $derived(yearRaised - yearSpent);
 
   let recentExpenses = $derived(view.financialOrders.slice(-5).reverse());
   let recentOrders = $derived(view.teamOrders.slice(-5).reverse());
@@ -58,22 +66,22 @@
   <LoadingIndicator text="Initializing workspace..." />
 {:else}
   <div class="stat-grid fade-in">
-    <StatCard label="Net Balance" value={view.netBalance.toString()} isCurrency={true} sub="Total Raised - Total Spent" accentColor={view.netBalance >= 0 ? 'var(--status-awarded)' : 'var(--status-rejected)'}>
+    <StatCard label="Net Balance" value={yearNetBalance.toString()} isCurrency={true} sub={`${currentYear} Raised − Spent`} accentColor={yearNetBalance >= 0 ? 'var(--status-awarded)' : 'var(--status-rejected)'}>
       {#snippet icon()}<DollarSign size={18} />{/snippet}
     </StatCard>
     <div class="total-raised-card">
-      <StatCard label="Total Raised" value={view.totalRaised.toString()} isCurrency={true} sub={`${dataService.funds.length} contributions`} accentColor="var(--status-awarded)">
+      <StatCard label="Total Raised" value={yearRaised.toString()} isCurrency={true} sub={`${yearFunds.length} contributions in ${currentYear}`} accentColor="var(--status-awarded)">
         {#snippet icon()}<TrendingUp size={18} />{/snippet}
       </StatCard>
     </div>
-    <StatCard label="Total Spent" value={view.totalSpent.toString()} isCurrency={true} sub={`${allYearExpenses.length} expenses this year`} accentColor="var(--status-rejected)">
+    <StatCard label="Total Spent" value={yearSpent.toString()} isCurrency={true} sub={`${yearFinancialOrders.length} expenses in ${currentYear}`} accentColor="var(--status-rejected)">
       {#snippet icon()}<ShoppingCart size={18} />{/snippet}
     </StatCard>
     <StatCard
       label="Budget Progress"
-      value={budgetTotalValue > 0 ? ((view.totalSpent / budgetTotalValue) * 100).toFixed(2) + '%' : '0%'}
-      progress={budgetTotalValue > 0 ? (view.totalSpent / budgetTotalValue) * 100 : 0}
-      sub={budgetTotalValue > 0 ? `${formatCurrency(view.totalSpent)} of ${formatCurrency(budgetTotalValue)}` : 'No active budget'}
+      value={budgetTotalValue > 0 ? ((yearSpent / budgetTotalValue) * 100).toFixed(2) + '%' : '0%'}
+      progress={budgetTotalValue > 0 ? (yearSpent / budgetTotalValue) * 100 : 0}
+      sub={budgetTotalValue > 0 ? `${formatCurrency(yearSpent)} of ${formatCurrency(budgetTotalValue)}` : 'No active budget'}
       accentColor="var(--cat-miscellaneous)"
     >
       {#snippet icon()}<BarChart3 size={18} />{/snippet}

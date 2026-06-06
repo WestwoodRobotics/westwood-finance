@@ -138,8 +138,7 @@
 
 {#if perms.admin && isMobile}
   {#if showTabMenu}
-    <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_noninteractive_element_interactions -->
-    <div class="tab-fab-backdrop" onclick={() => (showTabMenu = false)} role="button" tabindex="-1"></div>
+    <button class="tab-fab-backdrop" onclick={() => (showTabMenu = false)} aria-label="Close menu"></button>
     <div class="tab-fab-menu">
       {#each [['orderHistory','Order History'],['orders','Orders'],['master','Finance History'],['funding','Funding'],['add','Add Funds +'],['addOrder','Add Expense +'],['members','Members']] as [key, label]}
         <button class="tab-fab-option" class:active={activeView === key} onclick={() => { activeView = key; showTabMenu = false; }}>{label}</button>
@@ -216,6 +215,9 @@
       z-index: 599;
       background: rgba(0,0,0,0.3);
       backdrop-filter: blur(2px);
+      border: none;
+      padding: 0;
+      cursor: default;
     }
     .tab-fab-menu {
       position: fixed;

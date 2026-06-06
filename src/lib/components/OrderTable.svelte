@@ -446,6 +446,15 @@
     }
   }
 
+  .clickable-row:focus-visible td {
+    background: var(--surface-2);
+    outline: none;
+  }
+
+  .clickable-row:focus-visible td:first-child {
+    box-shadow: inset 2px 0 0 var(--primary);
+  }
+
   .group-row td:first-child {
     position: relative;
     padding-left: 20px !important;

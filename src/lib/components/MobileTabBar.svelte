@@ -75,8 +75,7 @@
 {#if isMobile.current}
   <!-- More Sheet Backdrop -->
   {#if showMoreSheet}
-    <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_noninteractive_element_interactions -->
-    <div class="sheet-backdrop" onclick={closeSheet} role="button" tabindex="-1"></div>
+    <button class="sheet-backdrop" onclick={closeSheet} aria-label="Close menu"></button>
 
     <!-- More Sheet -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -91,8 +90,7 @@
       <div class="sheet-items">
         {#each moreItems as item}
           {@const SheetIcon = item.icon}
-          <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
-          <div
+          <button
             class="sheet-item"
             class:sheet-item-active={isActive(item.href)}
             onclick={() => handleMoreItemClick(item.href)}
@@ -105,7 +103,7 @@
               <div class="sheet-item-subtitle">{item.subtitle}</div>
             </div>
             <ChevronRight size={16} class="sheet-chevron" />
-          </div>
+          </button>
         {/each}
       </div>
     </div>
@@ -229,6 +227,9 @@
     -webkit-backdrop-filter: blur(8px);
     z-index: 490;
     animation: backdropIn 0.25s ease;
+    border: none;
+    cursor: default;
+    padding: 0;
   }
 
   @keyframes backdropIn {
@@ -284,6 +285,10 @@
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     transition: background 0.15s;
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
   }
 
   .sheet-item:active {

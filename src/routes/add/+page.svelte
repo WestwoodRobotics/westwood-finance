@@ -45,11 +45,23 @@
   let submitting = $state(false);
   let submitError = $state("");
   let submitSuccess = $state("");
+  let fieldErrors = $state<Record<string, string>>({});
   let computedTotal = $derived(
     (parseFloat(form.price) || 0) * (parseInt(form.quantity) || 1),
   );
 
   let showPassword = $state(false);
+
+  function validateField(name: string, value: string) {
+    if (!value || !value.trim()) {
+      fieldErrors[name] = 'Required';
+    } else if (name === 'price' && (isNaN(parseFloat(value)) || parseFloat(value) < 0)) {
+      fieldErrors[name] = 'Enter a valid price';
+    } else {
+      delete fieldErrors[name];
+      fieldErrors = { ...fieldErrors };
+    }
+  }
 
   $effect(() => {
     if (vendorSelect && vendorSelect !== 'Other') {
@@ -129,8 +141,8 @@
         throw new Error(result.error || "Request failed");
       }
 
-      submitSuccess = "✓ Order successfully sent! Redirecting to dashboard...";
-      submitting = false; // ← release the button immediately
+      submitSuccess = "✓ Order successfully sent!";
+      submitting = false;
       
       // ⚡ Optimistic Update: inject order into local store instantly
       dataService.addOrderOptimistic({
@@ -163,7 +175,7 @@
         isExpense: false,
       };
 
-      setTimeout(() => goto("/orders"), 2500);
+      setTimeout(() => goto("/orders"), 1500);
     } catch (e) {
       // ✅ FIX: proper error typing
       if (e instanceof Error) {
@@ -209,9 +221,9 @@
         </div>
       {/if}
       {#if submitSuccess}
-        <div class="success-bar message-bar">
-           <Check size={18} />
-           {submitSuccess}
+        <div class="success-bar message-bar" style="justify-content: space-between;">
+          <span style="display:flex;align-items:center;gap:12px;"><Check size={18} />{submitSuccess}</span>
+          <a href="/orders" class="btn btn-ghost btn-sm" style="white-space:nowrap;">View Orders →</a>
         </div>
       {/if}
 
@@ -231,7 +243,10 @@
               bind:value={form.item}
               placeholder="ex. Pit Banner"
               required
+              class:field-error={fieldErrors.item}
+              onblur={() => validateField('item', form.item)}
             />
+            {#if fieldErrors.item}<span class="field-error-msg">{fieldErrors.item}</span>{/if}
           </div>
 
           <div class="form-group">
@@ -276,7 +291,10 @@
               step="0.01"
               placeholder="0.00"
               required
+              class:field-error={fieldErrors.price}
+              onblur={() => validateField('price', form.price)}
             />
+            {#if fieldErrors.price}<span class="field-error-msg">{fieldErrors.price}</span>{/if}
           </div>
 
           <div class="form-group">
@@ -306,7 +324,7 @@
           </div>
 
           <div class="form-group">
-            <label for="ae-orderedby">Ordered By *</label>
+            <label for="ae-orderedby">Ordered By{#if perms.manageOrders} *{/if}</label>
             {#if perms.manageOrders}
               <input
                 id="ae-orderedby"
@@ -344,7 +362,10 @@
               placeholder="Reason for ordering this item..."
               rows="3"
               required
+              class:field-error={fieldErrors.notes}
+              onblur={() => validateField('notes', form.notes)}
             ></textarea>
+            {#if fieldErrors.notes}<span class="field-error-msg">{fieldErrors.notes}</span>{/if}
           </div>
         </div>
 
@@ -470,6 +491,19 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+  }
+
+  :global(input.field-error),
+  :global(textarea.field-error) {
+    border-color: var(--status-rejected) !important;
+    box-shadow: 0 0 0 1px var(--status-rejected);
+  }
+
+  .field-error-msg {
+    font-size: 0.72rem;
+    color: var(--status-rejected);
+    font-weight: 600;
+    margin-top: -4px;
   }
 
   .disabled-input {

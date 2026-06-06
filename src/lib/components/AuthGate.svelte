@@ -168,9 +168,9 @@
 </script>
 
 {#if !authStore.initialized}
-  <!-- Loading spinner while restoring session -->
   <div class="auth-loading">
     <div class="auth-spinner"></div>
+    <p class="auth-loading-text">Signing you in...</p>
   </div>
 {:else if authStore.status === 'approved'}
   <!-- Authenticated: render the app -->
@@ -181,7 +181,7 @@
     <div class="auth-card">
       <div class="auth-user-info">
         {#if authStore.googleUser?.picture}
-          <img src={authStore.googleUser.picture} alt="" class="auth-avatar" referrerpolicy="no-referrer" />
+          <img src={authStore.googleUser.picture} alt="Profile photo for {authStore.googleUser.name}" class="auth-avatar" referrerpolicy="no-referrer" />
         {/if}
         <div class="auth-user-name">{authStore.googleUser?.name || ''}</div>
         <div class="auth-user-email">{authStore.googleUser?.email || ''}</div>
@@ -229,7 +229,7 @@
     <div class="auth-card">
       <div class="auth-user-info">
         {#if authStore.googleUser?.picture}
-          <img src={authStore.googleUser.picture} alt="" class="auth-avatar" referrerpolicy="no-referrer" />
+          <img src={authStore.googleUser.picture} alt="Profile photo for {authStore.googleUser.name}" class="auth-avatar" referrerpolicy="no-referrer" />
         {/if}
         <div class="auth-user-name">{authStore.googleUser?.name || ''}</div>
         <div class="auth-user-email">{authStore.googleUser?.email || ''}</div>
@@ -298,7 +298,7 @@
     <div class="auth-card">
       <div class="auth-user-info">
         {#if authStore.googleUser?.picture}
-          <img src={authStore.googleUser.picture} alt="" class="auth-avatar" referrerpolicy="no-referrer" />
+          <img src={authStore.googleUser.picture} alt="Profile photo for {authStore.googleUser.name}" class="auth-avatar" referrerpolicy="no-referrer" />
         {/if}
         <div class="auth-user-name">{authStore.googleUser?.name || ''}</div>
         <div class="auth-user-email">{authStore.googleUser?.email || ''}</div>
@@ -627,10 +627,18 @@
     position: fixed;
     inset: 0;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 16px;
     background: var(--bg, #09090b);
     z-index: 9999;
+  }
+
+  .auth-loading-text {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 500;
   }
 
   .auth-spinner {
