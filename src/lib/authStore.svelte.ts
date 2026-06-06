@@ -266,6 +266,30 @@ class AuthStore {
     console.log(`Auth: Logged in (${this.status}) —`, this.googleUser.email);
   }
 
+  updateFromRegistration(data: any): void {
+    if (data.sessionToken) {
+      this.sessionToken = data.sessionToken;
+      this.sessionExp = data.expiresAt;
+      this._persistSession();
+    }
+
+    if (data.member) {
+      this.member = data.status === 'approved' ? data.member : null;
+      this.studentId = String(data.member.studentId);
+      this.pendingTeam = data.member.team;
+      this.status = data.status;
+      
+      const others = this.membersList.filter(
+        m => m.email?.toLowerCase() !== data.member.email?.toLowerCase() && String(m.studentId) !== String(data.member.studentId)
+      );
+      this.updateMembersList([...others, data.member]);
+    } else {
+      this.status = 'pending_approval';
+    }
+    this._persist();
+    console.log(`Auth: Student ID registered/claimed (${this.status}) —`, this.studentId);
+  }
+
   submitStudentId(sid: string, team: string): void {
     const clean = sid.replace(/^s/i, '').trim();
     this.studentId = clean;

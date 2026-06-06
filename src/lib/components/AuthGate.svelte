@@ -97,8 +97,7 @@
     idError = '';
     registerError = '';
 
-    const exists = authStore.membersList.some(m => String(m.studentId) === clean);
-    if (!exists && authStore.hasValidSession) {
+    if (authStore.hasValidSession) {
       const [firstName, ...lastNameArr] = (authStore.googleUser?.name || '').split(' ');
       const lastName = lastNameArr.join(' ');
       registering = true;
@@ -116,15 +115,16 @@
           registering = false;
           return;
         }
+        authStore.updateFromRegistration(data);
       } catch (e) {
         registerError = 'Could not reach server. Check your connection and try again.';
         registering = false;
         return;
       }
       registering = false;
+    } else {
+      authStore.submitStudentId(clean, selectedTeam);
     }
-
-    authStore.submitStudentId(clean, selectedTeam);
   }
 
   function signOut() {

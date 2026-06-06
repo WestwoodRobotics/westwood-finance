@@ -3,7 +3,6 @@ const GOOGLE_CLIENT_ID = scriptProperties.getProperty('GOOGLE_CLIENT_ID');
 const SESSION_SECRET = scriptProperties.getProperty('SESSION_SECRET');
 const SESSION_TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days
 
-// ── GOOGLE ID TOKEN (verified ONCE, at login) ────────────────────────────────
 
 function verifyGoogleToken(idToken) {
   if (!idToken) return null;
@@ -22,7 +21,6 @@ function verifyGoogleToken(idToken) {
   }
 }
 
-// ── SESSION TOKENS (HMAC-SHA256 signed, verified locally on every request) ────
 
 function b64urlStr(str)  { return Utilities.base64EncodeWebSafe(Utilities.newBlob(str).getBytes()).replace(/=+$/, ''); }
 function b64urlBytes(b)  { return Utilities.base64EncodeWebSafe(b).replace(/=+$/, ''); }
@@ -68,7 +66,7 @@ function verifySessionToken(token) {
 }
 
 function loginWithGoogle(p) {
-  const caller = verifyGoogleToken(p.idToken); // tokeninfo network call — ONCE per login
+  const caller = verifyGoogleToken(p.idToken);
   if (!caller) return { error: 'Unauthorized' };
 
   const member = getMemberByEmail(caller.email);
@@ -140,12 +138,10 @@ function doPost(e) {
     return txtResponse({ error: 'Invalid JSON body' });
   }
 
-  // login is the only action authenticated by a Google ID token; it mints a session token.
   if (p.action === 'login') {
     return txtResponse(loginWithGoogle(p));
   }
 
-  // Reject legacy clients that still send a Google ID token instead of a session token.
   if (!p.sessionToken && p.idToken) {
     return txtResponse({ error: 'Session expired' });
   }
@@ -159,8 +155,6 @@ function doPost(e) {
   ]);
   const MEMBER_ACTIONS = new Set(['addOrder', 'getAllData', 'getOrders', 'getBudget', 'getFunds', 'getMembers']);
 
-  // Admin mutations re-read the sheet (defense-in-depth: a demoted admin holding a
-  // still-valid token cannot mutate). Member reads trust the role in the token.
   if (ADMIN_ACTIONS.has(p.action)) {
     if (!isAdmin(caller.email)) return txtResponse({ error: 'Forbidden' });
   } else if (MEMBER_ACTIONS.has(p.action)) {
@@ -200,7 +194,8 @@ function doPost(e) {
   }
 }
 
-// ── ORDERS ───────────────────────────────────────────────────────────────────
+
+
 
 function getOrders() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Orders');
@@ -257,7 +252,8 @@ function generateShortId() {
   return result;
 }
 
-// ── BUDGETS ──────────────────────────────────────────────────────────────────
+
+
 
 function getBudget() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Budgets');
@@ -276,7 +272,8 @@ function getBudget() {
   return result;
 }
 
-// ── FUNDRAISING ──────────────────────────────────────────────────────────────
+
+
 
 function getFundraising() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Fundraising');
@@ -313,7 +310,8 @@ function updateFunding(p) {
   return { success: true };
 }
 
-// ── MEMBERS ──────────────────────────────────────────────────────────────────
+
+
 
 function getMembers() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Members');
@@ -363,18 +361,51 @@ function registerSelf(p, callerEmail) {
     sheet.appendRow(['firstName', 'lastName', 'studentId', 'team', 'role', 'email']);
   }
   const data = sheet.getDataRange().getValues();
+  
+  let foundIdx = -1;
   for (let i = 1; i < data.length; i++) {
-    if (String(data[i][2]) === p.studentId ||
-        (p.email && String(data[i][5]).toLowerCase() === p.email.toLowerCase())) {
-      return { error: 'Already registered' };
+    if (String(data[i][2]) === p.studentId) {
+      foundIdx = i;
+      break;
     }
   }
-  sheet.appendRow([
-    sanitizeCell(p.firstName||''), sanitizeCell(p.lastName||''),
-    sanitizeCell(p.studentId||''), sanitizeCell(p.team||''),
-    '', sanitizeCell(p.email||'')
-  ]);
-  return { success: true };
+  
+  let member;
+  if (foundIdx >= 0) {
+    const existingEmail = data[foundIdx][5] ? String(data[foundIdx][5]).trim().toLowerCase() : '';
+    if (existingEmail && existingEmail !== callerEmail.toLowerCase()) {
+       return { error: 'Student ID already claimed by another email' };
+    }
+    sheet.getRange(foundIdx + 1, 6).setValue(callerEmail);
+    member = {
+      firstName: data[foundIdx][0], lastName: data[foundIdx][1],
+      studentId: String(data[foundIdx][2]), team: data[foundIdx][3],
+      role: data[foundIdx][4], email: callerEmail
+    };
+  } else {
+    sheet.appendRow([
+      sanitizeCell(p.firstName||''), sanitizeCell(p.lastName||''),
+      sanitizeCell(p.studentId||''), sanitizeCell(p.team||''),
+      '', sanitizeCell(p.email||'')
+    ]);
+    member = {
+      firstName: p.firstName||'', lastName: p.lastName||'',
+      studentId: p.studentId||'', team: p.team||'',
+      role: '', email: callerEmail
+    };
+  }
+  
+  const minted = mintSessionToken(member);
+  const role = (member.role || '').trim().toLowerCase();
+  const status = role === 'unauthorized' ? 'unauthorized' : (role !== '' ? 'approved' : 'pending_approval');
+  
+  return {
+    success: true,
+    sessionToken: minted.token,
+    expiresAt: minted.exp,
+    member: member,
+    status: status
+  };
 }
 
 function removeMember(p) {
@@ -390,7 +421,7 @@ function removeMember(p) {
   return { error: 'Member not found' };
 }
 
-// ── HELPERS ──────────────────────────────────────────────────────────────────
+
 
 function sheetToObjects(sheet) {
   const data = sheet.getDataRange().getValues();
