@@ -4,7 +4,7 @@
   import { goto } from "$app/navigation";
   import CustomDropdown from "$lib/components/CustomDropdown.svelte";
   import { dataService } from "$lib/dataService.svelte.js";
-  import { BASE_URL } from "$lib/config.js";
+  import { api } from "$lib/api.js";
   import { fade, scale } from "svelte/transition";
   import { authStore } from "$lib/authStore.svelte.js";
   import { perms } from "$lib/perms.js";
@@ -112,32 +112,26 @@
         finalLink = "https://" + finalLink;
       }
 
-      const response = await fetch(BASE_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({
-          idToken: authStore.idToken,
-          action: 'addOrder',
-          item: form.item,
-          company: form.company,
-          link: finalLink,
-          price: String(form.price),
-          quantity: String(form.quantity),
-          notes: form.notes,
-          category: form.category,
-          team: form.team,
-          status: form.isExpense ? "Received" : "Pending Review",
-          tracking: "",
-          uuid: form.uuid,
-          timestamp: formatDate(new Date()),
-          orderedBy: form.orderedBy,
-        }),
+      const result = await api.post({
+        action: 'addOrder',
+        item: form.item,
+        company: form.company,
+        link: finalLink,
+        price: String(form.price),
+        quantity: String(form.quantity),
+        notes: form.notes,
+        category: form.category,
+        team: form.team,
+        status: form.isExpense ? "Received" : "Pending Review",
+        tracking: "",
+        uuid: form.uuid,
+        timestamp: formatDate(new Date()),
+        orderedBy: form.orderedBy,
       });
-      const result = JSON.parse(await response.text());
 
       console.log("API result:", result);
 
-      if (!response.ok || result.error) {
+      if (result.error) {
         throw new Error(result.error || "Request failed");
       }
 

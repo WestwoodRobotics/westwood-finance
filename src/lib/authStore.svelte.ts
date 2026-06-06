@@ -1,4 +1,5 @@
 import { BASE_URL } from './config.js';
+import { api } from './api.js';
 import type { AuthStatus, GoogleUser, ApprovedMember, MemberMatch } from './types.js';
 
 class AuthStore {
@@ -10,8 +11,8 @@ class AuthStore {
   initialized = $state(typeof window === 'undefined');
   membersList = $state<ApprovedMember[]>([]);
   membersLoaded = $state(false);
-  idToken = $state<string | null>(null);
-  idTokenExp = $state(0);
+  sessionToken = $state<string | null>(null);
+  sessionExp = $state(0); // unix seconds
 
   get isAdmin(): boolean {
     return this.member?.role === 'admin';
@@ -21,8 +22,8 @@ class AuthStore {
     return this.status === 'approved' && this.member !== null;
   }
 
-  get hasValidToken(): boolean {
-    return !!this.idToken && Date.now() / 1000 < this.idTokenExp - 300;
+  get hasValidSession(): boolean {
+    return !!this.sessionToken && Date.now() / 1000 < this.sessionExp - 60;
   }
 
   get userTeam(): string {
@@ -53,20 +54,23 @@ class AuthStore {
       this.studentId = parsed.studentId || '';
       this.pendingTeam = parsed.pendingTeam || 'FRC';
 
-      // Restore idToken from sessionStorage if still valid (survives page reload)
+      // Drop any legacy Google ID token from the old auth scheme.
+      sessionStorage.removeItem('westwood_id_token');
+
+      // Restore the backend-issued session token if still valid.
       try {
-        const sessionToken = sessionStorage.getItem('westwood_id_token');
-        if (sessionToken) {
-          const payload = JSON.parse(atob(sessionToken.split('.')[1]));
-          if (payload.exp && Date.now() / 1000 < payload.exp - 300) {
-            this.idToken = sessionToken;
-            this.idTokenExp = payload.exp;
+        const raw = localStorage.getItem('westwood_session');
+        if (raw) {
+          const { token, exp } = JSON.parse(raw);
+          if (token && exp && Date.now() / 1000 < exp - 60) {
+            this.sessionToken = token;
+            this.sessionExp = exp;
           } else {
-            sessionStorage.removeItem('westwood_id_token');
+            localStorage.removeItem('westwood_session');
           }
         }
       } catch (_) {
-        sessionStorage.removeItem('westwood_id_token');
+        localStorage.removeItem('westwood_session');
       }
 
       const cachedMembers = localStorage.getItem('westwood_members');
@@ -115,20 +119,15 @@ class AuthStore {
     }
   }
 
-  _setCredential(credential: string): void {
+  _persistSession(): void {
+    if (typeof window === 'undefined') return;
     try {
-      const parts = credential.split('.');
-      if (parts.length !== 3) throw new Error('invalid jwt');
-      const padded = parts[1].replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(parts[1].length / 4) * 4, '=');
-      const payload = JSON.parse(atob(padded));
-      this.idToken = credential;
-      this.idTokenExp = typeof payload.exp === 'number' ? payload.exp : 0;
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem('westwood_id_token', credential);
-      }
-    } catch (_) {
-      this.idToken = null;
-      this.idTokenExp = 0;
+      localStorage.setItem('westwood_session', JSON.stringify({
+        token: this.sessionToken,
+        exp: this.sessionExp,
+      }));
+    } catch (e) {
+      console.warn('Session save failed:', e);
     }
   }
 
@@ -157,15 +156,9 @@ class AuthStore {
   }
 
   async fetchMembers(): Promise<void> {
-    if (!this.idToken) return;
+    if (!this.hasValidSession) return;
     try {
-      const res = await fetch(BASE_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ idToken: this.idToken, action: 'getSelf' }),
-      });
-      if (!res.ok) throw new Error('Failed to fetch member');
-      const data = JSON.parse(await res.text());
+      const data = await api.post({ action: 'getSelf' });
 
       if (data.member) {
         const existing = this.membersList.filter(m => m.email?.toLowerCase() !== data.member.email?.toLowerCase());
@@ -228,36 +221,49 @@ class AuthStore {
     this._revalidate();
   }
 
-  handleGoogleSignIn(user: GoogleUser, credential: string): void {
-    this.googleUser = user;
-    this._setCredential(credential);
-    this.fetchMembers();
-
-    const emailMatch = this._findMemberByEmail(user.email);
-    if (emailMatch) {
-      this.member = emailMatch.evalStatus === 'approved' ? emailMatch.member : null;
-      this.studentId = String(emailMatch.member.studentId);
-      this.pendingTeam = emailMatch.member.team;
-      this.status = emailMatch.evalStatus;
-      this._persist();
-      console.log(`Auth: Logged in via Email (${this.status}) —`, user.email);
-      return;
+  // Exchange a fresh Google ID token for a backend-issued session token. The
+  // server is authoritative on status/member/role.
+  async loginWithCredential(credential: string): Promise<void> {
+    const res = await fetch(BASE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'login', idToken: credential }),
+    });
+    if (!res.ok) throw new Error(`Login failed: ${res.status}`);
+    const data = JSON.parse(await res.text());
+    if (data.error || !data.sessionToken) {
+      this.signOut();
+      throw new Error(data.error || 'Login failed');
     }
 
-    if (this.studentId) {
-      const sidMatch = this._findMember(this.studentId);
-      if (sidMatch) {
-        this.member = sidMatch.evalStatus === 'approved' ? sidMatch.member : null;
-        this.status = sidMatch.evalStatus;
-      } else {
-        this.status = this.membersLoaded ? 'pending_approval' : 'needs_student_id';
-      }
+    this.sessionToken = data.sessionToken;
+    this.sessionExp = data.expiresAt;
+    this._persistSession();
+
+    this.googleUser = {
+      email: data.googleEmail,
+      name: data.googleName || this.googleUser?.name || '',
+      picture: data.googlePicture || this.googleUser?.picture || '',
+      sub: this.googleUser?.sub || '',
+    };
+
+    if (data.member) {
+      this.member = data.status === 'approved' ? data.member : null;
+      this.studentId = String(data.member.studentId);
+      this.pendingTeam = data.member.team;
+      this.status = data.status;
+      // Keep the local members cache consistent with the server's view of self.
+      const others = this.membersList.filter(
+        m => m.email?.toLowerCase() !== data.member.email?.toLowerCase()
+      );
+      this.updateMembersList([...others, data.member]);
     } else {
-      this.status = 'needs_student_id';
+      // Authenticated with Google but not yet registered as a member.
+      this.status = this.studentId ? 'pending_approval' : 'needs_student_id';
     }
 
     this._persist();
-    console.log('Auth: Google sign-in complete —', user.email);
+    console.log(`Auth: Logged in (${this.status}) —`, this.googleUser.email);
   }
 
   submitStudentId(sid: string, team: string): void {
@@ -291,11 +297,12 @@ class AuthStore {
     this.studentId = '';
     this.pendingTeam = 'FRC';
     this.status = 'signed_out';
-    this.idToken = null;
-    this.idTokenExp = 0;
+    this.sessionToken = null;
+    this.sessionExp = 0;
 
     if (typeof window !== 'undefined') {
       localStorage.removeItem('westwood_auth');
+      localStorage.removeItem('westwood_session');
       sessionStorage.removeItem('westwood_id_token');
       // @ts-ignore
       if (window.google?.accounts?.id) {

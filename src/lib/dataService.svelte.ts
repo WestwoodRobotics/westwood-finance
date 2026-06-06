@@ -1,19 +1,7 @@
-import { BASE_URL } from './config.js';
 import { generateShortId } from './utils.js';
 import { authStore } from './authStore.svelte.js';
+import { api } from './api.js';
 import type { Order, Fund, Budget, ApprovedMember, OrderStatus } from './types.js';
-
-async function gasPost(payload: Record<string, unknown>): Promise<unknown> {
-  const idToken = authStore.idToken;
-  if (!idToken) throw new Error('Not authenticated');
-  const res = await fetch(BASE_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify({ idToken, ...payload }),
-  });
-  if (!res.ok) throw new Error(`Network error: ${res.status}`);
-  return JSON.parse(await res.text());
-}
 
 class DataStore {
   orders = $state<Order[]>([]);
@@ -147,8 +135,7 @@ class DataStore {
     this._inFlight = true;
     this.error = null;
 
-    const idToken = authStore.idToken;
-    if (!idToken) { this._inFlight = false; return; }
+    if (!authStore.hasValidSession) { this._inFlight = false; return; }
 
     if (this.orders.length === 0 && !silent) {
       this.loading = true;
@@ -159,17 +146,8 @@ class DataStore {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 20000);
-      const res = await fetch(BASE_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ idToken, action: 'getAllData' }),
-        signal: controller.signal,
-      });
+      const data = await api.post({ action: 'getAllData' }, { signal: controller.signal }) as Record<string, unknown>;
       clearTimeout(timeoutId);
-
-      if (!res.ok) throw new Error(`Network error: ${res.status} ${res.statusText}`);
-
-      const data = JSON.parse(await res.text()) as Record<string, unknown>;
 
       if (data['error']) {
         throw new Error(`Google Script Error: ${data['error']}`);

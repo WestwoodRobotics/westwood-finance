@@ -2,8 +2,7 @@
   import { Check, Info } from '@lucide/svelte';
   import CustomDropdown from '$lib/components/CustomDropdown.svelte';
   import { dataService } from '$lib/dataService.svelte.js';
-  import { authStore } from '$lib/authStore.svelte.js';
-  import { BASE_URL } from '$lib/config.js';
+  import { api } from '$lib/api.js';
   import { formatDate } from '$lib/utils.js';
 
   const ORDER_STATUSES = ['Pending Review', 'Approved', 'Ordered', 'Received', 'Denied', 'Cancelled', 'Void'];
@@ -33,13 +32,8 @@
       let finalLink = form.link.trim();
       if (finalLink && !finalLink.startsWith('http')) finalLink = 'https://' + finalLink;
 
-      const res = await fetch(BASE_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ idToken: authStore.idToken, action: 'addOrder', item: form.item, company: form.company, link: finalLink, price: String(form.price), quantity: String(form.quantity), notes: form.notes, category: form.category, team: form.team, status: form.status, timestamp: formatDate(new Date()) }),
-      });
-      const result = JSON.parse(await res.text());
-      if (!res.ok || result?.error) throw new Error(result?.error || 'Request failed');
+      const result = await api.post({ action: 'addOrder', item: form.item, company: form.company, link: finalLink, price: String(form.price), quantity: String(form.quantity), notes: form.notes, category: form.category, team: form.team, status: form.status, timestamp: formatDate(new Date()) });
+      if (result?.error) throw new Error(result.error || 'Request failed');
 
       actionMsg = 'Order recorded successfully!';
       dataService.addOrderOptimistic({ item: form.item, company: form.company, link: finalLink, price: Number(form.price) || 0, quantity: Number(form.quantity) || 1, notes: form.notes, category: form.category, team: form.team, status: form.status, timestamp: new Date().toISOString() });

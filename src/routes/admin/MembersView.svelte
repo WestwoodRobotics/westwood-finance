@@ -2,7 +2,7 @@
   import { Check, Info } from '@lucide/svelte';
   import CustomDropdown from '$lib/components/CustomDropdown.svelte';
   import { authStore } from '$lib/authStore.svelte.js';
-  import { BASE_URL } from '$lib/config.js';
+  import { api } from '$lib/api.js';
 
   let addForm = $state({ firstName: '', lastName: '', studentId: '', team: 'FRC', isAdmin: false });
   let submitting = $state(false);
@@ -18,12 +18,7 @@
 
     submitting = true;
     try {
-      const res = await fetch(BASE_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ idToken: authStore.idToken, action: 'addMember', firstName: addForm.firstName.trim(), lastName: addForm.lastName.trim(), studentId: cleanId, team: addForm.team, role: addForm.isAdmin ? 'admin' : '' }),
-      });
-      const result = JSON.parse(await res.text());
+      const result = await api.post({ action: 'addMember', firstName: addForm.firstName.trim(), lastName: addForm.lastName.trim(), studentId: cleanId, team: addForm.team, role: addForm.isAdmin ? 'admin' : '' });
       if (result.error) throw new Error(result.error);
 
       actionMsg = `✓ ${addForm.firstName} ${addForm.lastName} approved!`;
@@ -40,12 +35,7 @@
     actionMsg = '';
     actionErr = '';
     try {
-      const res = await fetch(BASE_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ idToken: authStore.idToken, action: 'removeMember', studentId }),
-      });
-      const result = JSON.parse(await res.text());
+      const result = await api.post({ action: 'removeMember', studentId });
       if (result.error) throw new Error(result.error);
 
       actionMsg = '✓ Member removed.';

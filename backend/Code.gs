@@ -1,5 +1,9 @@
 const scriptProperties = PropertiesService.getScriptProperties();
 const GOOGLE_CLIENT_ID = scriptProperties.getProperty('GOOGLE_CLIENT_ID');
+const SESSION_SECRET = scriptProperties.getProperty('SESSION_SECRET');
+const SESSION_TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days
+
+// ── GOOGLE ID TOKEN (verified ONCE, at login) ────────────────────────────────
 
 function verifyGoogleToken(idToken) {
   if (!idToken) return null;
@@ -16,6 +20,78 @@ function verifyGoogleToken(idToken) {
   } catch (_) {
     return null;
   }
+}
+
+// ── SESSION TOKENS (HMAC-SHA256 signed, verified locally on every request) ────
+
+function b64urlStr(str)  { return Utilities.base64EncodeWebSafe(Utilities.newBlob(str).getBytes()).replace(/=+$/, ''); }
+function b64urlBytes(b)  { return Utilities.base64EncodeWebSafe(b).replace(/=+$/, ''); }
+function b64urlDecode(s) { return Utilities.newBlob(Utilities.base64DecodeWebSafe(s)).getDataAsString(); }
+
+function signParts(h, p) {
+  return b64urlBytes(Utilities.computeHmacSha256Signature(h + '.' + p, SESSION_SECRET));
+}
+
+function mintSessionToken(member) {
+  if (!SESSION_SECRET) throw new Error('Server misconfigured: no SESSION_SECRET');
+  const now = Math.floor(Date.now() / 1000);
+  const h = b64urlStr(JSON.stringify({ alg: 'HS256', typ: 'WFS' }));
+  const p = b64urlStr(JSON.stringify({
+    email: String(member.email).toLowerCase(),
+    role: (member.role || '').trim().toLowerCase(),
+    studentId: String(member.studentId || ''),
+    iat: now,
+    exp: now + SESSION_TTL_SECONDS,
+  }));
+  return { token: h + '.' + p + '.' + signParts(h, p), exp: now + SESSION_TTL_SECONDS };
+}
+
+function safeEqual(a, b) {
+  if (a.length !== b.length) return false;
+  var d = 0;
+  for (var i = 0; i < a.length; i++) d |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return d === 0;
+}
+
+function verifySessionToken(token) {
+  if (!token || !SESSION_SECRET) return null;
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    if (!safeEqual(parts[2], signParts(parts[0], parts[1]))) return null;
+    const payload = JSON.parse(b64urlDecode(parts[1]));
+    if (!payload.exp || Math.floor(Date.now() / 1000) >= payload.exp) return null;
+    return payload; // { email, role, studentId, iat, exp }
+  } catch (_) {
+    return null;
+  }
+}
+
+function loginWithGoogle(p) {
+  const caller = verifyGoogleToken(p.idToken); // tokeninfo network call — ONCE per login
+  if (!caller) return { error: 'Unauthorized' };
+
+  const member = getMemberByEmail(caller.email);
+  let status;
+  if (!member) {
+    status = 'pending_approval';
+  } else {
+    const role = (member.role || '').trim().toLowerCase();
+    status = role === 'unauthorized' ? 'unauthorized' : (role !== '' ? 'approved' : 'pending_approval');
+  }
+
+  const seed = member || { email: caller.email, role: '', studentId: '' };
+  const minted = mintSessionToken(seed);
+
+  return {
+    sessionToken: minted.token,
+    expiresAt: minted.exp,
+    member: member || null,
+    status: status,
+    googleEmail: caller.email,
+    googleName: caller.name || '',
+    googlePicture: caller.picture || '',
+  };
 }
 
 function getMemberByEmail(email) {
@@ -64,8 +140,18 @@ function doPost(e) {
     return txtResponse({ error: 'Invalid JSON body' });
   }
 
-  const caller = verifyGoogleToken(p.idToken);
-  if (!caller) return txtResponse({ error: 'Unauthorized' });
+  // login is the only action authenticated by a Google ID token; it mints a session token.
+  if (p.action === 'login') {
+    return txtResponse(loginWithGoogle(p));
+  }
+
+  // Reject legacy clients that still send a Google ID token instead of a session token.
+  if (!p.sessionToken && p.idToken) {
+    return txtResponse({ error: 'Session expired' });
+  }
+
+  const caller = verifySessionToken(p.sessionToken);
+  if (!caller) return txtResponse({ error: 'Session expired' });
 
   const ADMIN_ACTIONS = new Set([
     'addMember', 'removeMember', 'deleteOrder',
@@ -73,11 +159,14 @@ function doPost(e) {
   ]);
   const MEMBER_ACTIONS = new Set(['addOrder', 'getAllData', 'getOrders', 'getBudget', 'getFunds', 'getMembers']);
 
-  if (ADMIN_ACTIONS.has(p.action) && !isAdmin(caller.email)) {
-    return txtResponse({ error: 'Forbidden' });
-  }
-  if (MEMBER_ACTIONS.has(p.action) && !isApprovedMember(caller.email)) {
-    return txtResponse({ error: 'Forbidden' });
+  // Admin mutations re-read the sheet (defense-in-depth: a demoted admin holding a
+  // still-valid token cannot mutate). Member reads trust the role in the token.
+  if (ADMIN_ACTIONS.has(p.action)) {
+    if (!isAdmin(caller.email)) return txtResponse({ error: 'Forbidden' });
+  } else if (MEMBER_ACTIONS.has(p.action)) {
+    if (caller.role === 'unauthorized' || caller.role === '') {
+      if (!isApprovedMember(caller.email)) return txtResponse({ error: 'Forbidden' });
+    }
   }
 
   try {

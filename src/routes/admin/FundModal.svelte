@@ -1,8 +1,7 @@
 <script lang="ts">
   import { X } from '@lucide/svelte';
   import { dataService } from '$lib/dataService.svelte.js';
-  import { authStore } from '$lib/authStore.svelte.js';
-  import { BASE_URL } from '$lib/config.js';
+  import { api } from '$lib/api.js';
   import { formatDate } from '$lib/utils.js';
   import type { Fund } from '$lib/types.js';
 
@@ -27,23 +26,17 @@
     saving = true;
     actionErr = '';
     try {
-      const res = await fetch(BASE_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({
-          idToken: authStore.idToken,
-          action: 'updateFunding',
-          rowIndex: String(fund.rowIndex),
-          Source: String(fields.Source),
-          Amount: String(fields.Amount),
-          Recipient: String(fields.Recipient),
-          Notes: String(fields.Notes),
-          Type: String(fields.Type),
-          Date: formatDate(fields.Date),
-        }),
+      const result = await api.post({
+        action: 'updateFunding',
+        rowIndex: String(fund.rowIndex),
+        Source: String(fields.Source),
+        Amount: String(fields.Amount),
+        Recipient: String(fields.Recipient),
+        Notes: String(fields.Notes),
+        Type: String(fields.Type),
+        Date: formatDate(fields.Date),
       });
-      const result = JSON.parse(await res.text());
-      if (!res.ok || result?.error) throw new Error(result?.error || 'Update failed');
+      if (result?.error) throw new Error(result.error || 'Update failed');
 
       dataService.funds = dataService.funds.map(f => f.id === fund.id ? { ...f, ...fields } : f);
       dataService.persist();

@@ -2,8 +2,7 @@
   import { Check, Info } from '@lucide/svelte';
   import CustomDropdown from '$lib/components/CustomDropdown.svelte';
   import { dataService } from '$lib/dataService.svelte.js';
-  import { authStore } from '$lib/authStore.svelte.js';
-  import { BASE_URL } from '$lib/config.js';
+  import { api } from '$lib/api.js';
 
   const TYPE_COLORS: Record<string, string> = {
     Fundraiser: 'var(--primary)',
@@ -42,13 +41,8 @@
 
     submitting = true;
     try {
-      const res = await fetch(BASE_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ idToken: authStore.idToken, action: 'addFundraising', type: form.type, source: form.source, amount: form.amount, date: form.date, notes: form.notes, recipient: form.recipient }),
-      });
-      const result = JSON.parse(await res.text());
-      if (!res.ok || result?.error) throw new Error(result?.error || 'Request failed');
+      const result = await api.post({ action: 'addFundraising', type: form.type, source: form.source, amount: form.amount, date: form.date, notes: form.notes, recipient: form.recipient });
+      if (result?.error) throw new Error(result.error || 'Request failed');
 
       actionMsg = 'Funding entry added!';
       dataService.addFundOptimistic({ Type: form.type, Source: form.source, Amount: Number(form.amount) || 0, Date: form.date, Notes: form.notes, Recipient: form.recipient });

@@ -2,8 +2,7 @@
   import { X } from '@lucide/svelte';
   import CustomDropdown from '$lib/components/CustomDropdown.svelte';
   import { dataService } from '$lib/dataService.svelte.js';
-  import { authStore } from '$lib/authStore.svelte.js';
-  import { BASE_URL } from '$lib/config.js';
+  import { api } from '$lib/api.js';
   import type { Order } from '$lib/types.js';
 
   const ORDER_STATUSES = ['Pending Review', 'Approved', 'Ordered', 'Received', 'Denied', 'Cancelled', 'Void'];
@@ -24,11 +23,7 @@
     actionErr = '';
     try {
       const results = await Promise.all(orders.map(o =>
-        fetch(BASE_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify({ idToken: authStore.idToken, action: 'updateOrderStatus', id: o.id, rowIndex: String(o.rowIndex), status: groupStatus }),
-        }).then(r => r.text()).then(JSON.parse)
+        api.post({ action: 'updateOrderStatus', id: o.id, rowIndex: String(o.rowIndex), status: groupStatus })
       ));
       if (results.some((r: { error?: string }) => r.error)) throw new Error('Batch status update failed');
 
@@ -36,11 +31,7 @@
       const undofn = () => {
         prevStates.forEach(prev => {
           dataService.updateOrderOptimistic(prev.id, { status: prev.status });
-          fetch(BASE_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain' },
-            body: JSON.stringify({ idToken: authStore.idToken, action: 'updateOrderStatus', id: prev.id, rowIndex: String(prev.rowIndex), status: prev.status || '' }),
-          });
+          api.post({ action: 'updateOrderStatus', id: prev.id, rowIndex: String(prev.rowIndex), status: prev.status || '' });
         });
         setTimeout(() => dataService.load(true, true), 1000);
       };

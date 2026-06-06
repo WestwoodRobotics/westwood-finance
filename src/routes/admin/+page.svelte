@@ -15,7 +15,7 @@
   import { dataService } from '$lib/dataService.svelte.js';
   import { authStore } from '$lib/authStore.svelte.js';
   import { perms } from '$lib/perms.js';
-  import { BASE_URL } from '$lib/config.js';
+  import { api } from '$lib/api.js';
   import { goto } from '$app/navigation';
   import type { Order, Fund } from '$lib/types.js';
 
@@ -49,8 +49,7 @@
     const targetUUID = orders.find(o => o.orderUUID)?.orderUUID || generateShortId();
     try {
       const results = await Promise.all(orders.map(o =>
-        fetch(BASE_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ idToken: authStore.idToken, action: 'updateOrderStatus', id: o.id, rowIndex: String(o.rowIndex), orderUUID: targetUUID }) })
-          .then(r => r.text()).then(JSON.parse)
+        api.post({ action: 'updateOrderStatus', id: o.id, rowIndex: String(o.rowIndex), orderUUID: targetUUID })
       ));
       if (results.some((r: { error?: string }) => r.error)) throw new Error('Batch link failed');
       actionMsg = `✓ Linked into Order #${targetUUID}`;
@@ -64,7 +63,7 @@
   }
 
   onMount(() => {
-    if (authStore.isApproved && authStore.idToken) dataService.load();
+    if (authStore.isApproved && authStore.hasValidSession) dataService.load();
     const mq = window.matchMedia('(max-width: 768px)');
     isMobile = mq.matches;
     mq.addEventListener('change', e => { isMobile = e.matches; });

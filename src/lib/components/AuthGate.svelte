@@ -2,13 +2,15 @@
   import { onMount } from 'svelte';
   import { Info, Clock } from '@lucide/svelte';
   import { authStore } from '$lib/authStore.svelte.js';
-  import { BASE_URL } from '$lib/config.js';
+  import { api } from '$lib/api.js';
+  import { GOOGLE_CLIENT_ID } from '$lib/config.js';
   import CustomDropdown from '$lib/components/CustomDropdown.svelte';
 
   let { children } = $props();
 
   // ── Google Sign-In ─────────────────────────────────────────────────────────
-  const GOOGLE_CLIENT_ID = '240757796429-d88lrfdtlvtf6fgulhq1t3f28thre90k.apps.googleusercontent.com';
+  let gsiReady = $state(false);
+  let signInError = $state('');
 
   // Student ID input state
   let studentIdInput = $state('');
@@ -19,59 +21,49 @@
 
   const TEAM_OPTIONS = ['FRC', 'Kunai', 'Slingshot', 'Hunga Munga', 'Atlatl'];
 
-  onMount(() => {
-    loadGoogleScript();
+  onMount(async () => {
+    try {
+      await loadGsiScript();
+      // @ts-ignore
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleCredentialResponse,
+        auto_select: true,
+        use_fedcm_for_prompt: true,
+      });
+      gsiReady = true;
+    } catch (e) {
+      console.error('Google Sign-In failed to load:', e);
+      signInError = 'Could not load Google Sign-In. Check your connection and reload.';
+    }
   });
 
-  function loadGoogleScript() {
-    // If already loaded
-    // @ts-ignore
-    if (window.google?.accounts?.id) {
-      initGoogle();
-      return;
-    }
-
-    const existing = document.getElementById('google-gsi-script');
-    if (existing) {
-      existing.addEventListener('load', initGoogle);
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.id = 'google-gsi-script';
-    script.src = 'https://accounts.google.com/gsi/client';
-    script.async = true;
-    script.defer = true;
-    script.onload = initGoogle;
-    document.head.appendChild(script);
-  }
-
-  function initGoogle() {
-    // @ts-ignore
-    if (!window.google?.accounts?.id) return;
-
-    // @ts-ignore
-    window.google.accounts.id.initialize({
-      client_id: GOOGLE_CLIENT_ID,
-      callback: handleCredentialResponse,
-      auto_select: true,
-    });
-
-    // prompt only when the current token is missing or about to expire.
-    if (authStore.status === 'approved' && !authStore.hasValidToken) {
+  function loadGsiScript(): Promise<void> {
+    return new Promise((resolve, reject) => {
       // @ts-ignore
-      window.google.accounts.id.prompt();
-    }
+      if (window.google?.accounts?.id) return resolve();
+      const existing = document.getElementById('google-gsi-script') as HTMLScriptElement | null;
+      if (existing) {
+        existing.addEventListener('load', () => resolve());
+        existing.addEventListener('error', () => reject(new Error('GSI load failed')));
+        return;
+      }
+      const script = document.createElement('script');
+      script.id = 'google-gsi-script';
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('GSI load failed'));
+      document.head.appendChild(script);
+    });
   }
 
   function renderGoogleButton() {
-    const container = document.getElementById('google-signin-btn');
-    if (!container) return;
     // @ts-ignore
-    if (!window.google?.accounts?.id) {
-      setTimeout(renderGoogleButton, 200);
-      return;
-    }
+    if (!gsiReady || !window.google?.accounts?.id) return;
+    const container = document.getElementById('google-signin-btn');
+    if (!container || container.childElementCount > 0) return;
     // @ts-ignore
     window.google.accounts.id.renderButton(container, {
       type: 'standard',
@@ -81,20 +73,17 @@
       text: 'signin_with',
       width: 320,
     });
+    // One Tap as a convenience; the rendered button is the guaranteed fallback.
+    // @ts-ignore
+    window.google.accounts.id.prompt();
   }
 
-  function handleCredentialResponse(response) {
-    try {
-      const payload = JSON.parse(atob(response.credential.split('.')[1]));
-      authStore.handleGoogleSignIn({
-        email: payload.email,
-        name: payload.name,
-        picture: payload.picture,
-        sub: payload.sub,
-      }, response.credential);
-    } catch (e) {
-      console.error('Google Sign-In decode failed:', e);
-    }
+  function handleCredentialResponse(response: { credential: string }) {
+    signInError = '';
+    authStore.loginWithCredential(response.credential).catch((e) => {
+      console.error('Sign-in failed:', e);
+      signInError = 'Sign-in failed. Please try again.';
+    });
   }
 
   async function submitStudentId() {
@@ -109,25 +98,19 @@
     registerError = '';
 
     const exists = authStore.membersList.some(m => String(m.studentId) === clean);
-    if (!exists && authStore.idToken) {
+    if (!exists && authStore.hasValidSession) {
       const [firstName, ...lastNameArr] = (authStore.googleUser?.name || '').split(' ');
       const lastName = lastNameArr.join(' ');
       registering = true;
       try {
-        const res = await fetch(BASE_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify({
-            idToken: authStore.idToken,
-            action: 'registerSelf',
-            firstName: firstName || '',
-            lastName: lastName || '',
-            studentId: clean,
-            team: selectedTeam,
-            email: authStore.googleUser?.email || '',
-          }),
+        const data = await api.post({
+          action: 'registerSelf',
+          firstName: firstName || '',
+          lastName: lastName || '',
+          studentId: clean,
+          team: selectedTeam,
+          email: authStore.googleUser?.email || '',
         });
-        const data = JSON.parse(await res.text());
         if (data.error) {
           registerError = 'Registration failed: ' + data.error;
           registering = false;
@@ -150,18 +133,14 @@
     if (typeof window !== 'undefined') {
       localStorage.removeItem('westwood_auth');
       localStorage.removeItem('westwood_members');
-      localStorage.removeItem('westwood_data_cache');
+      localStorage.removeItem('westwood_finance_cache');
     }
-    // Re-render the Google button after sign-out
-    setTimeout(() => {
-      renderGoogleButton();
-    }, 300);
   }
 
-  // When the sign-in screen mounts, render the Google button
+  // Render the Google button whenever the sign-in screen is shown and GSI is ready.
   $effect(() => {
-    if (authStore.status === 'signed_out' && authStore.initialized) {
-      setTimeout(renderGoogleButton, 100);
+    if (gsiReady && authStore.status === 'signed_out' && authStore.initialized) {
+      renderGoogleButton();
     }
   });
 
@@ -216,6 +195,13 @@
       <div class="google-btn-wrapper">
         <div id="google-signin-btn"></div>
       </div>
+
+      {#if signInError}
+        <div class="auth-error" style="margin-bottom: 20px;">
+          <Info size={16} />
+          {signInError}
+        </div>
+      {/if}
 
       <div class="auth-footer-text">
         Members of Westwood Robotics only

@@ -2,8 +2,7 @@
   import { X, TriangleAlert } from '@lucide/svelte';
   import CustomDropdown from '$lib/components/CustomDropdown.svelte';
   import { dataService } from '$lib/dataService.svelte.js';
-  import { authStore } from '$lib/authStore.svelte.js';
-  import { BASE_URL } from '$lib/config.js';
+  import { api } from '$lib/api.js';
   import { formatCurrency, truncate, generateShortId } from '$lib/utils.js';
   import type { Order } from '$lib/types.js';
 
@@ -51,22 +50,14 @@
     editSaving = true;
     actionErr = '';
     try {
-      const res = await fetch(BASE_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ idToken: authStore.idToken, action: 'updateOrderStatus', id: order.id, rowIndex: order.rowIndex.toString(), status: editStatus, tracking: editTracking, orderUUID: editUUID }),
-      });
-      const result = JSON.parse(await res.text());
-      if (!res.ok || result?.error) throw new Error(result?.error || 'Update failed');
+      const result = await api.post({ action: 'updateOrderStatus', id: order.id, rowIndex: order.rowIndex.toString(), status: editStatus, tracking: editTracking, orderUUID: editUUID });
+      if (result?.error) throw new Error(result.error || 'Update failed');
 
       dataService.updateOrderOptimistic(order.id, { status: editStatus, tracking: editTracking, orderUUID: editUUID });
       const undofn = () => {
         dataService.updateOrderOptimistic(editId, { status: prevStatus, tracking: prevTracking, orderUUID: prevUUID });
-        fetch(BASE_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify({ idToken: authStore.idToken, action: 'updateOrderStatus', id: editId, rowIndex: String(editRowIndex), status: prevStatus || '', tracking: prevTracking || '', orderUUID: prevUUID || '' }),
-        }).then(() => dataService.load(true, true));
+        api.post({ action: 'updateOrderStatus', id: editId, rowIndex: String(editRowIndex), status: prevStatus || '', tracking: prevTracking || '', orderUUID: prevUUID || '' })
+          .then(() => dataService.load(true, true));
       };
       dataService.load(true, true);
       onsaved(`"${order.item}" updated!`, undofn);
@@ -82,13 +73,8 @@
     deleteSaving = true;
     actionErr = '';
     try {
-      const res = await fetch(BASE_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ idToken: authStore.idToken, action: 'deleteOrder', uuid: order.id }),
-      });
-      const result = JSON.parse(await res.text());
-      if (!res.ok || result?.error) throw new Error(result?.error || 'Delete failed');
+      const result = await api.post({ action: 'deleteOrder', uuid: order.id });
+      if (result?.error) throw new Error(result.error || 'Delete failed');
       dataService.deleteOrderOptimistic(order.id);
       dataService.load(true, true);
       onsaved('Order deleted permanently.', null);
