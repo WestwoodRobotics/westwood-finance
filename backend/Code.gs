@@ -101,6 +101,7 @@ function doPost(e) {
       case 'getMembers':   return txtResponse({ members: getMembers() });
       case 'addMember':    return txtResponse(addMember(p));
       case 'removeMember': return txtResponse(removeMember(p));
+      case 'getSelf':      return txtResponse({ member: getMemberByEmail(caller.email) });
       case 'registerSelf': return txtResponse(registerSelf(p, caller.email));
       default:
         return txtResponse({ error: 'Invalid action: ' + p.action });

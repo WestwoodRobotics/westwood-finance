@@ -162,17 +162,21 @@ class AuthStore {
       const res = await fetch(BASE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ idToken: this.idToken, action: 'getMembers' }),
+        body: JSON.stringify({ idToken: this.idToken, action: 'getSelf' }),
       });
-      if (!res.ok) throw new Error('Failed to fetch members');
+      if (!res.ok) throw new Error('Failed to fetch member');
       const data = JSON.parse(await res.text());
 
-      if (data.members && Array.isArray(data.members)) {
-        this.membersList = data.members;
+      if (data.member) {
+        const existing = this.membersList.filter(m => m.email?.toLowerCase() !== data.member.email?.toLowerCase());
+        this.membersList = [...existing, data.member];
         this.membersLoaded = true;
-        localStorage.setItem('westwood_members', JSON.stringify(data.members));
+        localStorage.setItem('westwood_members', JSON.stringify(this.membersList));
         this._revalidate();
-        console.debug(`Auth: ${data.members.length} members loaded`);
+        console.debug(`Auth: self record loaded — ${data.member.role}`);
+      } else {
+        this.membersLoaded = true;
+        this._revalidate();
       }
     } catch (e) {
       console.warn('Failed to fetch members list:', e);
