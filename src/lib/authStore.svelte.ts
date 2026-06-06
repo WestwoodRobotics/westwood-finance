@@ -22,7 +22,7 @@ class AuthStore {
   }
 
   get hasValidToken(): boolean {
-    return !!this.idToken && Date.now() / 1000 < this.idTokenExp - 60;
+    return !!this.idToken && Date.now() / 1000 < this.idTokenExp - 300;
   }
 
   get userTeam(): string {
@@ -58,7 +58,7 @@ class AuthStore {
         const sessionToken = sessionStorage.getItem('westwood_id_token');
         if (sessionToken) {
           const payload = JSON.parse(atob(sessionToken.split('.')[1]));
-          if (payload.exp && Date.now() / 1000 < payload.exp - 60) {
+          if (payload.exp && Date.now() / 1000 < payload.exp - 300) {
             this.idToken = sessionToken;
             this.idTokenExp = payload.exp;
           } else {
@@ -283,14 +283,6 @@ class AuthStore {
     }
 
     this._persist();
-  }
-
-  clearToken(): void {
-    this.idToken = null;
-    this.idTokenExp = 0;
-    if (typeof window !== 'undefined') {
-      sessionStorage.removeItem('westwood_id_token');
-    }
   }
 
   signOut(): void {

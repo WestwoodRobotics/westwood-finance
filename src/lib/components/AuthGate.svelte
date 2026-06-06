@@ -165,16 +165,6 @@
     }
   });
 
-  // Re-prompt silently whenever an approved user loses their token (e.g. GAS rejected it)
-  $effect(() => {
-    if (authStore.status === 'approved' && !authStore.hasValidToken && authStore.initialized) {
-      // @ts-ignore
-      if (window.google?.accounts?.id) {
-        // @ts-ignore
-        window.google.accounts.id.prompt();
-      }
-    }
-  });
 </script>
 
 {#if !authStore.initialized}
