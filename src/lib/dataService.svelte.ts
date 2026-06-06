@@ -25,6 +25,7 @@ class DataStore {
   isSilentLoading = $state(false);
   isManualRefreshing = $state(false);
   hasLoadedOnce = $state(false);
+  private _inFlight = false;
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -98,8 +99,8 @@ class DataStore {
           item: String(o['Item'] ?? o['item'] ?? 'Unknown'),
           company: String(o['Company'] ?? o['company'] ?? ''),
           link: String(o['Link'] ?? o['link'] ?? ''),
-          price: Number(o['Price'] ?? o['price']) || 0,
-          quantity: Number(o['Quantity'] ?? o['quantity']) || 1,
+          price: Number(o['Price'] ?? o['price'] ?? 0),
+          quantity: Number(o['Quantity'] ?? o['quantity'] ?? 1) || 1,
           notes: String(o['Notes'] ?? o['notes'] ?? ''),
           category: String(o['Category'] || o['category'] || 'miscellaneous').toLowerCase().trim(),
           team: String(o['Team'] ?? o['team'] ?? o['user'] ?? ''),
@@ -141,11 +142,13 @@ class DataStore {
     if (!force && this.orders.length > 0 && this.lastFetched && (Date.now() - this.lastFetched < 120000)) {
       return;
     }
+    if (this._inFlight) return;
 
+    this._inFlight = true;
     this.error = null;
 
     const idToken = authStore.idToken;
-    if (!idToken) return;
+    if (!idToken) { this._inFlight = false; return; }
 
     if (this.orders.length === 0 && !silent) {
       this.loading = true;
@@ -191,6 +194,7 @@ class DataStore {
       }
       console.error("DataStore Load Error:", e);
     } finally {
+      this._inFlight = false;
       this.loading = false;
       this.isSilentLoading = false;
       this.hasLoadedOnce = true;
@@ -230,8 +234,6 @@ class DataStore {
     this.orders = [...this.orders, newOrder];
     this.persist();
     console.debug(`optimistic add — "${newOrder.item}"`);
-
-    setTimeout(() => this.load(true, true), 2000);
   }
 
   updateOrderOptimistic(orderId: string, updates: Partial<Order>): void {
@@ -257,7 +259,6 @@ class DataStore {
     this.funds = [...this.funds, newFund];
     this.persist();
     console.debug(`optimistic add — funding entry`);
-    setTimeout(() => this.load(true, true), 2000);
   }
 }
 

@@ -83,10 +83,10 @@
   <meta name="description" content="Finance management system for Westwood Robotics" />
 </svelte:head>
 
-<a href="#main-content" class="skip-to-main">Skip to main content</a>
-
 <AuthGate>
   {#snippet children()}
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
     <!-- Pull-to-Refresh Indicator -->
     {#if dataService.isManualRefreshing}
       <div class="ptr-indicator">

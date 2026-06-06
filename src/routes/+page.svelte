@@ -40,7 +40,10 @@
     const totalClub = dataService.budget?.Total?.['Club Funds'] || 0;
     const totalPersonal = dataService.budget?.Total?.['Personal Funds'] || 0;
     const totalRealExpenses = dataService.orders
-      .filter(o => { const st = (o.status || '').toLowerCase().trim(); return st === 'received' || st === 'ordered'; })
+      .filter(o => {
+        const st = (o.status || '').toLowerCase().trim();
+        return (st === 'received' || st === 'ordered') && String(o.timestamp || '').includes(currentYear);
+      })
       .reduce((sum, o) => sum + (o.total || 0), 0);
     return totalClub + totalPersonal + view.totalRaised - totalRealExpenses;
   });
