@@ -172,7 +172,12 @@ class DataStore {
       const data = JSON.parse(await res.text()) as Record<string, unknown>;
 
       if (data['error']) {
-        throw new Error(`Google Script Error: ${data['error']}`);
+        const msg = String(data['error']);
+        // If GAS rejects the token as unauthorized, clear it so re-auth triggers
+        if (/unauthorized|not authorized|invalid.*token|token.*invalid/i.test(msg)) {
+          authStore.clearToken();
+        }
+        throw new Error(`Google Script Error: ${msg}`);
       }
 
       this.orders = this.normalizeOrders((data['orders'] as unknown[]) || []);

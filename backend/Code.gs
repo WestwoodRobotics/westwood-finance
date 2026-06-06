@@ -22,9 +22,9 @@ function getMemberByEmail(email) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Members');
   if (!sheet) return null;
   const data = sheet.getDataRange().getValues();
-  const lower = email.toLowerCase();
+  const lower = email.trim().toLowerCase();
   for (let i = 1; i < data.length; i++) {
-    if (String(data[i][5]).toLowerCase() === lower) {
+    if (String(data[i][5]).trim().toLowerCase() === lower) {
       return {
         firstName: data[i][0], lastName: data[i][1],
         studentId: String(data[i][2]), team: data[i][3],

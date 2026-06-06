@@ -285,6 +285,14 @@ class AuthStore {
     this._persist();
   }
 
+  clearToken(): void {
+    this.idToken = null;
+    this.idTokenExp = 0;
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('westwood_id_token');
+    }
+  }
+
   signOut(): void {
     this.googleUser = null;
     this.member = null;

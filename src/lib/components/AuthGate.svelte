@@ -57,9 +57,8 @@
       auto_select: true,
     });
 
-    // For already-approved users, prompt silently to get a fresh idToken.
-    // This won't show any UI if the user has an active Google session.
-    if (authStore.status === 'approved') {
+    // prompt only when the current token is missing or about to expire.
+    if (authStore.status === 'approved' && !authStore.hasValidToken) {
       // @ts-ignore
       window.google.accounts.id.prompt();
     }
@@ -163,6 +162,17 @@
   $effect(() => {
     if (authStore.status === 'signed_out' && authStore.initialized) {
       setTimeout(renderGoogleButton, 100);
+    }
+  });
+
+  // Re-prompt silently whenever an approved user loses their token (e.g. GAS rejected it)
+  $effect(() => {
+    if (authStore.status === 'approved' && !authStore.hasValidToken && authStore.initialized) {
+      // @ts-ignore
+      if (window.google?.accounts?.id) {
+        // @ts-ignore
+        window.google.accounts.id.prompt();
+      }
     }
   });
 </script>

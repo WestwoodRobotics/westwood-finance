@@ -64,7 +64,7 @@
   }
 
   onMount(() => {
-    dataService.load();
+    if (authStore.isApproved && authStore.idToken) dataService.load();
     const mq = window.matchMedia('(max-width: 768px)');
     isMobile = mq.matches;
     mq.addEventListener('change', e => { isMobile = e.matches; });
