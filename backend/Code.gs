@@ -71,7 +71,7 @@ function doPost(e) {
     'addMember', 'removeMember', 'deleteOrder',
     'updateOrderStatus', 'updateFunding', 'addFundraising', 'addFunds'
   ]);
-  const MEMBER_ACTIONS = new Set(['addOrder', 'getAllData', 'getOrders', 'getBudget', 'getFunds']);
+  const MEMBER_ACTIONS = new Set(['addOrder', 'getAllData', 'getOrders', 'getBudget', 'getFunds', 'getMembers']);
 
   if (ADMIN_ACTIONS.has(p.action) && !isAdmin(caller.email)) {
     return txtResponse({ error: 'Forbidden' });

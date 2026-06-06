@@ -102,7 +102,8 @@
         row.tracking || row.link || "",
         row.notes,
       ].map((val) => {
-        let str = String(val || "").replace(/"/g, '""');
+        let str = String(val ?? "").replace(/"/g, '""');
+        if (/^[=+\-@]/.test(str)) str = '\t' + str;
         return `"${str}"`;
       });
       csvRows.push(values.join(","));
