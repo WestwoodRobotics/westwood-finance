@@ -117,9 +117,12 @@ class AuthStore {
 
   _setCredential(credential: string): void {
     try {
-      const payload = JSON.parse(atob(credential.split('.')[1]));
+      const parts = credential.split('.');
+      if (parts.length !== 3) throw new Error('invalid jwt');
+      const padded = parts[1].replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(parts[1].length / 4) * 4, '=');
+      const payload = JSON.parse(atob(padded));
       this.idToken = credential;
-      this.idTokenExp = payload.exp || 0;
+      this.idTokenExp = typeof payload.exp === 'number' ? payload.exp : 0;
       if (typeof window !== 'undefined') {
         sessionStorage.setItem('westwood_id_token', credential);
       }

@@ -3,7 +3,6 @@
   import { DollarSign, Info, Check, Plus } from '@lucide/svelte';
   import { goto } from "$app/navigation";
   import CustomDropdown from "$lib/components/CustomDropdown.svelte";
-  import AdminLock from "$lib/components/AdminLock.svelte";
   import { dataService } from "$lib/dataService.svelte.js";
   import { BASE_URL } from "$lib/config.js";
   import { fade, scale } from "svelte/transition";
@@ -51,36 +50,12 @@
   );
 
   let showPassword = $state(false);
-  let showTestLock = $state(false);
-  let testModalError = $state("");
 
   $effect(() => {
     if (vendorSelect && vendorSelect !== 'Other') {
       form.company = vendorSelect;
     }
   });
-
-  function handleTestUnlock() {
-    fillTestOrder();
-    showTestLock = false;
-  }
-
-  function fillTestOrder() {
-    const items = ["REV UltraPlanetary Motor", "Spark Max Controller", "Neo Brushless Motor", "Expansion Hub", "3D Printing Filament", "Metric Bolt Set", "Through-Bore Encoder", "Aluminum Extrusion (1x1)", "Soldering Station", "Zip Ties (Bulk)"];
-    const companies = ["REV Robotics", "Amazon", "McMaster-Carr", "VEX Robotics", "AndyMark", "DigiKey"];
-    const categories = ["hardware", "hardware", "hardware", "miscellaneous", "miscellaneous"];
-    
-    form.item = items[Math.floor(Math.random() * items.length)];
-    form.company = companies[Math.floor(Math.random() * companies.length)];
-    form.price = (Math.random() * 80 + 5).toFixed(2);
-    form.quantity = Math.floor(Math.random() * 4 + 1).toString();
-    form.team = "FRC";
-    form.category = categories[Math.floor(Math.random() * categories.length)];
-    form.notes = "Website Test";
-    form.link = "https://example.com/item-" + Math.floor(Math.random() * 1000);
-    form.orderedBy = "Test Bot";
-    vendorSelect = "Other";
-  }
 
   async function submit() {
     submitError = "";
@@ -401,18 +376,6 @@
       </form>
     </div>
 
-  {#if showTestLock}
-    <div class="lock-screen-wrapper fade-in" style="position: fixed; inset: 0; z-index: 1000; background: var(--bg); display: flex; align-items: center; justify-content: center;">
-      <div style="position: relative; width: 100%; max-width: 420px;">
-        <AdminLock 
-          onunlock={handleTestUnlock} 
-          oncancel={() => { showTestLock = false; }}
-          title="Developer Login" 
-          description="Authenticate to populate sample data for testing."
-        />
-      </div>
-    </div>
-  {/if}
 </div>
 
 <style>

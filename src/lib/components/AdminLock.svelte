@@ -15,15 +15,10 @@
   let showPassword = $state(false);
 
   function tryUnlock() {
-    const cleanPass = adminPassInput.trim();
-    if (cleanPass === "/dev3432" || cleanPass === "dev3432" || cleanPass === "3432") {
-      onunlock();
-      authError = "";
-      adminPassInput = "";
-    } else {
-      authError = "Incorrect password. Please try again.";
-      adminPassInput = "";
-    }
+    if (!import.meta.env.DEV) return;
+    onunlock();
+    authError = "";
+    adminPassInput = "";
   }
 </script>
 
