@@ -277,7 +277,7 @@
 <!-- ── iOS Mobile List ───────────────────────────────────────────────────── -->
 <div class="ios-list-wrap fade-in mobile-list">
   {#if orders.length === 0}
-    <div class="empty-state" style="padding: 40px 16px; border-radius: 14px;">
+    <div class="empty-state">
       <div class="icon">
         <PackageIcon size={32} stroke-width={1.5} />
       </div>

@@ -155,6 +155,6 @@
   @media (max-width: 768px) {
     .add-layout { grid-template-columns: 1fr; gap: 16px; }
     .form-grid { grid-template-columns: 1fr; gap: 16px; }
-    .add-card { padding: 16px; border-radius: 0; border-left: none; border-right: none; }
+    .add-card { padding: 16px; }
   }
 </style>

@@ -153,8 +153,8 @@
     gap: 24px;
     margin-bottom: 40px;
   }
-  @media (max-width: 900px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 480px) { .stat-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 768px) { .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; } }
+  @media (max-width: 390px) { .stat-grid { grid-template-columns: 1fr; } }
 
   .total-raised-card { display: flex; flex-direction: column; }
   .total-raised-card > :global(*) { flex: 1; width: 100%; }

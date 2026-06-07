@@ -97,7 +97,7 @@
     </div>
   </div>
 
-  <div class="tabs-wrapper" style="margin-bottom: 32px;">
+  <div class="tabs-wrapper" style="margin-bottom: 32px; overflow-x: auto; -webkit-overflow-scrolling: touch;">
     <div class="segmented-control" style="width: auto; min-width: 750px; margin: 0 auto; grid-template-columns: repeat(7, 1fr);">
       <div class="segment-highlight" style="transform: translateX(calc({['orderHistory','orders','master','funding','add','addOrder','members'].indexOf(activeView)} * 100%)); width: calc((100% - 8px) / 7);"></div>
       {#each [['orderHistory','Order History'],['orders','Orders'],['master','Finance History'],['funding','Funding'],['add','Add Funds +'],['addOrder','Add Expense +'],['members','Members']] as [key, label]}

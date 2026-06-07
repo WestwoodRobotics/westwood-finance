@@ -448,15 +448,7 @@
 
   @media (max-width: 768px) {
     .form-grid { grid-template-columns: 1fr; gap: 16px; }
-    .add-card { 
-      padding: 16px; 
-      border-radius: 0; 
-      width: 100%; 
-      border-left: none; 
-      border-right: none; 
-      box-sizing: border-box; 
-      margin: 0; 
-    }
+    .add-card { padding: 16px; }
     .add-layout { 
       padding: 0; 
       width: 100%; 
