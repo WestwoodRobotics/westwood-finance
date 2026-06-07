@@ -46,6 +46,14 @@
   let submitError = $state("");
   let submitSuccess = $state("");
   let fieldErrors = $state<Record<string, string>>({});
+
+  let _successTimer: ReturnType<typeof setTimeout>;
+  $effect(() => {
+    if (submitSuccess) {
+      clearTimeout(_successTimer);
+      _successTimer = setTimeout(() => { submitSuccess = ""; }, 8000);
+    }
+  });
   let computedTotal = $derived(
     (parseFloat(form.price) || 0) * (parseInt(form.quantity) || 1),
   );
@@ -130,8 +138,6 @@
         timestamp: formatDate(new Date()),
         orderedBy: form.orderedBy,
       });
-
-      console.log("API result:", result);
 
       if (result.error) {
         throw new Error(result.error || "Request failed");

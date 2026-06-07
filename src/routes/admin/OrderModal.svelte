@@ -162,10 +162,10 @@
         Permanently delete <strong>{order.item}</strong>? This cannot be undone.
       </p>
       <div style="display: flex; flex-direction: column; gap: 10px;">
+        <button class="btn btn-ghost" onclick={() => showDeleteConfirm = false} disabled={deleteSaving}>Cancel</button>
         <button class="btn" style="background: var(--status-rejected); color: #fff; border: none;" onclick={deleteOrder} disabled={deleteSaving}>
           {#if deleteSaving}<span>Deleting<span class="dot-loading"></span></span>{:else}Yes, Delete Permanently{/if}
         </button>
-        <button class="btn btn-ghost" onclick={() => showDeleteConfirm = false} disabled={deleteSaving}>Cancel</button>
       </div>
     </div>
   </div>

@@ -67,8 +67,8 @@
         </div>
       </div>
       <div class="modal-actions">
-        <button type="submit" class="btn btn-primary" disabled={saving}>{saving ? 'Saving…' : 'Save Status'}</button>
         <button type="button" class="btn btn-ghost" onclick={onclose}>Cancel</button>
+        <button type="submit" class="btn btn-primary" disabled={saving}>{saving ? 'Saving…' : 'Save Status'}</button>
       </div>
     </form>
   </div>

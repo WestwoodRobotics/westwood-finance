@@ -121,7 +121,13 @@ function openExternal(url) {
     </thead>
     <tbody>
       {#each display as expense (expense.id)}
-        <tr>
+        <tr
+          class="clickable-row"
+          role="button"
+          tabindex="0"
+          onclick={() => selectedExpense = expense}
+          onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && (selectedExpense = expense)}
+        >
           <td>
             <div class="item-name">
               {#if expense.link}
@@ -318,6 +324,10 @@ function openExternal(url) {
     font: inherit;
     text-align: left;
   }
+
+  .clickable-row { cursor: pointer; }
+  @media (hover: hover) { .clickable-row:hover td { background: var(--surface-2); } }
+  .clickable-row:focus-visible td { background: var(--surface-2); outline: none; }
 
   .item-name { font-weight: 600; color: var(--text); }
   .item-link { color: var(--primary); transition: color 0.2s; }

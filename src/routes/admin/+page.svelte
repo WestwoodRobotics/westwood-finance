@@ -144,8 +144,9 @@
       {/each}
     </div>
   {/if}
-  <button class="page-fab" onclick={() => (showTabMenu = !showTabMenu)} aria-label={`Admin view: ${[['orderHistory','Order History'],['orders','Orders'],['master','Finance History'],['funding','Funding'],['add','Add Funds +'],['addOrder','Add Expense +'],['members','Members']].find(([k]) => k === activeView)?.[1] ?? activeView}. Switch view`}>
+  <button class="page-fab" onclick={() => (showTabMenu = !showTabMenu)} aria-label="Switch admin view">
     <Grid2x2 size={20} />
+    <span class="page-fab-label">{[['orderHistory','History'],['orders','Orders'],['master','Finance'],['funding','Funding'],['add','Add Funds'],['addOrder','Add Expense'],['members','Members']].find(([k]) => k === activeView)?.[1] ?? activeView}</span>
   </button>
 {/if}
 
@@ -256,21 +257,35 @@
       position: fixed;
       bottom: calc(var(--ios-tab-height, 49px) + env(safe-area-inset-bottom, 0px) + 20px);
       right: 20px;
-      width: 52px;
-      height: 52px;
-      border-radius: 50%;
+      width: 60px;
+      border-radius: 16px;
       background: var(--surface-3);
       color: var(--text);
       border: 1px solid var(--border);
       cursor: pointer;
       z-index: 600;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+      gap: 3px;
+      padding: 8px 4px;
       box-shadow: 0 4px 16px rgba(0,0,0,0.5);
       transition: all 0.2s;
     }
-    .page-fab:hover { transform: scale(1.06); }
+    .page-fab-label {
+      font-size: 0.55rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--primary);
+      line-height: 1;
+      max-width: 52px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .page-fab:hover { transform: scale(1.04); }
     .refresh-btn { aspect-ratio: 1/1; width: 42px; padding: 0 !important; justify-content: center; }
   }
 </style>

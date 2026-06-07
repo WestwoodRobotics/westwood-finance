@@ -164,8 +164,8 @@
           style="--group-color: {getCatColor(order.category)}"
           role="button"
           tabindex="0"
-          onclick={() => selectedOrder = order}
-          onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && (selectedOrder = order)}
+          onclick={() => onmanage ? onmanage(order) : (selectedOrder = order)}
+          onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && (onmanage ? onmanage(order) : (selectedOrder = order))}
         >
           <td>
             <div class="item-name">
