@@ -33,6 +33,26 @@
 
   let allFundsRaised = $derived(dataService.funds.reduce((sum, f) => sum + (Number(f.Amount) || 0), 0));
 
+  let teamExpensesMap = $derived.by(() => {
+    const map: Record<string, number> = {};
+    for (const o of dataService.orders) {
+      const st = (o.status || '').toLowerCase().trim();
+      if (st !== 'received' && st !== 'ordered') continue;
+      const t = (o.team || '').toLowerCase().trim();
+      for (const [team] of budgetTeams) {
+        const s = team.toLowerCase().trim();
+        if (t === s || t.includes(s) || (s === 'frc' && (t.includes('frc') || /^\d+$/.test(t)))) {
+          map[team] = (map[team] || 0) + (o.total || 0);
+        }
+      }
+    }
+    return map;
+  });
+
+  let totalRealExpenses = $derived(
+    dataService.orders.filter(o => { const st = (o.status || '').toLowerCase().trim(); return st === 'received' || st === 'ordered'; }).reduce((sum, o) => sum + (o.total || 0), 0)
+  );
+
   let spentByCategory = $derived.by(() => {
     const map: Record<string, number> = {};
     CATEGORIES.forEach(c => (map[c] = 0));
@@ -74,14 +94,7 @@
             }, 0)}
             {@const clubFunds = (data as Record<string, number>)['Club Funds'] ?? 0}
             {@const personalFunds = (data as Record<string, number>)['Personal Funds'] ?? 0}
-            {@const teamRealExpenses = dataService.orders.filter(o => {
-              const t = (o.team || '').toLowerCase().trim();
-              const s = team.toLowerCase().trim();
-              const teamMatches = t === s || t.includes(s) || (s === 'frc' && (t.includes('frc') || /^\d+$/.test(t)));
-              if (!teamMatches) return false;
-              const st = (o.status || '').toLowerCase().trim();
-              return st === 'received' || st === 'ordered';
-            }).reduce((sum, o) => sum + (o.total || 0), 0)}
+            {@const teamRealExpenses = teamExpensesMap[team] || 0}
             {@const final = clubFunds + personalFunds + teamFundsRaised - teamRealExpenses}
             {@const pct = budgetTotal && ((budgetTotal as Record<string, number>)['Club Funds'] + allFundsRaised) > 0
               ? Math.min(100, (Math.max(0, final) / ((budgetTotal as Record<string, number>)['Club Funds'] + allFundsRaised)) * 100)
@@ -101,7 +114,6 @@
         {#if budgetTotal}
           {@const totalClub = (budgetTotal as Record<string, number>)['Club Funds'] || 0}
           {@const totalPersonal = (budgetTotal as Record<string, number>)['Personal Funds'] || 0}
-          {@const totalRealExpenses = dataService.orders.filter(o => { const st = (o.status || '').toLowerCase().trim(); return st === 'received' || st === 'ordered'; }).reduce((sum, o) => sum + (o.total || 0), 0)}
           {@const totalFinal = totalClub + totalPersonal + allFundsRaised - totalRealExpenses}
           <tfoot>
             <tr class="total-row">

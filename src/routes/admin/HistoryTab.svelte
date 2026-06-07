@@ -2,7 +2,7 @@
   import { Package } from '@lucide/svelte';
   import OrderStatusBadge from '$lib/components/OrderStatusBadge.svelte';
   import LoadingIndicator from '$lib/components/LoadingIndicator.svelte';
-  import { formatCurrency, formatFullDate, capitalize } from '$lib/utils.js';
+  import { formatCurrency, formatFullDate, capitalize, getOrderColorCached } from '$lib/utils.js';
   import { dataService } from '$lib/dataService.svelte.js';
   import type { Order } from '$lib/types.js';
 
@@ -39,13 +39,6 @@
   function toggleAdminSort(col: string) {
     if (adminSortCol === col) { adminSortDir = adminSortDir === 'asc' ? 'desc' : 'asc'; }
     else { adminSortCol = col; adminSortDir = col === 'timestamp' || col === 'total' ? 'desc' : 'asc'; }
-  }
-
-  function getOrderColor(uuid: string | undefined): string {
-    if (!uuid) return 'var(--border)';
-    let hash = 0;
-    for (let i = 0; i < uuid.length; i++) hash = uuid.charCodeAt(i) + ((hash << 5) - hash);
-    return `hsl(${Math.abs(hash % 360)}, 65%, 45%)`;
   }
 
   function openExternal(url: string) {
@@ -97,7 +90,7 @@
           </thead>
           <tbody>
             {#each sortedAdminOrders as order (order.id)}
-              <tr class="fade-in group-row" style="--group-color: {getOrderColor(order.orderUUID)}">
+              <tr class="fade-in group-row" style="--group-color: {getOrderColorCached(order.orderUUID)}">
                 <td style="padding-left: 24px;">
                   <div class="item-primary">
                     {#if order.link}
