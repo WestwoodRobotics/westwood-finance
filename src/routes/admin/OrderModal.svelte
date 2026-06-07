@@ -42,6 +42,7 @@
   });
 
   async function saveEdit() {
+    if (order.id.startsWith('temp-')) { actionErr = 'Order is still syncing — try again in a moment.'; return; }
     const prevStatus = order.status;
     const prevTracking = order.tracking;
     const prevUUID = order.orderUUID;
@@ -50,13 +51,13 @@
     editSaving = true;
     actionErr = '';
     try {
-      const result = await api.post({ action: 'updateOrderStatus', id: order.id, rowIndex: order.rowIndex.toString(), status: editStatus, tracking: editTracking, orderUUID: editUUID });
+      const result = await api.post({ action: 'updateOrderStatus', rowIndex: order.rowIndex.toString(), status: editStatus, tracking: editTracking, orderUUID: order.orderUUID || '', newGroupUUID: editUUID });
       if (result?.error) throw new Error(result.error || 'Update failed');
 
       dataService.updateOrderOptimistic(order.id, { status: editStatus, tracking: editTracking, orderUUID: editUUID });
       const undofn = async () => {
         dataService.updateOrderOptimistic(editId, { status: prevStatus, tracking: prevTracking, orderUUID: prevUUID });
-        await api.post({ action: 'updateOrderStatus', id: editId, rowIndex: String(editRowIndex), status: prevStatus || '', tracking: prevTracking || '', orderUUID: prevUUID || '' });
+        await api.post({ action: 'updateOrderStatus', rowIndex: String(editRowIndex), status: prevStatus || '', tracking: prevTracking || '', orderUUID: editUUID || '', newGroupUUID: prevUUID || '' });
         dataService.load(true, true);
       };
       dataService.load(true, true);
@@ -70,6 +71,7 @@
   }
 
   async function deleteOrder() {
+    if (order.id.startsWith('temp-')) { actionErr = 'Order is still syncing — try again in a moment.'; return; }
     deleteSaving = true;
     actionErr = '';
     try {

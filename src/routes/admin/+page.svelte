@@ -49,7 +49,7 @@
     const targetUUID = orders.find(o => o.orderUUID)?.orderUUID || generateShortId();
     try {
       const results = await Promise.all(orders.map(o =>
-        api.post({ action: 'updateOrderStatus', id: o.id, rowIndex: String(o.rowIndex), orderUUID: targetUUID })
+        api.post({ action: 'updateOrderStatus', rowIndex: String(o.rowIndex), orderUUID: o.orderUUID || '', newGroupUUID: targetUUID })
       ));
       if (results.some((r: { error?: string }) => r.error)) throw new Error('Batch link failed');
       actionMsg = `✓ Linked into Order #${targetUUID}`;

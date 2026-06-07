@@ -142,9 +142,9 @@
           !e.team?.toLowerCase().includes(filters.team.toLowerCase())
         )
           return false;
-        if (filters.dateFrom && e.timestamp < filters.dateFrom) return false;
-        if (filters.dateTo && e.timestamp?.slice(0, 10) > filters.dateTo)
-          return false;
+        const tsDate = e.timestamp ? new Date(e.timestamp).toISOString().slice(0, 10) : '';
+        if (filters.dateFrom && tsDate < filters.dateFrom) return false;
+        if (filters.dateTo && tsDate > filters.dateTo) return false;
         if (
           filters.status &&
           e.status !== filters.status &&

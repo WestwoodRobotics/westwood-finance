@@ -286,12 +286,12 @@ function updateOrderStatus(p) {
   const rowIndex = parseInt(p.rowIndex);
   if (!rowIndex || rowIndex < 3 || rowIndex > sheet.getLastRow())
     return { error: "Invalid row" };
-  const existingUUID = String(sheet.getRange(rowIndex, 13).getValue());
-  if (!p.orderUUID || existingUUID !== String(p.orderUUID))
+  const existingUUID = String(sheet.getRange(rowIndex, 13).getValue()).trim();
+  if (existingUUID && existingUUID !== String(p.orderUUID || ''))
     return { error: "Row mismatch" };
+  if (p.newGroupUUID) sheet.getRange(rowIndex, 13).setValue(sanitizeCell(p.newGroupUUID));
   if (p.status) sheet.getRange(rowIndex, 11).setValue(sanitizeCell(p.status));
-  if (p.tracking)
-    sheet.getRange(rowIndex, 12).setValue(sanitizeCell(p.tracking));
+  if (p.tracking) sheet.getRange(rowIndex, 12).setValue(sanitizeCell(p.tracking));
   return { success: true };
 }
 
