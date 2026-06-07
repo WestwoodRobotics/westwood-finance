@@ -184,6 +184,9 @@
             {#if order.notes}
               <div class="item-notes">{truncate(order.notes, 50)}</div>
             {/if}
+            {#if order.orderedBy}
+              <div class="item-notes">{order.orderedBy}</div>
+            {/if}
             {#if order.tracking}
               <div class="tracking-info">
                 <button
@@ -310,9 +313,7 @@
               {truncate(order.item, 32)}
             </div>
             <div class="ios-cell-subtitle">
-              {order.company || "—"}{!hideTeamColumn && order.team
-                ? ` · ${order.team}`
-                : ""}
+              {order.company || "—"}{!hideTeamColumn && order.team ? ` · ${order.team}` : ""}{order.orderedBy ? ` · ${order.orderedBy}` : ""}
             </div>
           </div>
 

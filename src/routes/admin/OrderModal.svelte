@@ -91,8 +91,8 @@
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_noninteractive_element_interactions -->
-<div class="modal-backdrop" onclick={onclose} onkeydown={(e) => e.key === 'Escape' && onclose()} role="button" tabindex="0">
-  <div class="modal-card card" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()} role="dialog" aria-modal="true" tabindex="-1">
+<div class="modal-backdrop" onclick={onclose} role="presentation">
+  <div class="modal-card card" onclick={(e) => e.stopPropagation()} onkeydown={(e) => { e.stopPropagation(); if (e.key === 'Escape') onclose(); }} role="dialog" aria-modal="true" aria-label="Edit Order" tabindex="-1">
     <div class="modal-header">
       <div>
         <h2 style="margin:0">Edit Order</h2>

@@ -12,11 +12,11 @@
 
   let isOpen = $state(false);
   let dropdownRef = $state();
+  let optionRefs: HTMLElement[] = [];
 
   function toggle() {
     const nextOpen = !isOpen;
     if (nextOpen) {
-      // Broadcast to close all other dropdowns
       window.dispatchEvent(new CustomEvent('close-dropdowns', { detail: { caller: dropdownRef } }));
     }
     isOpen = nextOpen;
@@ -26,6 +26,7 @@
     value = optValue;
     isOpen = false;
     onchange?.({ target: { value: optValue } });
+    dropdownRef?.querySelector<HTMLElement>('.dropdown-trigger')?.focus();
   }
 
   function handleClickOutside(event) {
@@ -34,20 +35,49 @@
     }
   }
 
+  function handleTriggerKeydown(e: KeyboardEvent) {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      isOpen = true;
+      const idx = e.key === 'ArrowDown' ? 0 : options.length - 1;
+      tick().then(() => optionRefs[idx]?.focus());
+    } else if (e.key === 'Escape') {
+      isOpen = false;
+    }
+  }
+
+  function handleOptionKeydown(e: KeyboardEvent, idx: number) {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      optionRefs[(idx + 1) % options.length]?.focus();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      optionRefs[(idx - 1 + options.length) % options.length]?.focus();
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      optionRefs[0]?.focus();
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      optionRefs[options.length - 1]?.focus();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      isOpen = false;
+      dropdownRef?.querySelector<HTMLElement>('.dropdown-trigger')?.focus();
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      const val = typeof options[idx] === 'string' ? options[idx] : (options[idx] as { value: string }).value;
+      select(val);
+    }
+  }
+
   onMount(() => {
     const handleCloseOthers = (e) => {
-      if (e.detail && e.detail.caller !== dropdownRef) {
-        isOpen = false;
-      }
+      if (e.detail && e.detail.caller !== dropdownRef) isOpen = false;
     };
-
     window.addEventListener('click', handleClickOutside);
-    // @ts-ignore - custom event
     window.addEventListener('close-dropdowns', handleCloseOthers);
-    
     return () => {
       window.removeEventListener('click', handleClickOutside);
-      // @ts-ignore - custom event
       window.removeEventListener('close-dropdowns', handleCloseOthers);
     };
   });
@@ -65,6 +95,7 @@
     class="dropdown-trigger"
     class:active={isOpen}
     onclick={toggle}
+    onkeydown={handleTriggerKeydown}
     aria-haspopup="listbox"
     aria-expanded={isOpen}
     {id}
@@ -77,26 +108,23 @@
 
   {#if isOpen}
     <ul class="dropdown-menu fade-in" role="listbox">
-      {#each options as opt}
+      {#each options as opt, idx}
         {@const val = typeof opt === 'string' ? opt : opt.value}
         {@const label = typeof opt === 'string' ? opt.charAt(0).toUpperCase() + opt.slice(1) : opt.label}
-        <li 
-          class="dropdown-item" 
+        <li
+          class="dropdown-item"
           class:selected={value === val}
-          role="none"
+          role="option"
+          aria-selected={value === val}
+          tabindex="0"
+          onclick={() => select(val)}
+          onkeydown={(e) => handleOptionKeydown(e, idx)}
+          bind:this={optionRefs[idx]}
         >
-          <button
-            type="button"
-            class="dropdown-item-button"
-            onclick={() => select(val)}
-            role="option"
-            aria-selected={value === val}
-          >
-            {label}
-            {#if value === val}
-               <Check size={14} class="check-icon" />
-            {/if}
-          </button>
+          {label}
+          {#if value === val}
+            <Check size={14} class="check-icon" />
+          {/if}
         </li>
       {/each}
     </ul>
@@ -187,12 +215,6 @@
 
   .dropdown-item {
     margin-bottom: 2px;
-  }
-  
-  .dropdown-item:last-child { margin-bottom: 0; }
-
-  .dropdown-item-button {
-    width: 100%;
     padding: 10px 12px;
     border: none;
     background: transparent;
@@ -207,15 +229,18 @@
     align-items: center;
     justify-content: space-between;
     outline: none;
+    width: 100%;
   }
 
-  .dropdown-item-button:hover,
-  .dropdown-item-button:focus {
+  .dropdown-item:last-child { margin-bottom: 0; }
+
+  .dropdown-item:hover,
+  .dropdown-item:focus {
     background: var(--surface-3);
     color: #fff;
   }
 
-  .dropdown-item.selected .dropdown-item-button {
+  .dropdown-item.selected {
     background: rgba(249, 115, 22, 0.1);
     color: var(--primary);
   }

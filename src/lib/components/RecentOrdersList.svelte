@@ -9,14 +9,10 @@
 
 <div class="recent-list">
   {#each orders as order (order.id)}
-    <!-- svelte-ignore a11y_interactive_supports_focus -->
-    <div
+    <button
       class="recent-item group-row"
       style="--group-color: {getCatColor(order.category)};"
-      role="button"
-      tabindex="0"
       onclick={() => onselect(order)}
-      onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && onselect(order)}
     >
       <div class="item-info">
         <div class="item-name">{order.item}</div>
@@ -28,7 +24,7 @@
       </div>
       <div class="item-status"><OrderStatusBadge status={order.status} /></div>
       <div class="item-amount monospace">{formatCurrency(order.total)}</div>
-    </div>
+    </button>
   {:else}
     <div class="empty-state" style="padding: 32px 20px;">
       <div class="icon"><Package size={36} stroke-width={1} /></div>
@@ -59,6 +55,11 @@
     position: relative;
     min-width: 0;
     cursor: pointer;
+    width: 100%;
+    text-align: left;
+    font: inherit;
+    border: none;
+    color: inherit;
   }
 
   .recent-item::before {
