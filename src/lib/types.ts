@@ -1,18 +1,18 @@
 export type AuthStatus =
-  | 'signed_out'
-  | 'needs_student_id'
-  | 'pending_approval'
-  | 'approved'
-  | 'unauthorized';
+  | "signed_out"
+  | "needs_student_id"
+  | "pending_approval"
+  | "approved"
+  | "unauthorized";
 
 export type OrderStatus =
-  | 'Pending Review'
-  | 'Approved'
-  | 'Ordered'
-  | 'Received'
-  | 'Denied'
-  | 'Cancelled'
-  | 'Void';
+  | "Pending Review"
+  | "Approved"
+  | "Ordered"
+  | "Received"
+  | "Denied"
+  | "Cancelled"
+  | "Void";
 
 export interface GoogleUser {
   email: string;
@@ -66,5 +66,5 @@ export type Budget = Record<string, Record<string, number>>;
 
 export interface MemberMatch {
   member: ApprovedMember;
-  evalStatus: 'approved' | 'unauthorized' | 'pending_approval';
+  evalStatus: "approved" | "unauthorized" | "pending_approval";
 }

@@ -1,33 +1,37 @@
 {
-	"name": "ww-finance",
-	"private": true,
-	"version": "0.0.1",
-	"type": "module",
-	"scripts": {
-		"dev": "vite dev",
-		"build": "vite build",
-		"preview": "vite preview",
-		"prepare": "svelte-kit sync || echo ''",
-		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-		"bump:patch": "node scripts/update-version.js patch",
-		"bump:minor": "node scripts/update-version.js minor",
-		"bump:major": "node scripts/update-version.js major"
-	},
-	"devDependencies": {
-		"@sveltejs/adapter-auto": "^7.0.1",
-		"@sveltejs/kit": "^2.57.0",
-		"@sveltejs/vite-plugin-svelte": "^7.0.0",
-		"@types/node": "^25.6.0",
-		"svelte": "^5.55.2",
-		"svelte-check": "^4.4.6",
-		"typescript": "^6.0.2",
-		"vite": "^8.0.7"
-	},
-	"dependencies": {
-		"@lucide/svelte": "^1.17.0",
-		"@sveltejs/adapter-node": "^5.5.4",
-		"@sveltejs/adapter-static": "^3.0.10",
-		"chart.js": "^4.5.1"
-	}
+  "name": "ww-finance",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "prepare": "svelte-kit sync || echo ''",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+    "format": "prettier --write .",
+    "bump:patch": "node scripts/update-version.js patch",
+    "bump:minor": "node scripts/update-version.js minor",
+    "bump:major": "node scripts/update-version.js major"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-auto": "^7.0.1",
+    "@sveltejs/kit": "^2.57.0",
+    "@sveltejs/vite-plugin-svelte": "^7.0.0",
+    "@types/node": "^25.6.0",
+    "globals": "^17.6.0",
+    "prettier": "3.8.3",
+    "svelte": "^5.55.2",
+    "svelte-check": "^4.4.6",
+    "typescript": "^6.0.2",
+    "typescript-eslint": "^8.60.1",
+    "vite": "^8.0.7"
+  },
+  "dependencies": {
+    "@lucide/svelte": "^1.17.0",
+    "@sveltejs/adapter-node": "^5.5.4",
+    "@sveltejs/adapter-static": "^3.0.10",
+    "chart.js": "^4.5.1"
+  }
 }
