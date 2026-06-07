@@ -69,7 +69,8 @@
 {:else if !dataService.budget}
   <div class="empty-state card">
     <div class="icon"><BarChart3 size={48} stroke-width={1.2} /></div>
-    No budget data available.
+    <h3>No budget data</h3>
+    <p>Budget allocations will appear here once configured.</p>
   </div>
 {:else if selectedBudgetTeam === 'Westwood Overall'}
   <div class="overall-summary fade-in">

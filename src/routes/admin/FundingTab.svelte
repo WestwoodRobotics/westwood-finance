@@ -17,7 +17,11 @@
     {#if dataService.loading && !dataService.funds.length}
       <LoadingIndicator text="Loading funds..." />
     {:else if dataService.funds.length === 0}
-      <div class="empty-state"><div class="icon"><DollarSign size={48} stroke-width={1} /></div>No funding entries found.</div>
+      <div class="empty-state">
+        <div class="icon"><DollarSign size={48} stroke-width={1} /></div>
+        <h3>No funding entries</h3>
+        <p>Add a funding source above to see it listed here.</p>
+      </div>
     {:else}
       <div class="table-wrap">
         <table>

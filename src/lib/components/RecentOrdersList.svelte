@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { Package } from '@lucide/svelte';
   import OrderStatusBadge from './OrderStatusBadge.svelte';
   import { formatCurrency, formatDate, getCatColor } from '$lib/utils.js';
   import type { Order } from '$lib/types.js';
@@ -29,7 +30,10 @@
       <div class="item-amount monospace">{formatCurrency(order.total)}</div>
     </div>
   {:else}
-    <div class="empty-state">No active orders</div>
+    <div class="empty-state" style="padding: 32px 20px;">
+      <div class="icon"><Package size={36} stroke-width={1} /></div>
+      <h3 style="font-size: 0.9rem; margin-top: 10px;">No active orders</h3>
+    </div>
   {/each}
 </div>
 

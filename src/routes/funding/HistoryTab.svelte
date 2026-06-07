@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { Receipt } from '@lucide/svelte';
   import { formatCurrency } from '$lib/utils.js';
   import { createTeamView } from '$lib/derived.svelte.js';
 
@@ -34,7 +35,11 @@
   <div class="section-title">{selectedBudgetTeam} History</div>
   <div class="card" style="padding:0; overflow:hidden">
     {#if sorted.length === 0}
-      <div class="empty-state" style="padding: 40px;">No funding entries for this team.</div>
+      <div class="empty-state">
+        <div class="icon"><Receipt size={48} stroke-width={1} /></div>
+        <h3>No funding entries</h3>
+        <p>No funding has been recorded for this team yet.</p>
+      </div>
     {:else}
       <table style="font-size: 0.85rem;">
         <thead>

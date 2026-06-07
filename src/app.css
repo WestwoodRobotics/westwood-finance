@@ -579,12 +579,16 @@ tbody td {
 }
 
 .error-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   background: rgba(239, 68, 68, 0.08);
   border: 1px solid rgba(239, 68, 68, 0.2);
   color: #ef4444;
-  padding: 12px 16px;
+  padding: 14px 18px;
   border-radius: var(--radius-sm);
   font-size: 0.875rem;
+  font-weight: 600;
   margin-bottom: 20px;
 }
 

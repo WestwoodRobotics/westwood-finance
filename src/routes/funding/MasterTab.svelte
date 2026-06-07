@@ -41,7 +41,8 @@
     {:else if transactions.length === 0}
       <div class="empty-state">
         <div class="icon"><Receipt size={48} stroke-width={1} /></div>
-        No transactions found.
+        <h3>No transactions</h3>
+        <p>Finance history will appear here once entries are recorded.</p>
       </div>
     {:else}
       <div class="table-wrap">

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Check, Info } from '@lucide/svelte';
+  import { Check, Info, Users } from '@lucide/svelte';
   import CustomDropdown from '$lib/components/CustomDropdown.svelte';
   import { authStore } from '$lib/authStore.svelte.js';
   import { api } from '$lib/api.js';
@@ -114,7 +114,11 @@
   </div>
   <div class="card orders-card" style="padding:0; overflow:hidden;">
     {#if authStore.membersList.length === 0}
-      <div class="empty-state" style="padding: 40px;">No approved members yet. Add someone above.</div>
+      <div class="empty-state">
+        <div class="icon"><Users size={48} stroke-width={1} /></div>
+        <h3>No approved members</h3>
+        <p>Approve a member above to grant them access.</p>
+      </div>
     {:else}
       <div class="table-wrap">
         <table>

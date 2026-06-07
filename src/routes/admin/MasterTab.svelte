@@ -45,7 +45,11 @@
     {#if dataService.loading && !masterTransactions.length}
       <LoadingIndicator text="Loading ledger..." />
     {:else if masterTransactions.length === 0}
-      <div class="empty-state"><div class="icon"><Receipt size={48} stroke-width={1} /></div>No transactions found.</div>
+      <div class="empty-state">
+        <div class="icon"><Receipt size={48} stroke-width={1} /></div>
+        <h3>No transactions</h3>
+        <p>Orders and funding entries will appear here once recorded.</p>
+      </div>
     {:else}
       <div class="table-wrap">
         <table>
