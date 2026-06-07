@@ -33,7 +33,7 @@
   let editingFund = $state<Fund | null>(null);
   let editingGroupOrders = $state<Order[] | null>(null);
 
-  let isMobile = $state(false);
+  let isMobile = $state(typeof window !== 'undefined' ? window.matchMedia('(max-width: 768px)').matches : false);
   let showTabMenu = $state(false);
 
   async function sync() {

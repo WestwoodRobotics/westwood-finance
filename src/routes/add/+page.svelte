@@ -135,10 +135,6 @@
         throw new Error(result.error || "Request failed");
       }
 
-      submitSuccess = "✓ Order successfully sent!";
-      submitting = false;
-      
-      // ⚡ Optimistic Update: inject order into local store instantly
       dataService.addOrderOptimistic({
         item: form.item,
         company: form.company,
@@ -153,6 +149,7 @@
         orderedBy: form.orderedBy,
         orderUUID: result.uuid || '',
       });
+      submitSuccess = "✓ Order successfully sent!";
 
       // reset form
       form = {
@@ -171,15 +168,9 @@
       };
 
     } catch (e) {
-      // ✅ FIX: proper error typing
-      if (e instanceof Error) {
-        submitError = e.message;
-      } else {
-        submitError = "Unknown error occurred";
-      }
+      submitError = e instanceof Error ? e.message : "Unknown error occurred";
     } finally {
-      // Only set false here if we haven't already (success path sets it earlier)
-      if (submitting) submitting = false;
+      submitting = false;
     }
   }
   function toggleExpenseMode() {

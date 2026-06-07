@@ -39,7 +39,7 @@
   let budgetTotalValue = $derived.by(() => {
     const totalClub = dataService.budget?.Total?.['Club Funds'] || 0;
     const totalPersonal = dataService.budget?.Total?.['Personal Funds'] || 0;
-    const totalRealExpenses = dataService.orders
+    const totalRealExpenses = view.financialOrders
       .filter(o => {
         const st = (o.status || '').toLowerCase().trim();
         return (st === 'received' || st === 'ordered') && String(o.timestamp || '').includes(currentYear);
