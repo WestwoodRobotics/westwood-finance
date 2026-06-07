@@ -185,8 +185,6 @@
     margin-bottom: 2px;
   }
 
-  .btn-xs { font-size: 0.7rem; padding: 4px 10px; }
-
   .trend-card { margin-top: 24px; padding: 24px; }
   .trend-chart-container { height: 220px; width: 100%; position: relative; }
 

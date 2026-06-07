@@ -130,7 +130,6 @@
   }
 
   .stat-value {
-    font-family: 'Outfit', sans-serif;
     font-size: 1.75rem;
     font-weight: 700;
     letter-spacing: -0.02em;
@@ -147,7 +146,6 @@
   .stat-percentage {
     font-size: 0.85rem;
     font-weight: 700;
-    font-family: 'Outfit', sans-serif;
     padding: 2px 8px;
     background: rgba(255,255,255,0.05);
     border-radius: 6px;

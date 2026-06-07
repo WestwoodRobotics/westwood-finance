@@ -53,7 +53,7 @@
     <span>Order History ({dataService.orders.length})</span>
   </div>
   <p class="text-muted" style="margin-bottom:16px;font-size:0.875rem">Manage order statuses, UUIDs, and tracking links. Updates sync directly to Google Sheets.</p>
-  <div class="card orders-card" style="padding:0;overflow:hidden">
+  <div class="card card-flush orders-card">
     {#if dataService.loading && !dataService.orders.length}
       <LoadingIndicator text="Loading admin backlog..." />
     {:else if dataService.orders.length === 0}

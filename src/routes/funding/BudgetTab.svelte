@@ -161,7 +161,7 @@
           {/if}
           <div class="budget-details">
             <div class="budget-detail-row"><span class="text-muted">Raised</span><span class="monospace amount-positive">+{formatCurrency(teamFundsRaised)}</span></div>
-            <div class="budget-detail-row"><span class="text-muted">Personal</span><span class="monospace" style="color:#4e9af1">{formatCurrency(personal)}</span></div>
+            <div class="budget-detail-row"><span class="text-muted">Personal</span><span class="monospace" style="color:var(--color-personal)">{formatCurrency(personal)}</span></div>
             <div class="budget-detail-row"><span class="text-muted">Expenses</span><span class="monospace amount-negative">{formatCurrency(Math.abs(view.totalSpent))}</span></div>
             <div class="budget-detail-row"><span class="text-muted">Pending Expenses</span><span class="monospace text-muted">{formatCurrency(pendingExpenses)}</span></div>
           </div>

@@ -31,9 +31,19 @@
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
   --shadow:
     0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.45), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
   --shadow-xl: 0 30px 50px -10px rgba(0, 0, 0, 0.6);
   --shadow-2xl: 0 50px 80px -20px rgba(0, 0, 0, 0.7);
+
+  --surface-ios: #1c1c1e;
+  --border-ios: #2c2c2e;
+
+  --color-grant: #b97cf3;
+  --color-dues: #4e9af1;
+  --color-sponsor: #6bcb77;
+  --color-fund-other: #f1a94e;
+  --color-personal: #4e9af1;
 
   --sidebar-width: 240px;
 }
@@ -258,6 +268,11 @@ h3 {
   width: 36px;
   height: 36px;
   justify-content: center;
+}
+.btn-xs {
+  font-size: 0.7rem;
+  padding: 4px 10px;
+  height: auto;
 }
 
 .form-group {
@@ -529,11 +544,15 @@ tbody td {
 }
 
 .section-title {
-  font-family: "Outfit", sans-serif;
   font-size: 1.1rem;
   font-weight: 600;
   margin-bottom: 20px;
   color: #fff;
+}
+
+.card-flush {
+  padding: 0;
+  overflow: hidden;
 }
 
 .empty-state {
@@ -1017,7 +1036,7 @@ tbody td {
 }
 
 .ios-popup-content {
-  background: #1c1c1e;
+  background: var(--surface-ios);
   width: 100%;
   max-width: 600px;
   border-radius: 20px 20px 0 0;
@@ -1055,7 +1074,7 @@ tbody td {
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: #2c2c2e;
+  background: var(--border-ios);
   border: none;
   color: #98989f;
   display: flex;
@@ -1068,13 +1087,13 @@ tbody td {
   display: flex;
   flex-direction: column;
   gap: 1px;
-  background: #2c2c2e;
+  background: var(--border-ios);
   border-radius: 12px;
   overflow: hidden;
 }
 
 .ios-detail-item {
-  background: #1c1c1e;
+  background: var(--surface-ios);
   padding: 14px 16px;
   display: flex;
   justify-content: space-between;
@@ -1103,7 +1122,7 @@ tbody td {
 }
 
 .ios-detail-block {
-  background: #1c1c1e;
+  background: var(--surface-ios);
   padding: 14px 16px;
   display: flex;
   flex-direction: column;
@@ -1187,7 +1206,7 @@ tbody td {
   top: -6px;
   width: 12px;
   height: 12px;
-  background: #1c1c1e;
+  background: var(--surface-ios);
   border-radius: 50%;
 }
 

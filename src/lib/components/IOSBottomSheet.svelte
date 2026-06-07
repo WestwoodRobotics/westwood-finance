@@ -103,7 +103,7 @@
     bottom: 0;
     left: 0;
     right: 0;
-    background: #1c1c1e;
+    background: var(--surface-ios);
     border-radius: 16px 16px 0 0;
     max-height: 90vh;
     overflow-y: auto;

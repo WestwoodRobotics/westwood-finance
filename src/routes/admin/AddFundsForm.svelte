@@ -6,10 +6,10 @@
 
   const TYPE_COLORS: Record<string, string> = {
     Fundraiser: 'var(--primary)',
-    Grant: '#b97cf3',
-    Dues: '#4e9af1',
-    Sponsor: '#6bcb77',
-    Other: '#f1a94e',
+    Grant: 'var(--color-grant)',
+    Dues: 'var(--color-dues)',
+    Sponsor: 'var(--color-sponsor)',
+    Other: 'var(--color-fund-other)',
   };
   const typeOptions = [
     { label: 'Fundraiser', value: 'Fundraiser' },
