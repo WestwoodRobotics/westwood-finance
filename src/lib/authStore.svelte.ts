@@ -43,6 +43,9 @@ class AuthStore {
   constructor() {
     if (typeof window !== "undefined") {
       this._restoreSession();
+      if (this.hasValidSession && this.status === "approved") {
+        this.fetchMembers();
+      }
     }
   }
 
@@ -200,9 +203,21 @@ class AuthStore {
         this.membersLoaded = true;
         this._revalidate();
       }
-    } catch (e) {
+    } catch (e: unknown) {
+      if (e instanceof Error && e.message === "Forbidden") return;
       console.warn("Failed to fetch members list:", e);
     }
+  }
+
+  revokeAccess(): void {
+    this.member = null;
+    this.status = "unauthorized";
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("westwood_members");
+    }
+    this.membersList = [];
+    this.membersLoaded = false;
+    console.log("Auth: Access revoked — member removed or role downgraded");
   }
 
   _applyMatch(match: MemberMatch): void {

@@ -3,3 +3,5 @@ export const BASE_URL =
 
 export const GOOGLE_CLIENT_ID =
   "240757796429-d88lrfdtlvtf6fgulhq1t3f28thre90k.apps.googleusercontent.com";
+
+export const FINANCE_DIRECTOR = "Ishaan";

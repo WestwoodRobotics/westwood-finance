@@ -3,10 +3,10 @@ import { authStore } from "./authStore.svelte.js";
 
 // Errors from GAS that mean "your session is no longer valid". On these we sign
 // out so AuthGate renders the sign-in screen (One Tap recovers in ~one tap).
-const AUTH_ERRORS = new Set(["Unauthorized", "Session expired"]);
+const SESSION_ERRORS = new Set(["Unauthorized", "Session expired"]);
+const ACCESS_ERRORS = new Set(["Forbidden"]);
 
 export const api = {
-  /** Single path for all GAS calls except `login`. Injects the session token. */
   async post(
     payload: Record<string, unknown>,
     opts: { signal?: AbortSignal } = {},
@@ -33,9 +33,15 @@ export const api = {
     if (!res.ok) throw new Error(`Network error: ${res.status}`);
 
     const data = JSON.parse(await res.text());
-    if (data?.error && AUTH_ERRORS.has(data.error)) {
-      authStore.signOut();
-      throw new Error("Session expired");
+    if (data?.error) {
+      if (SESSION_ERRORS.has(data.error)) {
+        authStore.signOut();
+        throw new Error("Session expired");
+      }
+      if (ACCESS_ERRORS.has(data.error)) {
+        authStore.revokeAccess();
+        throw new Error("Forbidden");
+      }
     }
     return data;
   },

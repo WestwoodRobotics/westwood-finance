@@ -3,7 +3,7 @@
   import { Info, Clock } from '@lucide/svelte';
   import { authStore } from '$lib/authStore.svelte.js';
   import { api } from '$lib/api.js';
-  import { GOOGLE_CLIENT_ID } from '$lib/config.js';
+  import { GOOGLE_CLIENT_ID, FINANCE_DIRECTOR } from '$lib/config.js';
   import CustomDropdown from '$lib/components/CustomDropdown.svelte';
 
   let { children } = $props();
@@ -98,34 +98,35 @@
     idError = '';
     registerError = '';
 
-    if (authStore.hasValidSession) {
-      const [firstName, ...lastNameArr] = (authStore.googleUser?.name || '').split(' ');
-      const lastName = lastNameArr.join(' ');
-      registering = true;
-      try {
-        const data = await api.post({
-          action: 'registerSelf',
-          firstName: firstName || '',
-          lastName: lastName || '',
-          studentId: clean,
-          team: selectedTeam,
-          email: authStore.googleUser?.email || '',
-        });
-        if (data.error) {
-          registerError = 'Registration failed: ' + data.error;
-          registering = false;
-          return;
-        }
-        authStore.updateFromRegistration(data);
-      } catch (e) {
-        registerError = 'Could not reach server. Check your connection and try again.';
+    if (!authStore.hasValidSession) {
+      registerError = 'Session not ready. Please wait a moment and try again.';
+      return;
+    }
+
+    const [firstName, ...lastNameArr] = (authStore.googleUser?.name || '').split(' ');
+    const lastName = lastNameArr.join(' ');
+    registering = true;
+    try {
+      const data = await api.post({
+        action: 'registerSelf',
+        firstName: firstName || '',
+        lastName: lastName || '',
+        studentId: clean,
+        team: selectedTeam,
+        email: authStore.googleUser?.email || '',
+      });
+      if (data.error) {
+        registerError = 'Registration failed: ' + data.error;
         registering = false;
         return;
       }
+      authStore.updateFromRegistration(data);
+    } catch (e) {
+      registerError = 'Could not reach server. Check your connection and try again.';
       registering = false;
-    } else {
-      authStore.submitStudentId(clean, selectedTeam);
+      return;
     }
+    registering = false;
   }
 
   function signOut() {
@@ -171,7 +172,7 @@
       <p class="auth-step-desc" style="margin-bottom: 24px;">You do not have permission to access this site.</p>
 
       <div class="pending-highlight" style="border-color: rgba(239, 68, 68, 0.15); background: rgba(239, 68, 68, 0.06);">
-        Contact <strong>Ishaan</strong> if you think this is a mistake.
+        Contact <strong>{FINANCE_DIRECTOR}</strong> if you think this is a mistake.
       </div>
 
       <div class="pending-actions" style="margin-top: 24px;">
@@ -299,7 +300,7 @@
 
       <div class="pending-message">
         <p>Your account is not yet approved.</p>
-        <p class="pending-highlight">Ask <strong>Ishaan</strong> to approve you.</p>
+        <p class="pending-highlight">Ask <strong>{FINANCE_DIRECTOR}</strong> to approve you.</p>
         <p class="pending-details">
           Tell him your Student ID: <code>{authStore.studentId}</code>
           <br/>

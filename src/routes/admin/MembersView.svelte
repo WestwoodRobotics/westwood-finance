@@ -3,6 +3,7 @@
   import CustomDropdown from '$lib/components/CustomDropdown.svelte';
   import { authStore } from '$lib/authStore.svelte.js';
   import { api } from '$lib/api.js';
+  import { FINANCE_DIRECTOR } from '$lib/config.js';
 
   let addForm = $state({ firstName: '', lastName: '', studentId: '', team: 'FRC', isAdmin: false });
   let submitting = $state(false);
@@ -99,7 +100,7 @@
     </p>
     <ul style="margin: 16px 0 0 16px; padding: 0; font-size: 0.8rem; color: var(--text-dim); display: flex; flex-direction: column; gap: 8px;">
       <li>Members sign in with Google and enter their Student ID</li>
-      <li>Unapproved users see "Ask Ishaan to approve you"</li>
+      <li>Unapproved users see "Ask {FINANCE_DIRECTOR} to approve you"</li>
       <li>Admins see all teams and can manage orders</li>
       <li>Regular members only see their own team's data</li>
     </ul>
