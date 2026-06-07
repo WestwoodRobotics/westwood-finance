@@ -151,6 +151,7 @@
         status: form.isExpense ? "Received" : "Pending Review",
         timestamp: formatDate(new Date()),
         orderedBy: form.orderedBy,
+        orderUUID: result.uuid || '',
       });
 
       // reset form

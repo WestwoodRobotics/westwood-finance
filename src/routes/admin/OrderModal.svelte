@@ -73,7 +73,7 @@
     deleteSaving = true;
     actionErr = '';
     try {
-      const result = await api.post({ action: 'deleteOrder', uuid: order.id });
+      const result = await api.post({ action: 'deleteOrder', uuid: order.orderUUID });
       if (result?.error) throw new Error(result.error || 'Delete failed');
       dataService.deleteOrderOptimistic(order.id);
       dataService.load(true, true);
