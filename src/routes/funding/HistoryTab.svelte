@@ -41,6 +41,7 @@
           <tr>
             <th class="sortable" onclick={() => toggleSort('Source')}>Source {sortCol === 'Source' ? (sortDir === 'asc' ? '↑' : '↓') : ''}</th>
             <th class="sortable" onclick={() => toggleSort('Type')}>Type {sortCol === 'Type' ? (sortDir === 'asc' ? '↑' : '↓') : ''}</th>
+            <th class="sortable" onclick={() => toggleSort('Date')}>Date {sortCol === 'Date' ? (sortDir === 'asc' ? '↑' : '↓') : ''}</th>
             <th class="sortable text-right" onclick={() => toggleSort('Amount')}>Amount {sortCol === 'Amount' ? (sortDir === 'asc' ? '↑' : '↓') : ''}</th>
           </tr>
         </thead>
@@ -51,13 +52,14 @@
               <td>
                 <span style="font-size: 1.05rem; font-weight: 500; border-left: 2px solid {TYPE_COLORS[String(f.Type)] || '#ccc'}; padding-left: 8px;">{f.Type}</span>
               </td>
+              <td class="text-dim monospace">{f.Date || '—'}</td>
               <td class="text-right monospace amount-positive">{formatCurrency(f.Amount)}</td>
             </tr>
           {/each}
         </tbody>
         <tfoot class="total-row">
           <tr>
-            <td colspan={2} class="total-label">Total Raised</td>
+            <td colspan={3} class="total-label">Total Raised</td>
             <td class="text-right monospace total-amount">
               {formatCurrency(sorted.reduce((sum, f) => sum + (Number(f.Amount) || 0), 0))}
             </td>

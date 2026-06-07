@@ -21,7 +21,7 @@
     if (!masterTransactions.length) return;
     const headers = ['Date', 'Type', 'Source/Item', 'Category', 'Team', 'Status', 'Amount'];
     const rows = masterTransactions.map(row =>
-      [row.date, row.type, row.source, row.category, row.team, row.status, row.amount]
+      [row.date, row.type, row.source, row.category, row.team, row.status, Math.abs(row.amount)]
         .map(val => `"${String(val || '').replace(/"/g, '""')}"`).join(',')
     );
     const blob = new Blob([[headers.join(','), ...rows].join('\n')], { type: 'text/csv' });

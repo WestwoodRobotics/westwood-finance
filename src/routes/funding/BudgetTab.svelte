@@ -70,7 +70,7 @@
             {@const teamFundsRaised = dataService.funds.reduce((sum, f) => {
               const r = String(f.Recipient || '').toLowerCase().trim();
               const s = team.toLowerCase().trim();
-              return (r === s || r === 'all') ? sum + (Number(f.Amount) || 0) : sum;
+              return (r === s || r.includes(s) || r === 'all' || r === 'westwood overall') ? sum + (Number(f.Amount) || 0) : sum;
             }, 0)}
             {@const clubFunds = (data as Record<string, number>)['Club Funds'] ?? 0}
             {@const personalFunds = (data as Record<string, number>)['Personal Funds'] ?? 0}
@@ -141,6 +141,7 @@
           <div class="budget-final" style="color:{final >= 0 ? 'var(--status-awarded)' : 'var(--status-rejected)'}">
             {formatCurrency(final)} <span class="budget-final-denom">/ {formatCurrency(teamFundsRaised + personal)}</span>
           </div>
+          <div class="budget-balance-note">committed balance · excl. pending</div>
           {#if usagePct > 0}
             <div class="budget-usage-badge">
               <div class="budget-usage-badge-inner" style="color:{pctColor}; background:{pctBg}">{usagePct.toFixed(1)}% Used</div>
@@ -218,7 +219,8 @@
   }
 
   .budget-team-name { font-size: 1.3rem; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
-  .budget-final { font-size: 2rem; font-weight: 700; margin-bottom: 16px; }
+  .budget-final { font-size: 2rem; font-weight: 700; margin-bottom: 4px; }
+  .budget-balance-note { font-size: 0.7rem; color: var(--text-dim); letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 12px; opacity: 0.6; }
   .budget-final-denom { font-size: 1.1rem; color: var(--text-muted); font-weight: 500; }
   .budget-usage-badge { position: absolute; top: 22px; right: 22px; }
   .budget-usage-badge-inner { font-size: 0.85rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; }

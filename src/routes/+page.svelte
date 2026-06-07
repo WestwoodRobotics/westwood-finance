@@ -33,8 +33,8 @@
   let yearSpent = $derived(yearFinancialOrders.reduce((sum, o) => sum + (o.total || 0), 0));
   let yearNetBalance = $derived(yearRaised - yearSpent);
 
-  let recentExpenses = $derived(view.financialOrders.slice(-5).reverse());
-  let recentOrders = $derived(view.teamOrders.slice(-5).reverse());
+  let recentExpenses = $derived(view.financialOrders.slice().sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || '')).slice(0, 5));
+  let recentOrders = $derived(view.teamOrders.slice().sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || '')).slice(0, 5));
 
   let budgetTotalValue = $derived.by(() => {
     const totalClub = dataService.budget?.Total?.['Club Funds'] || 0;
