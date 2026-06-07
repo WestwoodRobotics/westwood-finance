@@ -62,8 +62,8 @@
     <form onsubmit={(e) => { e.preventDefault(); save(); }}>
       <div class="modal-fields" style="grid-template-columns: 1fr;">
         <div class="form-group">
-          <label>New Status</label>
-          <CustomDropdown options={ORDER_STATUSES.map(s => ({ label: s, value: s }))} bind:value={groupStatus} />
+          <label for="group-status">New Status</label>
+          <CustomDropdown id="group-status" options={ORDER_STATUSES.map(s => ({ label: s, value: s }))} bind:value={groupStatus} />
         </div>
       </div>
       <div class="modal-actions">

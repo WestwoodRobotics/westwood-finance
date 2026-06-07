@@ -1,8 +1,26 @@
 <script lang="ts">
   import { X } from '@lucide/svelte';
+  import CustomDropdown from '$lib/components/CustomDropdown.svelte';
   import { dataService } from '$lib/dataService.svelte.js';
   import { api } from '$lib/api.js';
   import type { Fund } from '$lib/types.js';
+
+  const recipientOptions = [
+    { label: 'Slingshot', value: 'Slingshot' },
+    { label: 'Atlatl', value: 'Atlatl' },
+    { label: 'Kunai', value: 'Kunai' },
+    { label: 'Hunga Munga', value: 'Hunga Munga' },
+    { label: 'FRC', value: 'FRC' },
+    { label: 'Westwood Overall', value: 'Westwood Overall' },
+  ];
+
+  const typeOptions = [
+    { label: 'Fundraiser', value: 'Fundraiser' },
+    { label: 'Grant', value: 'Grant' },
+    { label: 'Dues', value: 'Dues' },
+    { label: 'Sponsor', value: 'Sponsor' },
+    { label: 'Other', value: 'Other' },
+  ];
 
   let { fund, onclose, onsaved }: {
     fund: Fund;
@@ -75,7 +93,7 @@
         </div>
         <div class="form-group">
           <label for="fund-recipient">Recipient / Team</label>
-          <input id="fund-recipient" bind:value={fields.Recipient} />
+          <CustomDropdown id="fund-recipient" options={recipientOptions} bind:value={fields.Recipient} />
         </div>
         <div class="form-group">
           <label for="fund-date">Date</label>

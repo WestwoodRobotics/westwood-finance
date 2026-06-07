@@ -108,8 +108,8 @@
     <form onsubmit={(e) => { e.preventDefault(); saveEdit(); }}>
       <div class="modal-fields">
         <div class="form-group">
-          <label>Status</label>
-          <CustomDropdown options={ORDER_STATUSES} bind:value={editStatus} />
+          <label for="edit-status">Status</label>
+          <CustomDropdown id="edit-status" options={ORDER_STATUSES} bind:value={editStatus} />
         </div>
         <div class="form-group">
           <label for="edit-uuid">Order UUID</label>

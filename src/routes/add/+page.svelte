@@ -88,30 +88,13 @@
       form.orderedBy = authStore.displayName;
     }
 
-    const required = {
-      "Item name": form.item,
-      "Vendor/Company": form.company,
-      "Price": form.price,
-      "Quantity": form.quantity,
-      "Team": form.team,
-      "Category": form.category,
-      "Ordered By": form.orderedBy,
-      "Team Notes": form.notes,
-    };
-
-    const missing = Object.entries(required)
-      .filter(([_, v]) => !v || !String(v).trim())
-      .map(([k]) => k);
-
-    if (missing.length > 0) {
-      submitError = `The following fields are required: ${missing.join(", ")}.`;
-      return;
-    }
-
-    if (isNaN(parseFloat(form.price)) || parseFloat(form.price) < 0) {
-      submitError = "Please enter a valid numeric unit price.";
-      return;
-    }
+    const requiredFields: [string, string | number][] = [
+      ['item', form.item], ['company', form.company], ['price', form.price],
+      ['quantity', form.quantity], ['team', form.team], ['category', form.category],
+      ['orderedBy', form.orderedBy], ['notes', form.notes],
+    ];
+    requiredFields.forEach(([name, val]) => validateField(name, val));
+    if (Object.keys(fieldErrors).length > 0) return;
 
     submitting = true;
 

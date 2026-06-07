@@ -2,11 +2,12 @@
   import { onMount, tick } from 'svelte';
   import { ChevronDown, Check } from '@lucide/svelte';
 
-  let { 
-    options = [], 
-    value = $bindable(''), 
-    placeholder = 'Selection required', 
-    onchange = undefined
+  let {
+    options = [],
+    value = $bindable(''),
+    placeholder = 'Selection required',
+    onchange = undefined,
+    id = undefined
   } = $props();
 
   let isOpen = $state(false);
@@ -59,13 +60,14 @@
 </script>
 
 <div class="custom-dropdown" bind:this={dropdownRef}>
-  <button 
-    type="button" 
-    class="dropdown-trigger" 
-    class:active={isOpen} 
+  <button
+    type="button"
+    class="dropdown-trigger"
+    class:active={isOpen}
     onclick={toggle}
     aria-haspopup="listbox"
     aria-expanded={isOpen}
+    {id}
   >
     <span class="label" class:placeholder={!value}>{selectedLabel()}</span>
     <span class="chevron" class:open={isOpen}>

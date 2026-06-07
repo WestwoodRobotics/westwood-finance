@@ -73,12 +73,12 @@
     <form onsubmit={(e) => { e.preventDefault(); submit(); }}>
       <div class="form-grid">
         <div class="form-group">
-          <label>History Type *</label>
-          <CustomDropdown options={typeOptions} bind:value={form.type} />
+          <label for="f-type">History Type *</label>
+          <CustomDropdown id="f-type" options={typeOptions} bind:value={form.type} />
         </div>
         <div class="form-group">
-          <label>Destination Team *</label>
-          <CustomDropdown options={recipientOptions} bind:value={form.recipient} />
+          <label for="f-recipient">Destination Team *</label>
+          <CustomDropdown id="f-recipient" options={recipientOptions} bind:value={form.recipient} />
         </div>
         <div class="form-group" style="grid-column:1/-1">
           <label for="f-source">Source / Description *</label>

@@ -15,10 +15,24 @@
     { label: 'Westwood Overall', value: 'Westwood Overall' },
   ];
 
+  const presetVendors = [
+    { label: 'Select Vendor...', value: '' },
+    { label: 'GoBilda', value: 'GoBilda' },
+    { label: 'REV', value: 'REV' },
+    { label: 'Andymark', value: 'Andymark' },
+    { label: 'Axon', value: 'Axon' },
+    { label: 'Polymaker', value: 'Polymaker' },
+    { label: 'Other', value: 'Other' },
+  ];
+  let vendorSelect = $state('');
   let form = $state({ item: '', company: '', link: '', price: '', quantity: '1', notes: '', team: 'FRC', category: 'hardware', status: 'Received' });
   let submitting = $state(false);
   let actionMsg = $state('');
   let actionErr = $state('');
+
+  $effect(() => {
+    if (vendorSelect && vendorSelect !== 'Other') form.company = vendorSelect;
+  });
 
   async function submit() {
     actionErr = '';
@@ -38,6 +52,7 @@
       actionMsg = 'Order recorded successfully!';
       dataService.addOrderOptimistic({ item: form.item, company: form.company, link: finalLink, price: Number(form.price) || 0, quantity: Number(form.quantity) || 1, notes: form.notes, category: form.category, team: form.team, status: form.status, timestamp: new Date().toISOString() });
       form = { item: '', company: '', link: '', price: '', quantity: '1', notes: '', team: 'FRC', category: 'hardware', status: 'Received' };
+      vendorSelect = '';
     } catch (e) {
       actionErr = e instanceof Error ? e.message : 'Request failed';
     } finally {
@@ -69,11 +84,14 @@
         </div>
         <div class="form-group">
           <label for="ae-company">Vendor / Company *</label>
-          <input id="ae-company" type="text" bind:value={form.company} placeholder="ex. REV Robotics" required />
+          <div style="display:flex; gap:8px;">
+            <CustomDropdown options={presetVendors} bind:value={vendorSelect} placeholder="Quick pick…" />
+            <input id="ae-company" type="text" bind:value={form.company} placeholder="ex. REV Robotics" required style="flex:1;" />
+          </div>
         </div>
         <div class="form-group">
-          <label>Team *</label>
-          <CustomDropdown options={recipientOptions} bind:value={form.team} />
+          <label for="ae-team">Team *</label>
+          <CustomDropdown id="ae-team" options={recipientOptions} bind:value={form.team} />
         </div>
         <div class="form-group">
           <label for="ae-price">Unit Price ($) *</label>
@@ -84,22 +102,22 @@
           <input id="ae-qty" type="number" bind:value={form.quantity} min="1" required />
         </div>
         <div class="form-group">
-          <label>Category *</label>
-          <CustomDropdown
+          <label for="ae-category">Category *</label>
+          <CustomDropdown id="ae-category"
             options={[{ label: 'Hardware', value: 'hardware' }, { label: 'Software', value: 'software' }, { label: 'Outreach', value: 'outreach' }, { label: 'Miscellaneous', value: 'miscellaneous' }]}
             bind:value={form.category}
           />
         </div>
         <div class="form-group">
-          <label>Initial Status</label>
-          <CustomDropdown options={ORDER_STATUSES.map(s => ({ label: s, value: s }))} bind:value={form.status} />
+          <label for="ae-status">Initial Status</label>
+          <CustomDropdown id="ae-status" options={ORDER_STATUSES.map(s => ({ label: s, value: s }))} bind:value={form.status} />
         </div>
         <div class="form-group" style="grid-column: 1 / -1">
           <label for="ae-link">Link</label>
           <input id="ae-link" type="text" bind:value={form.link} placeholder="https://..." />
         </div>
         <div class="form-group" style="grid-column: 1 / -1">
-          <label for="ae-notes">Notes *</label>
+          <label for="ae-notes">Team Notes *</label>
           <textarea id="ae-notes" rows={3} bind:value={form.notes} placeholder="Reason for ordering this item..." required></textarea>
         </div>
       </div>

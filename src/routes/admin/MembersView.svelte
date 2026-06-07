@@ -76,8 +76,8 @@
           <input id="member-sid" type="text" inputmode="numeric" maxlength={6} bind:value={addForm.studentId} placeholder="123456" required />
         </div>
         <div class="form-group">
-          <label>Team *</label>
-          <CustomDropdown
+          <label for="member-team">Team *</label>
+          <CustomDropdown id="member-team"
             options={[{ label: 'FRC', value: 'FRC' }, { label: 'Kunai', value: 'Kunai' }, { label: 'Slingshot', value: 'Slingshot' }, { label: 'Hunga Munga', value: 'Hunga Munga' }, { label: 'Atlatl', value: 'Atlatl' }]}
             bind:value={addForm.team}
           />
