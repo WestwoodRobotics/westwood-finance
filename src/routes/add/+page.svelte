@@ -53,7 +53,7 @@
   let showPassword = $state(false);
 
   function validateField(name: string, value: string | number) {
-    if (!value && value !== 0 || !String(value).trim()) {
+    if (value == null || !String(value).trim()) {
       fieldErrors[name] = 'Required';
     } else if (name === 'price' && (isNaN(parseFloat(value)) || parseFloat(value) < 0)) {
       fieldErrors[name] = 'Enter a valid price';
@@ -64,9 +64,11 @@
   }
 
   $effect(() => {
-    if (vendorSelect && vendorSelect !== 'Other') {
-      form.company = vendorSelect;
-    }
+    if (vendorSelect && vendorSelect !== 'Other') form.company = vendorSelect;
+  });
+
+  $effect(() => {
+    if (!form.orderedBy && authStore.displayName) form.orderedBy = authStore.displayName;
   });
 
   async function submit() {

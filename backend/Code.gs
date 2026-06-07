@@ -192,14 +192,19 @@ function doPost(e) {
     "getMembers",
   ]);
 
-  if (ADMIN_ACTIONS.has(p.action)) {
-    if (!isAdmin(caller.email)) return txtResponse({ error: "Forbidden" });
-  } else if (MEMBER_ACTIONS.has(p.action)) {
-    if (caller.role === "unauthorized" || caller.role === "") {
-      if (!isApprovedMember(caller.email))
-        return txtResponse({ error: "Forbidden" });
+  const needsRoleCheck = ADMIN_ACTIONS.has(p.action) ||
+    (MEMBER_ACTIONS.has(p.action) && (caller.role === "unauthorized" || caller.role === ""));
+  if (needsRoleCheck) {
+    const callerMember = getMemberByEmail(caller.email);
+    const role = callerMember ? (callerMember.role || "").trim().toLowerCase() : "";
+    if (ADMIN_ACTIONS.has(p.action)) {
+      if (role !== "admin") return txtResponse({ error: "Forbidden" });
+    } else if (!callerMember || !role || role === "unauthorized") {
+      return txtResponse({ error: "Forbidden" });
     }
-  } else if (p.action === "registerSelf" && caller.role === "unauthorized") {
+  }
+
+  if (p.action === "registerSelf" && caller.role === "unauthorized") {
     return txtResponse({ error: "Forbidden" });
   }
 
@@ -536,16 +541,15 @@ function removeMember(p) {
 function sheetToObjects(sheet) {
   const data = sheet.getDataRange().getValues();
   if (data.length < 3) return [];
-  const headers = data[1],
-    rows = data.slice(2);
-  return rows
-    .filter((r) => r.some((c) => c !== ""))
-    .map((r, i) => {
-      const obj = {};
-      headers.forEach((h, k) => (obj[h.trim()] = r[k]));
-      obj.rowIndex = i + 3;
-      return obj;
-    });
+  const headers = data[1], rows = data.slice(2), result = [];
+  rows.forEach((r, i) => {
+    if (!r.some((c) => c !== "")) return;
+    const obj = {};
+    headers.forEach((h, k) => (obj[h.trim()] = r[k]));
+    obj.rowIndex = i + 3;
+    result.push(obj);
+  });
+  return result;
 }
 
 function txtResponse(data) {
