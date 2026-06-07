@@ -1,8 +1,6 @@
 import { BASE_URL } from "./config.js";
 import { authStore } from "./authStore.svelte.js";
 
-// Errors from GAS that mean "your session is no longer valid". On these we sign
-// out so AuthGate renders the sign-in screen (One Tap recovers in ~one tap).
 const SESSION_ERRORS = new Set(["Unauthorized", "Session expired"]);
 const ACCESS_ERRORS = new Set(["Forbidden"]);
 

@@ -10,7 +10,7 @@ pnpm install
 pnpm dev
 ```
 
-npm works too
+(npm works too)
 
 ## stack
 
@@ -20,10 +20,6 @@ npm works too
 
 ## deploy
 
-```sh
-pnpm deploy   # deploys to gh-pages + outputs to /build w/o push to gh on wtv branch
-```
-
-deployed via `.github/workflows/deploy.yml` to github pages, view in the deployemnts
+deployed via `.github/workflows/deploy.yml` action to gh pages, viewable in Deployments
 
 to update the backend, edit `backend/Code.gs` and push. automatically syncs with google apps script via clasp(pre-configured) and `.github/workflos/deploy-script.yml`

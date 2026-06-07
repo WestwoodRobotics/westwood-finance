@@ -37,8 +37,10 @@
   let recentOrders = $derived(view.teamOrders.slice().sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || '')).slice(0, 5));
 
   let budgetTotalValue = $derived.by(() => {
-    const totalClub = dataService.budget?.Total?.['Club Funds'] || 0;
-    const totalPersonal = dataService.budget?.Total?.['Personal Funds'] || 0;
+    const budgetKey = selectedTeam === 'Westwood Overall' ? 'Total' : selectedTeam;
+    const teamBudget = (dataService.budget?.[budgetKey] as Record<string, number> | undefined);
+    const totalClub = teamBudget?.['Club Funds'] || 0;
+    const totalPersonal = teamBudget?.['Personal Funds'] || 0;
     const totalRealExpenses = view.financialOrders
       .filter(o => {
         const st = (o.status || '').toLowerCase().trim();
