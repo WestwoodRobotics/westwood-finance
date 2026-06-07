@@ -61,9 +61,9 @@ function mintSessionToken(member) {
 }
 
 function safeEqual(a, b) {
-  if (a.length !== b.length) return false;
-  var d = 0;
-  for (var i = 0; i < a.length; i++) d |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  const len = Math.max(a.length, b.length);
+  var d = a.length !== b.length ? 1 : 0;
+  for (var i = 0; i < len; i++) d |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0);
   return d === 0;
 }
 
@@ -199,6 +199,8 @@ function doPost(e) {
       if (!isApprovedMember(caller.email))
         return txtResponse({ error: "Forbidden" });
     }
+  } else if (p.action === "registerSelf" && caller.role === "unauthorized") {
+    return txtResponse({ error: "Forbidden" });
   }
 
   try {
