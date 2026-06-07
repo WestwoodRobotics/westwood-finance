@@ -2,7 +2,6 @@
   import { X } from '@lucide/svelte';
   import { dataService } from '$lib/dataService.svelte.js';
   import { api } from '$lib/api.js';
-  import { formatDate } from '$lib/utils.js';
   import type { Fund } from '$lib/types.js';
 
   let { fund, onclose, onsaved }: {
@@ -34,7 +33,7 @@
         Recipient: String(fields.Recipient),
         Notes: String(fields.Notes),
         Type: String(fields.Type),
-        Date: formatDate(fields.Date),
+        Date: fields.Date,
       });
       if (result?.error) throw new Error(result.error || 'Update failed');
 
