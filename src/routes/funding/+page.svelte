@@ -16,7 +16,7 @@
 </script>
 
 <svelte:head>
-  <title>Team Dashboard | Westwood Finance</title>
+  <title>Funding | Westwood Finance</title>
 </svelte:head>
 
 <PageHeader title="Team " titleAccent="Dashboard">

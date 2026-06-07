@@ -8,7 +8,7 @@
 
   const allNavItems = [
     { href: "/",        label: "Dashboard",       icon: LayoutDashboard },
-    { href: "/add/",    label: "Submit an Order",  icon: PlusCircle },
+    { href: "/add/",    label: "Submit Order",     icon: PlusCircle },
     { href: "/funding/",label: "Team Dashboard",   icon: Users },
     { href: "/orders/", label: "Orders",           icon: ShoppingCart },
     { href: "/stats/",  label: "Analytics",        icon: BarChart3 },

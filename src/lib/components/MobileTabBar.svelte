@@ -7,13 +7,15 @@
 
   let showMoreSheet = $state(false);
 
-  const mainTabs = [
+  let mainTabs = $derived([
     { href: '/',       label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/orders', label: 'All Orders', icon: ShoppingBag },
-    { href: '/add',    label: 'Submit', icon: Plus, center: true },
-    { href: '/funding',label: 'Team', icon: Users },
-    { href: '#more',   label: 'More', isMore: true, icon: MoreHorizontal },
-  ];
+    { href: '/orders', label: 'Orders',    icon: ShoppingBag },
+    { href: '/add',    label: 'Submit',    icon: Plus, center: true },
+    { href: '/funding',label: 'Team',      icon: Users },
+    perms.admin
+      ? { href: '/admin', label: 'Admin', icon: User }
+      : { href: '#more', label: 'More', isMore: true, icon: MoreHorizontal },
+  ]);
 
   const allMoreItems = [
     { href: '/stats', label: 'Analytics', subtitle: 'Spending trends & charts', icon: BarChart3, color: '#3b82f6' },
@@ -125,6 +127,7 @@
           <div class="ios-tab-center-pill">
             <TabIcon size={26} />
           </div>
+          <span class="ios-tab-label ios-tab-center-label">{tab.label}</span>
         {:else}
           <div class="ios-tab-icon">
             <TabIcon size={24} />
@@ -202,6 +205,11 @@
   }
   .ios-tab-center {
     margin-top: -12px;
+  }
+
+  .ios-tab-center-label {
+    color: var(--primary);
+    font-weight: 600;
   }
 
   .ios-tab-center-pill {
