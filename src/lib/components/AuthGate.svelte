@@ -18,6 +18,7 @@
   let idError = $state('');
   let registering = $state(false);
   let registerError = $state('');
+  let checkingAgain = $state(false);
 
   const TEAM_OPTIONS = ['FRC', 'Kunai', 'Slingshot', 'Hunga Munga', 'Atlatl'];
 
@@ -307,7 +308,7 @@
       </div>
 
       <div class="pending-actions" style="margin-top: 24px;">
-        <button class="auth-submit-btn" style="max-width: 240px; margin: 0 auto; height: 44px; font-size: 0.9rem;" onclick={() => authStore.fetchMembers()}>Check Again</button>
+        <button class="auth-submit-btn" style="max-width: 240px; margin: 0 auto; height: 44px; font-size: 0.9rem;" disabled={checkingAgain} onclick={async () => { checkingAgain = true; await authStore.fetchMembers(); checkingAgain = false; }}>{checkingAgain ? 'Checking…' : 'Check Again'}</button>
         <button class="auth-back-btn" onclick={signOut}>Sign in with another account</button>
       </div>
 

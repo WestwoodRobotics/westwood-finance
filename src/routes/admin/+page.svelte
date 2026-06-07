@@ -27,7 +27,7 @@
   let syncing = $state(false);
   let actionMsg = $state('');
   let actionErr = $state('');
-  let undoFn = $state<(() => void) | null>(null);
+  let undoFn = $state<(() => Promise<void>) | null>(null);
 
   let editingOrder = $state<Order | null>(null);
   let editingFund = $state<Fund | null>(null);
@@ -110,7 +110,7 @@
     <div class="message-bar success-bar" style="justify-content: space-between;">
       <div style="display: flex; align-items: center; gap: 12px;"><Check size={16} />{actionMsg}</div>
       {#if undoFn}
-        <button class="btn btn-ghost btn-sm" onclick={() => { undoFn?.(); undoFn = null; actionMsg = 'Action undone.'; }}>Undo</button>
+        <button class="btn btn-ghost btn-sm" onclick={async () => { try { await undoFn?.(); actionMsg = 'Action undone.'; } catch { actionErr = 'Undo failed. Please refresh.'; actionMsg = ''; } finally { undoFn = null; } }}>Undo</button>
       {/if}
     </div>
   {/if}

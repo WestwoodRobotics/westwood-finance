@@ -11,7 +11,7 @@
   let { order, onclose, onsaved }: {
     order: Order;
     onclose: () => void;
-    onsaved: (msg: string, undofn: (() => void) | null) => void;
+    onsaved: (msg: string, undofn: (() => Promise<void>) | null) => void;
   } = $props();
 
   let editStatus = $state(order.status || 'Pending Review');
@@ -54,10 +54,10 @@
       if (result?.error) throw new Error(result.error || 'Update failed');
 
       dataService.updateOrderOptimistic(order.id, { status: editStatus, tracking: editTracking, orderUUID: editUUID });
-      const undofn = () => {
+      const undofn = async () => {
         dataService.updateOrderOptimistic(editId, { status: prevStatus, tracking: prevTracking, orderUUID: prevUUID });
-        api.post({ action: 'updateOrderStatus', id: editId, rowIndex: String(editRowIndex), status: prevStatus || '', tracking: prevTracking || '', orderUUID: prevUUID || '' })
-          .then(() => dataService.load(true, true));
+        await api.post({ action: 'updateOrderStatus', id: editId, rowIndex: String(editRowIndex), status: prevStatus || '', tracking: prevTracking || '', orderUUID: prevUUID || '' });
+        dataService.load(true, true);
       };
       dataService.load(true, true);
       onsaved(`"${order.item}" updated!`, undofn);

@@ -10,7 +10,7 @@
   let { orders, onclose, onsaved }: {
     orders: Order[];
     onclose: () => void;
-    onsaved: (msg: string, undofn: () => void) => void;
+    onsaved: (msg: string, undofn: () => Promise<void>) => void;
   } = $props();
 
   let groupStatus = $state('Ordered');
@@ -28,12 +28,12 @@
       if (results.some((r: { error?: string }) => r.error)) throw new Error('Batch status update failed');
 
       orders.forEach(o => dataService.updateOrderOptimistic(o.id, { status: groupStatus }));
-      const undofn = () => {
-        prevStates.forEach(prev => {
-          dataService.updateOrderOptimistic(prev.id, { status: prev.status });
-          api.post({ action: 'updateOrderStatus', id: prev.id, rowIndex: String(prev.rowIndex), status: prev.status || '' });
-        });
-        setTimeout(() => dataService.load(true, true), 1000);
+      const undofn = async () => {
+        prevStates.forEach(prev => dataService.updateOrderOptimistic(prev.id, { status: prev.status }));
+        await Promise.all(prevStates.map(prev =>
+          api.post({ action: 'updateOrderStatus', id: prev.id, rowIndex: String(prev.rowIndex), status: prev.status || '' })
+        ));
+        dataService.load(true, true);
       };
       dataService.load(true, true);
       onsaved(`✓ Status updated to ${groupStatus}`, undofn);

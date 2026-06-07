@@ -183,6 +183,8 @@
     }
   }
   function toggleExpenseMode() {
+    const dirty = form.item || form.company || form.link || form.price || form.notes;
+    if (dirty && !confirm('Leave page? Unsaved form data will be lost.')) return;
     goto("/admin?view=addOrder");
   }
 </script>
