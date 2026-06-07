@@ -49,8 +49,9 @@
   });
 </script>
 
+<svelte:window onkeydown={(e) => open && e.key === 'Escape' && onclose()} />
+
 {#if open}
-  <svelte:window onkeydown={(e) => e.key === 'Escape' && onclose()} />
   <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_noninteractive_element_interactions -->
   <div class="ios-sheet-backdrop" onclick={onclose} role="presentation"></div>
 
