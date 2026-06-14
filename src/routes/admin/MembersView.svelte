@@ -24,7 +24,7 @@
 
       actionMsg = `✓ ${addForm.firstName} ${addForm.lastName} approved!`;
       addForm = { firstName: '', lastName: '', studentId: '', team: 'FRC', isAdmin: false };
-      await authStore.fetchMembers();
+      await dataService.load(true, true);
     } catch (e) {
       actionErr = e instanceof Error ? e.message : 'Failed to add member';
     } finally {
@@ -40,7 +40,7 @@
       if (result.error) throw new Error(result.error);
 
       actionMsg = '✓ Member removed.';
-      await authStore.fetchMembers();
+      await dataService.load(true, true);
     } catch (e) {
       actionErr = e instanceof Error ? e.message : 'Failed to remove member';
     }
@@ -92,25 +92,12 @@
       </button>
     </form>
   </div>
-
-  <aside class="tips-card card hide-mobile" style="padding: 24px;">
-    <div class="card-title">Member Access</div>
-    <p class="text-muted" style="font-size: 0.85rem; line-height: 1.5;">
-      Approved members can only view data for their assigned team. Admin members get full access to all teams and this portal.
-    </p>
-    <ul style="margin: 16px 0 0 16px; padding: 0; font-size: 0.8rem; color: var(--text-dim); display: flex; flex-direction: column; gap: 8px;">
-      <li>Members sign in with Google and enter their Student ID</li>
-      <li>Unapproved users see "Ask {FINANCE_DIRECTOR} to approve you"</li>
-      <li>Admins see all teams and can manage orders</li>
-      <li>Regular members only see their own team's data</li>
-    </ul>
-  </aside>
 </div>
 
 <section class="fade-in" style="margin-top: 32px;">
   <div class="section-title" style="margin-bottom:12px; display: flex; justify-content: space-between; align-items: center;">
     <span>Approved Members ({authStore.membersList.length})</span>
-    <button class="btn btn-ghost btn-sm" onclick={() => authStore.fetchMembers()} style="font-size: 0.75rem;">↻ Refresh List</button>
+    <button class="btn btn-ghost btn-sm" onclick={() => dataService.load(true, true)} style="font-size: 0.75rem;">↻ Refresh List</button>
   </div>
   <div class="card orders-card" style="padding:0; overflow:hidden;">
     {#if authStore.membersList.length === 0}
@@ -160,10 +147,8 @@
 
 <style>
   .add-layout {
-    display: grid;
-    grid-template-columns: 1fr 300px;
-    gap: 32px;
-    align-items: start;
+    max-width: 800px;
+    margin: 0 auto;
   }
   .form-grid {
     display: grid;
