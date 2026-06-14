@@ -18,12 +18,12 @@
   let actionErr = $state('');
 
   async function save() {
-    const prevStates = orders.map(o => ({ id: o.id, rowIndex: o.rowIndex, status: o.status }));
+    const prevStates = orders.map(o => ({ id: o.id, rowIndex: o.rowIndex, status: o.status, orderUUID: o.orderUUID }));
     saving = true;
     actionErr = '';
     try {
       const results = await Promise.all(orders.map(o =>
-        api.post({ action: 'updateOrderStatus', id: o.id, rowIndex: String(o.rowIndex), status: groupStatus })
+        api.post({ action: 'updateOrderStatus', id: o.id, rowIndex: String(o.rowIndex), orderUUID: o.orderUUID || '', status: groupStatus })
       ));
       if (results.some((r: { error?: string }) => r.error)) throw new Error('Batch status update failed');
 
@@ -31,7 +31,7 @@
       const undofn = async () => {
         prevStates.forEach(prev => dataService.updateOrderOptimistic(prev.id, { status: prev.status }));
         await Promise.all(prevStates.map(prev =>
-          api.post({ action: 'updateOrderStatus', id: prev.id, rowIndex: String(prev.rowIndex), status: prev.status || '' })
+          api.post({ action: 'updateOrderStatus', id: prev.id, rowIndex: String(prev.rowIndex), orderUUID: prev.orderUUID || '', status: prev.status || '' })
         ));
         dataService.load(true, true);
       };

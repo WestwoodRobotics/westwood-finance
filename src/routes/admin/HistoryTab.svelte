@@ -126,4 +126,42 @@
   .item-primary { font-weight: 700; color: #fff; font-size: 0.9rem; }
   .item-secondary { font-size: 0.75rem; color: var(--text-dim); margin-top: 2px; }
   .amount { font-weight: 700; color: #fff; }
+
+  .admin-link-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+    color: var(--primary);
+    transition: color 0.2s;
+  }
+
+  @media (hover: hover) {
+    .admin-link-btn:hover {
+      color: #fff;
+      text-decoration: underline;
+    }
+    
+    .group-row:hover td {
+      background: var(--surface-2);
+    }
+  }
+
+  .group-row td:first-child {
+    position: relative;
+    padding-left: 20px !important;
+  }
+
+  .group-row td:first-child::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--group-color, var(--primary));
+    opacity: 0.9;
+  }
 </style>
