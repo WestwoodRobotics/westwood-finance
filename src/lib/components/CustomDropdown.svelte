@@ -1,51 +1,83 @@
-<script>
+<script lang="ts">
   import { onMount, tick } from 'svelte';
+  import { ChevronDown, Check } from '@lucide/svelte';
 
-  let { 
-    options = [], 
-    value = $bindable(''), 
-    placeholder = 'Selection required', 
-    onchange = undefined
+  let {
+    options = [],
+    value = $bindable(''),
+    placeholder = 'Selection required',
+    onchange = undefined,
+    id = undefined
   } = $props();
 
   let isOpen = $state(false);
   let dropdownRef = $state();
+  let optionRefs: HTMLElement[] = [];
 
   function toggle() {
     const nextOpen = !isOpen;
     if (nextOpen) {
-      // Broadcast to close all other dropdowns
       window.dispatchEvent(new CustomEvent('close-dropdowns', { detail: { caller: dropdownRef } }));
     }
     isOpen = nextOpen;
   }
 
-  function select(/** @type {string} */ optValue) {
+  function select(optValue) {
     value = optValue;
     isOpen = false;
     onchange?.({ target: { value: optValue } });
+    dropdownRef?.querySelector<HTMLElement>('.dropdown-trigger')?.focus();
   }
 
-  function handleClickOutside(/** @type {MouseEvent} */ event) {
+  function handleClickOutside(event) {
     if (dropdownRef && !dropdownRef.contains(event.target)) {
       isOpen = false;
     }
   }
 
-  onMount(() => {
-    const handleCloseOthers = (/** @type {any} */ e) => {
-      if (e.detail && e.detail.caller !== dropdownRef) {
-        isOpen = false;
-      }
-    };
+  function handleTriggerKeydown(e: KeyboardEvent) {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      isOpen = true;
+      const idx = e.key === 'ArrowDown' ? 0 : options.length - 1;
+      tick().then(() => optionRefs[idx]?.focus());
+    } else if (e.key === 'Escape') {
+      isOpen = false;
+    }
+  }
 
+  function handleOptionKeydown(e: KeyboardEvent, idx: number) {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      optionRefs[(idx + 1) % options.length]?.focus();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      optionRefs[(idx - 1 + options.length) % options.length]?.focus();
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      optionRefs[0]?.focus();
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      optionRefs[options.length - 1]?.focus();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      isOpen = false;
+      dropdownRef?.querySelector<HTMLElement>('.dropdown-trigger')?.focus();
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      const val = typeof options[idx] === 'string' ? options[idx] : (options[idx] as { value: string }).value;
+      select(val);
+    }
+  }
+
+  onMount(() => {
+    const handleCloseOthers = (e) => {
+      if (e.detail && e.detail.caller !== dropdownRef) isOpen = false;
+    };
     window.addEventListener('click', handleClickOutside);
-    // @ts-ignore - custom event
     window.addEventListener('close-dropdowns', handleCloseOthers);
-    
     return () => {
       window.removeEventListener('click', handleClickOutside);
-      // @ts-ignore - custom event
       window.removeEventListener('close-dropdowns', handleCloseOthers);
     };
   });
@@ -58,44 +90,41 @@
 </script>
 
 <div class="custom-dropdown" bind:this={dropdownRef}>
-  <button 
-    type="button" 
-    class="dropdown-trigger" 
-    class:active={isOpen} 
+  <button
+    type="button"
+    class="dropdown-trigger"
+    class:active={isOpen}
     onclick={toggle}
+    onkeydown={handleTriggerKeydown}
     aria-haspopup="listbox"
     aria-expanded={isOpen}
+    {id}
   >
     <span class="label" class:placeholder={!value}>{selectedLabel()}</span>
     <span class="chevron" class:open={isOpen}>
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="m6 9 6 6 6-6"/>
-      </svg>
+      <ChevronDown size={12} />
     </span>
   </button>
 
   {#if isOpen}
     <ul class="dropdown-menu fade-in" role="listbox">
-      {#each options as opt}
+      {#each options as opt, idx}
         {@const val = typeof opt === 'string' ? opt : opt.value}
         {@const label = typeof opt === 'string' ? opt.charAt(0).toUpperCase() + opt.slice(1) : opt.label}
-        <li 
-          class="dropdown-item" 
+        <li
+          class="dropdown-item"
           class:selected={value === val}
-          role="none"
+          role="option"
+          aria-selected={value === val}
+          tabindex="0"
+          onclick={() => select(val)}
+          onkeydown={(e) => handleOptionKeydown(e, idx)}
+          bind:this={optionRefs[idx]}
         >
-          <button
-            type="button"
-            class="dropdown-item-button"
-            onclick={() => select(val)}
-            role="option"
-            aria-selected={value === val}
-          >
-            {label}
-            {#if value === val}
-               <svg class="check-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17 4 12"/></svg>
-            {/if}
-          </button>
+          {label}
+          {#if value === val}
+            <Check size={14} class="check-icon" />
+          {/if}
         </li>
       {/each}
     </ul>
@@ -186,12 +215,6 @@
 
   .dropdown-item {
     margin-bottom: 2px;
-  }
-  
-  .dropdown-item:last-child { margin-bottom: 0; }
-
-  .dropdown-item-button {
-    width: 100%;
     padding: 10px 12px;
     border: none;
     background: transparent;
@@ -206,24 +229,26 @@
     align-items: center;
     justify-content: space-between;
     outline: none;
+    width: 100%;
   }
 
-  .dropdown-item-button:hover,
-  .dropdown-item-button:focus {
+  .dropdown-item:last-child { margin-bottom: 0; }
+
+  .dropdown-item:hover,
+  .dropdown-item:focus {
     background: var(--surface-3);
     color: #fff;
   }
 
-  .dropdown-item.selected .dropdown-item-button {
+  .dropdown-item.selected {
     background: rgba(249, 115, 22, 0.1);
     color: var(--primary);
   }
 
-  .check-icon {
+  :global(.check-icon) {
     flex-shrink: 0;
   }
 
-  /* Scrollbar styling */
   .dropdown-menu::-webkit-scrollbar {
     width: 4px;
   }

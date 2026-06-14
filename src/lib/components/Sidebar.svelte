@@ -1,47 +1,24 @@
-<script>
+<script lang="ts">
   import { page } from "$app/stores";
-  import { onMount } from "svelte";
   import { authStore } from "$lib/authStore.svelte.js";
+  import { perms } from "$lib/perms.js";
+  import { isMobile } from "$lib/mediaQuery.svelte.js";
+  import appInfo from "$lib/app-info.json";
+  import { LayoutDashboard, PlusCircle, Users, ShoppingCart, BarChart3, User, X, LogOut } from '@lucide/svelte';
 
   const allNavItems = [
-    { 
-      href: "/", 
-      label: "Dashboard", 
-      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>`
-    },
-    { 
-      href: "/add/", 
-      label: "Submit an Order", 
-      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>`
-    },
-    { 
-      href: "/funding/", 
-      label: "Team Dashboard", 
-      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`
-    },
-    { 
-      href: "/orders/", 
-      label: "Orders", 
-      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>`
-    },
-    { 
-      href: "/stats/", 
-      label: "Analytics", 
-      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`
-    },
-    { 
-      href: "/admin/", 
-      label: "Admin Portal",
-      adminOnly: true,
-      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`
-    },
+    { href: "/",        label: "Dashboard",       icon: LayoutDashboard },
+    { href: "/add/",    label: "Submit Order",     icon: PlusCircle },
+    { href: "/funding/",label: "Team Dashboard",   icon: Users },
+    { href: "/orders/", label: "Orders",           icon: ShoppingCart },
+    { href: "/stats/",  label: "Analytics",        icon: BarChart3 },
+    { href: "/admin/",  label: "Admin Portal",     icon: User, adminOnly: true },
   ];
 
   let navItems = $derived(
-    allNavItems.filter(item => !item.adminOnly || authStore.isAdmin)
+    allNavItems.filter(item => !item.adminOnly || perms.admin)
   );
 
-  /** @param {string} href */
   function isActive(href) {
     const current = $page.url.pathname.replace(/\/$/, '') || '/';
     const target = href.replace(/\/$/, '') || '/';
@@ -49,18 +26,6 @@
   }
 
   let isMobileOpen = $state(false);
-  let isMobile = $state(false);
-
-  function checkMobile() {
-    isMobile = window.matchMedia("(max-width: 768px)").matches;
-  }
-
-  onMount(() => {
-    checkMobile();
-    const mq = window.matchMedia("(max-width: 768px)");
-    mq.addEventListener("change", checkMobile);
-    return () => mq.removeEventListener("change", checkMobile);
-  });
 
   function closeMobileNav() {
     isMobileOpen = false;
@@ -70,16 +35,15 @@
     isMobileOpen = !isMobileOpen;
   }
 
-  /** @param {string} href */
   function handleNavClick(href) {
-    if (isMobile) {
+    if (isMobile.current) {
       closeMobileNav();
     }
   }
 </script>
 
 <!-- Mobile Backdrop -->
-{#if isMobile && isMobileOpen}
+{#if isMobile.current && isMobileOpen}
   <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_noninteractive_element_interactions -->
   <div 
     class="mobile-backdrop" 
@@ -90,7 +54,7 @@
   ></div>
 {/if}
 
-<aside class="sidebar" class:mobile-open={isMobileOpen} class:is-mobile={isMobile}>
+<aside class="sidebar" class:mobile-open={isMobileOpen} class:is-mobile={isMobile.current}>
   <div class="sidebar-brand">
     <div class="logo-wrapper">
       <img src="/logo-bordered.png" alt="Westwood Logo" class="logo-actual" />
@@ -99,15 +63,16 @@
        <span class="brand-title">WESTWOOD</span>
        <span class="brand-module">FINANCE</span>
     </div>
-    {#if isMobile}
+    {#if isMobile.current}
       <button class="mobile-close-btn" onclick={closeMobileNav} aria-label="Close navigation">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        <X size={18} />
       </button>
     {/if}
   </div>
 
   <nav class="sidebar-nav">
     {#each navItems as item}
+      {@const NavIcon = item.icon}
       <a
         href={item.href}
         class="nav-link"
@@ -115,7 +80,7 @@
         aria-current={isActive(item.href) ? "page" : undefined}
         onclick={() => handleNavClick(item.href)}
       >
-        <span class="nav-icon">{@html item.icon}</span>
+        <span class="nav-icon"><NavIcon size={18} /></span>
         <span>{item.label}</span>
       </a>
     {/each}
@@ -134,17 +99,17 @@
         {/if}
         <div class="user-info">
           <div class="user-name">{authStore.displayName}</div>
-          <div class="user-team">{authStore.userTeam}{authStore.isAdmin ? ' · Admin' : ''}</div>
+          <div class="user-team">{authStore.userTeam}{perms.admin ? ' · Admin' : ''}</div>
         </div>
       </div>
       <button class="signout-btn" onclick={() => authStore.signOut()} title="Sign out">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <LogOut size={16} />
       </button>
     {/if}
   </div>
 
   <div class="sidebar-footer">
-    <div class="footer-team">Westwood Finance</div>
+    <div class="footer-version">v{appInfo.version} · {appInfo.deployedAt}</div>
     <div class="footer-copyright">Westwood Robotics © 2025</div>
   </div>
 </aside>
@@ -152,7 +117,6 @@
 <!-- Mobile FAB removed — MobileTabBar handles navigation on mobile -->
 
 <style>
-  /* ── Desktop Sidebar (unchanged) ─────────────────────────────── */
   .sidebar {
     position: fixed;
     top: 0;
@@ -166,8 +130,6 @@
     z-index: 200;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
-
-  /* ── Mobile Sidebar ───────────────────────────────────────────── */
   .sidebar.is-mobile {
     transform: translateX(-100%);
     box-shadow: none;
@@ -178,8 +140,6 @@
     transform: translateX(0);
     box-shadow: 4px 0 32px rgba(0, 0, 0, 0.6);
   }
-
-  /* ── Mobile Backdrop ─────────────────────────────────────────── */
   .mobile-backdrop {
     position: fixed;
     inset: 0;
@@ -193,8 +153,6 @@
     from { opacity: 0; }
     to   { opacity: 1; }
   }
-
-  /* ── Mobile Close Button (inside sidebar header) ─────────────── */
   .mobile-close-btn {
     margin-left: auto;
     background: var(--surface-3);
@@ -216,8 +174,6 @@
     color: #fff;
     border-color: var(--primary);
   }
-
-  /* ── Brand / Nav / Footer (shared desktop + mobile) ─────────── */
   .sidebar-brand {
     display: flex;
     align-items: center;
@@ -322,8 +278,6 @@
   .nav-link.active .nav-icon {
     opacity: 1;
   }
-
-  /* ── User Info Section ───────────────────────────────────────── */
   .sidebar-user {
     padding: 16px 18px;
     border-top: 1px solid var(--border);
@@ -412,13 +366,16 @@
     background: rgba(0,0,0,0.1);
   }
   
-  .footer-team {
-    font-size: 0.7rem;
+  .footer-version {
+    font-size: 0.65rem;
     font-weight: 600;
     color: var(--text-muted);
     margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  
+
   .footer-copyright {
     font-size: 0.65rem;
     color: var(--text-dim);

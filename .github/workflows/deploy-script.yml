@@ -1,0 +1,55 @@
+name: Deploy Apps Script
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: install clasp
+        run: npm install -g @google/clasp@latest
+
+      - name: verify clasp version
+        run: clasp --version
+
+      - name: set clasp creds
+        env:
+          CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+        run: |
+          echo "$CLASPRC_JSON" > ~/.clasprc.json
+          chmod 600 ~/.clasprc.json
+
+      - name: verify cred file exists
+        run: |
+          test -f ~/.clasprc.json
+          wc -c ~/.clasprc.json
+
+      - name: override script ID (optional)
+        env:
+          SCRIPT_ID: ${{ secrets.SCRIPT_ID }}
+        run: |
+          if [ -n "$SCRIPT_ID" ]; then
+            jq --arg sid "$SCRIPT_ID" '.scriptId = $sid' .clasp.json > tmp.json
+            mv tmp.json .clasp.json
+          fi
+
+      - name: push to Apps Script
+        run: clasp push -f
+
+      - name: deploy web app
+        env:
+          DEPLOYMENT_ID: ${{ secrets.GAS_DEPLOYMENT_ID }}
+        run: clasp deploy --deploymentId "$DEPLOYMENT_ID" --description "deploy $(date -u +%Y-%m-%dT%H:%M:%SZ)"

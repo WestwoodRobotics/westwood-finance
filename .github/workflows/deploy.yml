@@ -20,21 +20,26 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: 'npm'
+          node-version: 22
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
 
       - name: Install dependencies
-        run: npm install
+        run: pnpm install
 
       - name: Build
         run: |
-          npm run build
+          pnpm run build
           touch build/.nojekyll
 
       - name: Upload Artifacts
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'build/'
+          path: "build/"
 
   deploy:
     needs: build_site

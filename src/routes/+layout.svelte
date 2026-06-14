@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { onMount } from 'svelte';
   import { onNavigate } from '$app/navigation';
   import { dataService } from '$lib/dataService.svelte.js';
@@ -10,11 +10,16 @@
 
   let { children } = $props();
 
-  // ── Global 3s data poll ─────────────────────────────────────────────────────
+  $effect(() => {
+    if (authStore.isApproved && authStore.hasValidSession) dataService.load();
+  });
+
   onMount(() => {
     const interval = setInterval(() => {
-      dataService.load(true, true);
-    }, 3000);
+      if (authStore.isApproved && document.visibilityState === 'visible') {
+        dataService.load(true, true);
+      }
+    }, 30000);
     return () => clearInterval(interval);
   });
 
@@ -40,12 +45,12 @@
     const main = document.querySelector('.main-content');
     if (!main) return;
 
-    function onTouchStart(/** @type {any} */ e) {
+    function onTouchStart(e) {
       if (window.innerWidth > 768) return;
       ptrTouchStartY = e.touches[0].clientY;
     }
  
-    async function onTouchEnd(/** @type {any} */ e) {
+    async function onTouchEnd(e) {
       if (window.innerWidth > 768 || dataService.isManualRefreshing) return;
       const delta = e.changedTouches[0].clientY - ptrTouchStartY;
       // Only fire if pulled down AND scroll is at top
@@ -80,6 +85,8 @@
 
 <AuthGate>
   {#snippet children()}
+    <a href="#main-content" class="skip-to-main">Skip to main content</a>
+
     <!-- Pull-to-Refresh Indicator -->
     {#if dataService.isManualRefreshing}
       <div class="ptr-indicator">
@@ -90,7 +97,7 @@
 
     <div class="app-shell">
       <Sidebar />
-      <main class="main-content">
+      <main id="main-content" class="main-content">
         {@render children()}
       </main>
     </div>

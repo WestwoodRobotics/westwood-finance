@@ -1,69 +1,70 @@
-<script>
+<script lang="ts">
   import { onMount } from 'svelte';
+  import { Info, Clock } from '@lucide/svelte';
   import { authStore } from '$lib/authStore.svelte.js';
-  import { BASE_URL, SECRET_KEY } from '$lib/config.js';
+  import { api } from '$lib/api.js';
+  import { GOOGLE_CLIENT_ID, FINANCE_DIRECTOR } from '$lib/config.js';
   import CustomDropdown from '$lib/components/CustomDropdown.svelte';
 
   let { children } = $props();
 
   // ── Google Sign-In ─────────────────────────────────────────────────────────
-  const GOOGLE_CLIENT_ID = '240757796429-d88lrfdtlvtf6fgulhq1t3f28thre90k.apps.googleusercontent.com';
+  let gsiReady = $state(false);
+  let signInError = $state('');
 
   // Student ID input state
   let studentIdInput = $state('');
   let selectedTeam = $state('FRC');
   let idError = $state('');
+  let registering = $state(false);
+  let registerError = $state('');
+  let checkingAgain = $state(false);
 
   const TEAM_OPTIONS = ['FRC', 'Kunai', 'Slingshot', 'Hunga Munga', 'Atlatl'];
 
-  onMount(() => {
-    if (authStore.status === 'approved') return;
-    loadGoogleScript();
+  onMount(async () => {
+    try {
+      await loadGsiScript();
+      // @ts-ignore
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleCredentialResponse,
+        auto_select: true,
+        use_fedcm_for_prompt: true,
+      });
+      gsiReady = true;
+    } catch (e) {
+      console.error('Google Sign-In failed to load:', e);
+      signInError = 'Could not load Google Sign-In. Check your connection and reload.';
+    }
   });
 
-  function loadGoogleScript() {
-    // If already loaded
-    // @ts-ignore
-    if (window.google?.accounts?.id) {
-      initGoogle();
-      return;
-    }
-
-    const existing = document.getElementById('google-gsi-script');
-    if (existing) {
-      existing.addEventListener('load', initGoogle);
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.id = 'google-gsi-script';
-    script.src = 'https://accounts.google.com/gsi/client';
-    script.async = true;
-    script.defer = true;
-    script.onload = initGoogle;
-    document.head.appendChild(script);
-  }
-
-  function initGoogle() {
-    // @ts-ignore
-    if (!window.google?.accounts?.id) return;
-
-    // @ts-ignore
-    window.google.accounts.id.initialize({
-      client_id: GOOGLE_CLIENT_ID,
-      callback: handleCredentialResponse,
-      auto_select: false,
+  function loadGsiScript(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      // @ts-ignore
+      if (window.google?.accounts?.id) return resolve();
+      const existing = document.getElementById('google-gsi-script') as HTMLScriptElement | null;
+      if (existing) {
+        existing.addEventListener('load', () => resolve());
+        existing.addEventListener('error', () => reject(new Error('GSI load failed')));
+        return;
+      }
+      const script = document.createElement('script');
+      script.id = 'google-gsi-script';
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('GSI load failed'));
+      document.head.appendChild(script);
     });
   }
 
   function renderGoogleButton() {
-    const container = document.getElementById('google-signin-btn');
-    if (!container) return;
     // @ts-ignore
-    if (!window.google?.accounts?.id) {
-      setTimeout(renderGoogleButton, 200);
-      return;
-    }
+    if (!gsiReady || !window.google?.accounts?.id) return;
+    const container = document.getElementById('google-signin-btn');
+    if (!container || container.childElementCount > 0) return;
     // @ts-ignore
     window.google.accounts.id.renderButton(container, {
       type: 'standard',
@@ -73,27 +74,20 @@
       text: 'signin_with',
       width: 320,
     });
+    // One Tap as a convenience; the rendered button is the guaranteed fallback.
+    // @ts-ignore
+    window.google.accounts.id.prompt();
   }
 
-  /**
-   * Decode JWT credential from Google
-   * @param {{ credential: string }} response
-   */
-  function handleCredentialResponse(response) {
-    try {
-      const payload = JSON.parse(atob(response.credential.split('.')[1]));
-      authStore.handleGoogleSignIn({
-        email: payload.email,
-        name: payload.name,
-        picture: payload.picture,
-        sub: payload.sub,
-      });
-    } catch (e) {
-      console.error('Google Sign-In decode failed:', e);
-    }
+  function handleCredentialResponse(response: { credential: string }) {
+    signInError = '';
+    authStore.loginWithCredential(response.credential).catch((e) => {
+      console.error('Sign-in failed:', e);
+      signInError = 'Sign-in failed. Please try again.';
+    });
   }
 
-  function submitStudentId() {
+  async function submitStudentId() {
     const clean = studentIdInput.replace(/^s/i, '').trim();
 
     if (!clean || clean.length !== 6 || !/^\d{6}$/.test(clean)) {
@@ -102,32 +96,37 @@
     }
 
     idError = '';
+    registerError = '';
 
-    // Auto-register them in the background if they don't exist yet
-    const exists = authStore.membersList.some(m => String(m.studentId) === clean);
-    if (!exists) {
-      const [firstName, ...lastNameArr] = (authStore.googleUser?.name || '').split(' ');
-      const lastName = lastNameArr.join(' ');
-      
-      try {
-        const params = new URLSearchParams({
-          action: 'addMember',
-          key: SECRET_KEY,
-          firstName: firstName || '',
-          lastName: lastName || '',
-          studentId: clean,
-          team: selectedTeam,
-          role: '', // empty role = pending approval
-          email: authStore.googleUser?.email || ''
-        });
-        // Fire and forget
-        fetch(`${BASE_URL}?${params.toString()}`);
-      } catch (e) {
-        console.error('Failed to auto-register:', e);
-      }
+    if (!authStore.hasValidSession) {
+      registerError = 'Session not ready. Please wait a moment and try again.';
+      return;
     }
 
-    authStore.submitStudentId(clean, selectedTeam);
+    const [firstName, ...lastNameArr] = (authStore.googleUser?.name || '').split(' ');
+    const lastName = lastNameArr.join(' ');
+    registering = true;
+    try {
+      const data = await api.post({
+        action: 'registerSelf',
+        firstName: firstName || '',
+        lastName: lastName || '',
+        studentId: clean,
+        team: selectedTeam,
+        email: authStore.googleUser?.email || '',
+      });
+      if (data.error) {
+        registerError = 'Registration failed: ' + data.error;
+        registering = false;
+        return;
+      }
+      authStore.updateFromRegistration(data);
+    } catch (e) {
+      registerError = 'Could not reach server. Check your connection and try again.';
+      registering = false;
+      return;
+    }
+    registering = false;
   }
 
   function signOut() {
@@ -136,26 +135,23 @@
     if (typeof window !== 'undefined') {
       localStorage.removeItem('westwood_auth');
       localStorage.removeItem('westwood_members');
-      localStorage.removeItem('westwood_data_cache');
+      localStorage.removeItem('westwood_finance_cache');
     }
-    // Re-render the Google button after sign-out
-    setTimeout(() => {
-      renderGoogleButton();
-    }, 300);
   }
 
-  // When the sign-in screen mounts, render the Google button
+  // Render the Google button whenever the sign-in screen is shown and GSI is ready.
   $effect(() => {
-    if (authStore.status === 'signed_out' && authStore.initialized) {
-      setTimeout(renderGoogleButton, 100);
+    if (gsiReady && authStore.status === 'signed_out' && authStore.initialized) {
+      renderGoogleButton();
     }
   });
+
 </script>
 
 {#if !authStore.initialized}
-  <!-- Loading spinner while restoring session -->
   <div class="auth-loading">
     <div class="auth-spinner"></div>
+    <p class="auth-loading-text">Signing you in...</p>
   </div>
 {:else if authStore.status === 'approved'}
   <!-- Authenticated: render the app -->
@@ -166,7 +162,7 @@
     <div class="auth-card">
       <div class="auth-user-info">
         {#if authStore.googleUser?.picture}
-          <img src={authStore.googleUser.picture} alt="" class="auth-avatar" referrerpolicy="no-referrer" />
+          <img src={authStore.googleUser.picture} alt="Profile photo for {authStore.googleUser.name}" class="auth-avatar" referrerpolicy="no-referrer" />
         {/if}
         <div class="auth-user-name">{authStore.googleUser?.name || ''}</div>
         <div class="auth-user-email">{authStore.googleUser?.email || ''}</div>
@@ -176,7 +172,7 @@
       <p class="auth-step-desc" style="margin-bottom: 24px;">You do not have permission to access this site.</p>
 
       <div class="pending-highlight" style="border-color: rgba(239, 68, 68, 0.15); background: rgba(239, 68, 68, 0.06);">
-        Contact <strong>Ishaan</strong> if you think this is a mistake.
+        Contact <strong>{FINANCE_DIRECTOR}</strong> if you think this is a mistake.
       </div>
 
       <div class="pending-actions" style="margin-top: 24px;">
@@ -202,6 +198,13 @@
         <div id="google-signin-btn"></div>
       </div>
 
+      {#if signInError}
+        <div class="auth-error" style="margin-bottom: 20px;">
+          <Info size={16} />
+          {signInError}
+        </div>
+      {/if}
+
       <div class="auth-footer-text">
         Members of Westwood Robotics only
       </div>
@@ -214,7 +217,7 @@
     <div class="auth-card">
       <div class="auth-user-info">
         {#if authStore.googleUser?.picture}
-          <img src={authStore.googleUser.picture} alt="" class="auth-avatar" referrerpolicy="no-referrer" />
+          <img src={authStore.googleUser.picture} alt="Profile photo for {authStore.googleUser.name}" class="auth-avatar" referrerpolicy="no-referrer" />
         {/if}
         <div class="auth-user-name">{authStore.googleUser?.name || ''}</div>
         <div class="auth-user-email">{authStore.googleUser?.email || ''}</div>
@@ -226,8 +229,14 @@
 
       {#if idError}
         <div class="auth-error">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <Info size={16} />
           {idError}
+        </div>
+      {/if}
+      {#if registerError}
+        <div class="auth-error">
+          <Info size={16} />
+          {registerError}
         </div>
       {/if}
 
@@ -255,7 +264,13 @@
           />
         </div>
 
-        <button type="submit" class="auth-submit-btn">Continue</button>
+        <button type="submit" class="auth-submit-btn" disabled={registering}>
+          {#if registering}
+            <span class="auth-spinner-inline"></span> Registering...
+          {:else}
+            Continue
+          {/if}
+        </button>
       </form>
 
       <div class="pending-actions" style="margin-top: 8px;">
@@ -271,24 +286,21 @@
     <div class="auth-card">
       <div class="auth-user-info">
         {#if authStore.googleUser?.picture}
-          <img src={authStore.googleUser.picture} alt="" class="auth-avatar" referrerpolicy="no-referrer" />
+          <img src={authStore.googleUser.picture} alt="Profile photo for {authStore.googleUser.name}" class="auth-avatar" referrerpolicy="no-referrer" />
         {/if}
         <div class="auth-user-name">{authStore.googleUser?.name || ''}</div>
         <div class="auth-user-email">{authStore.googleUser?.email || ''}</div>
       </div>
 
       <div class="pending-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/>
-          <polyline points="12 6 12 12 16 14"/>
-        </svg>
+        <Clock size={48} stroke-width={1.5} />
       </div>
 
       <h2 class="auth-step-title" style="margin-top: 16px;">Approval <span>Required</span></h2>
 
       <div class="pending-message">
         <p>Your account is not yet approved.</p>
-        <p class="pending-highlight">Ask <strong>Ishaan</strong> to approve you.</p>
+        <p class="pending-highlight">Ask <strong>{FINANCE_DIRECTOR}</strong> to approve you.</p>
         <p class="pending-details">
           Tell him your Student ID: <code>{authStore.studentId}</code>
           <br/>
@@ -297,6 +309,7 @@
       </div>
 
       <div class="pending-actions" style="margin-top: 24px;">
+        <button class="auth-submit-btn" style="max-width: 240px; margin: 0 auto; height: 44px; font-size: 0.9rem;" disabled={checkingAgain} onclick={async () => { checkingAgain = true; await authStore.fetchMembers(); checkingAgain = false; }}>{checkingAgain ? 'Checking…' : 'Check Again'}</button>
         <button class="auth-back-btn" onclick={signOut}>Sign in with another account</button>
       </div>
 
@@ -305,7 +318,6 @@
 {/if}
 
 <style>
-  /* ── Auth Screen Base ──────────────────────────────────────────── */
   .auth-screen {
     position: fixed;
     inset: 0;
@@ -334,8 +346,6 @@
     from { opacity: 0; transform: translateY(20px) scale(0.97); }
     to { opacity: 1; transform: translateY(0) scale(1); }
   }
-
-  /* ── Logo ──────────────────────────────────────────────────────── */
   .auth-logo {
     width: 80px;
     height: 80px;
@@ -352,8 +362,6 @@
     height: 100%;
     object-fit: cover;
   }
-
-  /* ── Title & Text ─────────────────────────────────────────────── */
   .auth-title {
     font-size: 1.5rem;
     font-weight: 800;
@@ -399,8 +407,6 @@
     border: 1px solid rgba(249, 115, 22, 0.15);
     display: inline-block;
   }
-
-  /* ── Google Button ─────────────────────────────────────────────── */
   .google-btn-wrapper {
     display: flex;
     justify-content: center;
@@ -415,8 +421,6 @@
     letter-spacing: 0.1em;
     font-weight: 600;
   }
-
-  /* ── User Info Badge ───────────────────────────────────────────── */
   .auth-user-info {
     margin-bottom: 28px;
     display: flex;
@@ -444,8 +448,6 @@
     font-size: 0.8rem;
     color: var(--text-muted, #71717a);
   }
-
-  /* ── Form ──────────────────────────────────────────────────────── */
   .auth-form {
     text-align: left;
     display: flex;
@@ -495,9 +497,6 @@
     color: var(--text-dim, #52525b);
     font-weight: 400;
   }
-
-
-  /* ── Buttons ───────────────────────────────────────────────────── */
   .auth-submit-btn {
     width: 100%;
     height: 50px;
@@ -533,8 +532,6 @@
   .auth-back-btn:hover {
     color: #fff;
   }
-
-  /* ── Error ─────────────────────────────────────────────────────── */
   .auth-error {
     display: flex;
     align-items: center;
@@ -549,8 +546,6 @@
     margin-bottom: 20px;
     text-align: left;
   }
-
-  /* ── Pending Approval ──────────────────────────────────────────── */
   .pending-icon {
     color: var(--primary, #f97316);
     opacity: 0.6;
@@ -605,15 +600,33 @@
     gap: 12px;
   }
 
-  /* ── Loading ───────────────────────────────────────────────────── */
+  .auth-spinner-inline {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: authSpin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
   .auth-loading {
     position: fixed;
     inset: 0;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 16px;
     background: var(--bg, #09090b);
     z-index: 9999;
+  }
+
+  .auth-loading-text {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 500;
   }
 
   .auth-spinner {
@@ -628,8 +641,6 @@
   @keyframes authSpin {
     to { transform: rotate(360deg); }
   }
-
-  /* ── Mobile ────────────────────────────────────────────────────── */
   @media (max-width: 500px) {
     .auth-card {
       padding: 36px 24px;

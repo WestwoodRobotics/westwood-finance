@@ -1,15 +1,16 @@
-<script>
+<script lang="ts">
   import { CATEGORIES, TEAMS, formatDate } from "$lib/utils.js";
+  import { DollarSign, Info, Check, Plus } from '@lucide/svelte';
   import { goto } from "$app/navigation";
   import CustomDropdown from "$lib/components/CustomDropdown.svelte";
-  import AdminLock from "$lib/components/AdminLock.svelte";
   import { dataService } from "$lib/dataService.svelte.js";
-  import { BASE_URL, SECRET_KEY } from "$lib/config.js";
+  import { api } from "$lib/api.js";
   import { fade, scale } from "svelte/transition";
   import { authStore } from "$lib/authStore.svelte.js";
+  import { perms } from "$lib/perms.js";
 
-  const teamOptions = authStore.isAdmin
-    ? TEAMS.filter(t => t !== "Westwood Overall").map((/** @type {string} */ team) => ({
+  const teamOptions = perms.manageOrders
+    ? TEAMS.filter(t => t !== "Westwood Overall").map((team) => ({
         label: team,
         value: team,
       }))
@@ -25,7 +26,6 @@
     { label: "Polymaker", value: "Polymaker" },
     { label: "Other", value: "Other" }
   ];
-
 
   let form = $state({
     destination: "sheets",
@@ -45,26 +45,28 @@
   let submitting = $state(false);
   let submitError = $state("");
   let submitSuccess = $state("");
+  let fieldErrors = $state<Record<string, string>>({});
+
+  let _successTimer: ReturnType<typeof setTimeout>;
+  $effect(() => {
+    if (submitSuccess) {
+      clearTimeout(_successTimer);
+      _successTimer = setTimeout(() => { submitSuccess = ""; }, 8000);
+    }
+  });
   let computedTotal = $derived(
     (parseFloat(form.price) || 0) * (parseInt(form.quantity) || 1),
   );
 
   let showPassword = $state(false);
-  let showTestLock = $state(false);
-  let testModalError = $state("");
-
-
-  function handleTestUnlock() {
-    fillTestOrder();
-    showTestLock = false;
-  }
 
   function fillTestOrder() {
-    const items = ["REV UltraPlanetary Motor", "Spark Max Controller", "Neo Brushless Motor", "Expansion Hub", "3D Printing Filament", "Metric Bolt Set", "Through-Bore Encoder", "Aluminum Extrusion (1x1)", "Soldering Station", "Zip Ties (Bulk)"];
-    const companies = ["REV Robotics", "Amazon", "McMaster-Carr", "VEX Robotics", "AndyMark", "DigiKey"];
-    const categories = ["hardware", "hardware", "hardware", "miscellaneous", "miscellaneous"];
+    const items = ["REV UltraPlanetary Motor", "Spark Max Controller", "Neo Brushless Motor", "Expansion Hub", "3D Printing Filament"];
+    const companies = ["REV Robotics", "Amazon", "McMaster-Carr", "VEX Robotics"];
+    const categories = ["hardware", "hardware", "hardware", "miscellaneous"];
     
     form.item = items[Math.floor(Math.random() * items.length)];
+    vendorSelect = "Other";
     form.company = companies[Math.floor(Math.random() * companies.length)];
     form.price = (Math.random() * 80 + 5).toFixed(2);
     form.quantity = Math.floor(Math.random() * 4 + 1).toString();
@@ -72,58 +74,54 @@
     form.category = categories[Math.floor(Math.random() * categories.length)];
     form.notes = "Website Test";
     form.link = "https://example.com/item-" + Math.floor(Math.random() * 1000);
-    form.orderedBy = "Test Bot";
-    vendorSelect = "Other";
   }
+  function validateField(name: string, value: string | number) {
+    if (value == null || !String(value).trim()) {
+      fieldErrors[name] = 'Required';
+    } else if (name === 'price' && (isNaN(parseFloat(value)) || parseFloat(value) < 0)) {
+      fieldErrors[name] = 'Enter a valid price';
+    } else {
+      delete fieldErrors[name];
+      fieldErrors = { ...fieldErrors };
+    }
+  }
+
+  $effect(() => {
+    if (vendorSelect && vendorSelect !== 'Other') form.company = vendorSelect;
+  });
+
+  $effect(() => {
+    if (!form.orderedBy && authStore.displayName) form.orderedBy = authStore.displayName;
+  });
 
   async function submit() {
     submitError = "";
     submitSuccess = "";
 
     // For non-admins, always force orderedBy to be their verified name
-    if (!authStore.isAdmin) {
+    if (!perms.manageOrders) {
       form.orderedBy = authStore.displayName;
     }
 
-    const required = {
-      "Item name": form.item,
-      "Vendor/Company": form.company,
-      "Price": form.price,
-      "Quantity": form.quantity,
-      "Team": form.team,
-      "Category": form.category,
-      "Ordered By": form.orderedBy,
-      "Team Notes": form.notes,
-    };
-
-    const missing = Object.entries(required)
-      .filter(([_, v]) => !v || !String(v).trim())
-      .map(([k]) => k);
-
-    if (missing.length > 0) {
-      submitError = `The following fields are required: ${missing.join(", ")}.`;
-      return;
-    }
-
-    if (isNaN(parseFloat(form.price)) || parseFloat(form.price) < 0) {
-      submitError = "Please enter a valid numeric unit price.";
-      return;
-    }
+    const requiredFields: [string, string | number][] = [
+      ['item', form.item], ['company', form.company], ['price', form.price],
+      ['quantity', form.quantity], ['team', form.team], ['category', form.category],
+      ['orderedBy', form.orderedBy], ['notes', form.notes],
+    ];
+    requiredFields.forEach(([name, val]) => validateField(name, val));
+    if (Object.keys(fieldErrors).length > 0) return;
 
     submitting = true;
 
     try {
-      // ✅ Link Auto-Fix: Prepend https:// if missing
       let finalLink = form.link.trim();
+
       if (finalLink && !finalLink.startsWith("http")) {
-        // More robust check: if it contains a dot or doesn't have a protocol, add it
         finalLink = "https://" + finalLink;
       }
 
-      // ✅ FIX: force all values to strings for URLSearchParams
-      const params = new URLSearchParams({
-        action: "addOrder",
-        key: SECRET_KEY,
+      const result = await api.post({
+        action: 'addOrder',
         item: form.item,
         company: form.company,
         link: finalLink,
@@ -132,8 +130,6 @@
         notes: form.notes,
         category: form.category,
         team: form.team,
-        // ✅ Spreadsheet Formula for Total: =Dx*Ex
-        total: "=INDIRECT(\"D\"&ROW())*INDIRECT(\"E\"&ROW())",
         status: form.isExpense ? "Received" : "Pending Review",
         tracking: "",
         uuid: form.uuid,
@@ -141,21 +137,10 @@
         orderedBy: form.orderedBy,
       });
 
-      const url = `${BASE_URL}?${params.toString()}`;
-
-      const response = await fetch(url);
-      const result = await response.json();
-
-      console.log("API result:", result);
-
-      if (!response.ok || result.error) {
+      if (result.error) {
         throw new Error(result.error || "Request failed");
       }
 
-      submitSuccess = "✓ Order successfully sent! Redirecting to dashboard...";
-      submitting = false; // ← release the button immediately
-      
-      // ⚡ Optimistic Update: inject order into local store instantly
       dataService.addOrderOptimistic({
         item: form.item,
         company: form.company,
@@ -168,39 +153,35 @@
         status: form.isExpense ? "Received" : "Pending Review",
         timestamp: formatDate(new Date()),
         orderedBy: form.orderedBy,
+        orderUUID: result.uuid || '',
       });
+      submitSuccess = "✓ Order successfully sent!";
 
       // reset form
       form = {
         destination: "sheets",
         item: "",
-        company: "",
+        company: form.company,
         link: "",
         price: "",
         quantity: "1",
         notes: "",
-        team: form.team, // Preserve team for convenience
+        team: form.team,
         category: "hardware",
         uuid: "",
-        orderedBy: authStore.displayName || form.orderedBy, // Always reset to verified name
+        orderedBy: authStore.displayName || form.orderedBy,
         isExpense: false,
       };
-      vendorSelect = "";
 
-      setTimeout(() => goto("/orders"), 2500);
     } catch (e) {
-      // ✅ FIX: proper error typing
-      if (e instanceof Error) {
-        submitError = e.message;
-      } else {
-        submitError = "Unknown error occurred";
-      }
+      submitError = e instanceof Error ? e.message : "Unknown error occurred";
     } finally {
-      // Only set false here if we haven't already (success path sets it earlier)
-      if (submitting) submitting = false;
+      submitting = false;
     }
   }
   function toggleExpenseMode() {
+    const dirty = form.item || form.company || form.link || form.price || form.notes;
+    if (dirty && !confirm('Leave page? Unsaved form data will be lost.')) return;
     goto("/admin?view=addOrder");
   }
 </script>
@@ -215,13 +196,13 @@
     <p class="text-muted">Fill out the form below to request a new purchase</p>
   </div>
   <div class="header-right" style="display: flex; gap: 8px; align-items: center;">
-    <button type="button" class="btn btn-ghost btn-sm" onclick={() => showTestLock = true}>
-      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+    <button type="button" class="btn btn-ghost btn-sm" onclick={fillTestOrder}>
+      <Info size={14} />
       Test Data
     </button>
-    {#if authStore.isAdmin}
+    {#if perms.manageOrders}
       <button class="btn btn-ghost btn-sm" onclick={toggleExpenseMode}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20m-5-17h10a4 4 0 1 1 0 8H7a4 4 0 1 0 0 8h10"/></svg>
+        <DollarSign size={14} />
         Add as Expense
       </button>
     {/if}
@@ -232,14 +213,14 @@
   <div class="card add-card">
       {#if submitError}
         <div class="error-bar message-bar">
-           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+           <Info size={18} />
            {submitError}
         </div>
       {/if}
       {#if submitSuccess}
-        <div class="success-bar message-bar">
-           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-           {submitSuccess}
+        <div class="success-bar message-bar" style="justify-content: space-between;">
+          <span style="display:flex;align-items:center;gap:12px;"><Check size={18} />{submitSuccess}</span>
+          <a href="/orders" class="btn btn-ghost btn-sm" style="white-space:nowrap;">View Orders →</a>
         </div>
       {/if}
 
@@ -259,36 +240,29 @@
               bind:value={form.item}
               placeholder="ex. Pit Banner"
               required
+              class:field-error={fieldErrors.item}
+              onblur={() => validateField('item', form.item)}
             />
+            {#if fieldErrors.item}<span class="field-error-msg">{fieldErrors.item}</span>{/if}
           </div>
 
           <div class="form-group">
             <label for="ae-company">Vendor / Supplier *</label>
-            <input
-              id="ae-company"
-              type="text"
-              bind:value={form.company}
-              placeholder="ex. REV Robotics"
-              required
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="ae-category">Category *</label>
-            <CustomDropdown
-              options={[
-                { label: "Hardware", value: "hardware" },
-                { label: "Software", value: "software" },
-                { label: "Outreach", value: "outreach" },
-                { label: "Miscellaneous", value: "miscellaneous" },
-              ]}
-              bind:value={form.category}
-            />
+            <div class="vendor-field-group">
+              <CustomDropdown options={presetVendors} bind:value={vendorSelect} />
+              <input
+                id="ae-company"
+                type="text"
+                bind:value={form.company}
+                placeholder="or type vendor name"
+                required
+              />
+            </div>
           </div>
 
           <div class="form-group">
             <label for="ae-team">Team *</label>
-            {#if authStore.isAdmin}
+            {#if perms.manageOrders}
               <CustomDropdown
                 options={teamOptions}
                 bind:value={form.team}
@@ -314,7 +288,10 @@
               step="0.01"
               placeholder="0.00"
               required
+              class:field-error={fieldErrors.price}
+              onblur={() => validateField('price', form.price)}
             />
+            {#if fieldErrors.price}<span class="field-error-msg">{fieldErrors.price}</span>{/if}
           </div>
 
           <div class="form-group">
@@ -331,8 +308,21 @@
           </div>
 
           <div class="form-group">
-            <label for="ae-orderedby">Ordered By *</label>
-            {#if authStore.isAdmin}
+            <label for="ae-category">Category *</label>
+            <CustomDropdown
+              options={[
+                { label: "Hardware", value: "hardware" },
+                { label: "Software", value: "software" },
+                { label: "Outreach", value: "outreach" },
+                { label: "Miscellaneous", value: "miscellaneous" },
+              ]}
+              bind:value={form.category}
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="ae-orderedby">Ordered By{#if perms.manageOrders} *{/if}</label>
+            {#if perms.manageOrders}
               <input
                 id="ae-orderedby"
                 type="text"
@@ -369,7 +359,10 @@
               placeholder="Reason for ordering this item..."
               rows="3"
               required
+              class:field-error={fieldErrors.notes}
+              onblur={() => validateField('notes', form.notes)}
             ></textarea>
+            {#if fieldErrors.notes}<span class="field-error-msg">{fieldErrors.notes}</span>{/if}
           </div>
         </div>
 
@@ -386,31 +379,21 @@
             type="submit"
             class="btn btn-primary btn-block"
             disabled={submitting}
+            aria-busy={submitting}
+            aria-label={submitting ? "Processing order" : form.isExpense ? "Confirm Immediate Expense" : "Submit Order Request"}
           >
             {#if submitting}
-              <span class="spinning" style="margin-right: 8px;">↻</span> Processing...
+              <span class="submit-spinner" aria-hidden="true"></span> Processing...
             {:else}
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+              <Plus size={16} aria-hidden="true" />
               {form.isExpense ? "Confirm Immediate Expense" : "Submit Order Request"}
             {/if}
           </button>
-          <a href="/orders" class="btn btn-ghost btn-block">Abort Transaction</a>
+          <a href="/orders" class="btn btn-ghost btn-block">Cancel</a>
         </div>
       </form>
     </div>
 
-  {#if showTestLock}
-    <div class="lock-screen-wrapper fade-in" style="position: fixed; inset: 0; z-index: 1000; background: var(--bg); display: flex; align-items: center; justify-content: center;">
-      <div style="position: relative; width: 100%; max-width: 420px;">
-        <AdminLock 
-          onunlock={handleTestUnlock} 
-          oncancel={() => { showTestLock = false; }}
-          title="Developer Login" 
-          description="Authenticate to populate sample data for testing."
-        />
-      </div>
-    </div>
-  {/if}
 </div>
 
 <style>
@@ -432,7 +415,6 @@
     gap: 24px;
     margin-bottom: 32px;
   }
-
 
   .message-bar {
     display: flex;
@@ -457,7 +439,6 @@
     border-color: rgba(239, 68, 68, 0.2);
     color: var(--status-rejected);
   }
-
 
   .summary-section {
     padding: 24px;
@@ -486,15 +467,7 @@
 
   @media (max-width: 768px) {
     .form-grid { grid-template-columns: 1fr; gap: 16px; }
-    .add-card { 
-      padding: 16px; 
-      border-radius: 0; 
-      width: 100%; 
-      border-left: none; 
-      border-right: none; 
-      box-sizing: border-box; 
-      margin: 0; 
-    }
+    .add-card { padding: 16px; }
     .add-layout { 
       padding: 0; 
       width: 100%; 
@@ -503,11 +476,46 @@
     .summary-section { padding: 16px; margin-bottom: 24px; }
   }
 
+  .vendor-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  :global(input.field-error),
+  :global(textarea.field-error) {
+    border-color: var(--status-rejected) !important;
+    box-shadow: 0 0 0 1px var(--status-rejected);
+  }
+
+  .field-error-msg {
+    font-size: 0.72rem;
+    color: var(--status-rejected);
+    font-weight: 600;
+    margin-top: -4px;
+  }
+
   .disabled-input {
     background: rgba(255, 255, 255, 0.03) !important;
     color: var(--text-muted) !important;
     cursor: not-allowed !important;
     border-color: transparent !important;
+  }
+
+  .submit-spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
   }
 
 </style>

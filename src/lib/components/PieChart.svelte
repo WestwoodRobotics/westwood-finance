@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import { Chart, ArcElement, Tooltip, Legend, PieController } from 'chart.js';
   import { CATEGORY_COLORS } from '../utils.js';
@@ -10,9 +10,7 @@
   let labels = $derived(Object.keys(data));
   let values = $derived(labels.map(l => data[l]));
 
-  /** @type {any} */
   let canvas;
-  /** @type {any} */
   let chart;
 
   $effect(() => {
@@ -22,7 +20,7 @@
       chart.data.labels = l;
       chart.data.datasets[0].data = v;
       chart.data.datasets[0].backgroundColor = l.map(lbl => 
-        (colorMap && colorMap[lbl]) || (/** @type {Record<string, string>} */ (CATEGORY_COLORS))[lbl] || '#3f3f46'
+        (colorMap && colorMap[lbl]) || ((CATEGORY_COLORS))[lbl] || '#3f3f46'
       );
       chart.update();
     }
@@ -39,7 +37,7 @@
         datasets: [{
           data: values,
           backgroundColor: labels.map(l => 
-            (colorMap && colorMap[l]) || (/** @type {Record<string, string>} */ (CATEGORY_COLORS))[l] || '#3f3f46'
+            (colorMap && colorMap[l]) || ((CATEGORY_COLORS))[l] || '#3f3f46'
           ),
           borderColor: '#09090b',
           borderWidth: 2,

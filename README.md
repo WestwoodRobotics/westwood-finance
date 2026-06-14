@@ -1,42 +1,25 @@
-# sv
+# westwood finance
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+internal finance tracker for westwood robotics. built with sveltekit + google apps script (clasp) as the backend.
 
-## Creating a project
-
-If you're seeing this, you've probably already done this step. Congrats!
+## setup
 
 ```sh
-# create a new project
-npx sv create my-app
+pnpm install
+
+pnpm dev
 ```
 
-To recreate this project with the same configuration:
+(npm works too)
 
-```sh
-# recreate this project
-npx sv@0.15.1 create --template minimal --types ts --install npm frontend
-```
+## stack
 
-## Developing
+- **frontend** — sveltekit (static), svelte 5
+- **backend** — google apps script (`backend/Code.gs`)
+- **data** — google sheets via apps script web app endpoint
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+## deploy
 
-```sh
-npm run dev
+deployed via `.github/workflows/deploy.yml` action to gh pages, viewable in Deployments
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+to update the backend, edit `backend/Code.gs` and push. automatically syncs with google apps script via clasp(pre-configured) and `.github/workflos/deploy-script.yml`

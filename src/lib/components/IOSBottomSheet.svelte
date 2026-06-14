@@ -1,11 +1,11 @@
-<script>
+<script lang="ts">
   import { onMount } from 'svelte';
+  import { X } from '@lucide/svelte';
   import { browser } from '$app/environment';
 
-  /** @type {{ open: boolean, onclose: () => void, title?: string, children: import('svelte').Snippet }} */
   let { open = false, onclose, title = '', children } = $props();
 
-  let sheetEl = /** @type {HTMLElement|null} */ ($state(null));
+  let sheetEl = ($state(null));
   let dragStartY = 0;
   let currentY = $state(0);
   let isDragging = $state(false);
@@ -14,14 +14,12 @@
     if ('vibrate' in navigator) navigator.vibrate(8);
   }
 
-  /** @param {TouchEvent} e */
   function onTouchStart(e) {
     dragStartY = e.touches[0].clientY;
     currentY = 0;
     isDragging = true;
   }
 
-  /** @param {TouchEvent} e */
   function onTouchMove(e) {
     if (!isDragging) return;
     const delta = e.touches[0].clientY - dragStartY;
@@ -30,7 +28,6 @@
     }
   }
 
-  /** @param {TouchEvent} e */
   function onTouchEnd(e) {
     isDragging = false;
     const delta = e.changedTouches[0].clientY - dragStartY;
@@ -52,9 +49,11 @@
   });
 </script>
 
+<svelte:window onkeydown={(e) => open && e.key === 'Escape' && onclose()} />
+
 {#if open}
   <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_noninteractive_element_interactions -->
-  <div class="ios-sheet-backdrop" onclick={onclose} role="button" tabindex="-1"></div>
+  <div class="ios-sheet-backdrop" onclick={onclose} role="presentation"></div>
 
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
@@ -74,7 +73,7 @@
       <div class="ios-sheet-header">
         <span class="ios-sheet-title">{title}</span>
         <button class="ios-sheet-close" onclick={onclose} aria-label="Close">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          <X size={18} />
         </button>
       </div>
     {/if}
@@ -106,7 +105,7 @@
     bottom: 0;
     left: 0;
     right: 0;
-    background: #1c1c1e;
+    background: var(--surface-ios);
     border-radius: 16px 16px 0 0;
     max-height: 90vh;
     overflow-y: auto;
@@ -132,7 +131,7 @@
       width: 90%;
       max-width: 550px;
       border-radius: 16px;
-      bottom: 40px; /* Elevated on desktop */
+      bottom: 40px;
       box-shadow: 0 10px 40px rgba(0,0,0,0.5);
       animation: sheetSlideUpDesktop 0.32s cubic-bezier(0.34, 1.2, 0.64, 1);
     }
@@ -169,7 +168,6 @@
     font-size: 17px;
     font-weight: 700;
     color: #fff;
-    font-family: -apple-system, 'SF Pro Text', sans-serif;
     letter-spacing: -0.02em;
   }
 

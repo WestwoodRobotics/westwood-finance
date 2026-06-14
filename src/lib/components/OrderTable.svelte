@@ -1,15 +1,19 @@
-<script>
+<script lang="ts">
   import {
     formatCurrency,
     formatFullDate,
     truncate,
     capitalize,
     getTeamBadgeClass,
+    CAT_COLORS,
+    STATUS_PRIORITY,
+    getCatColor,
   } from "../utils.js";
+  import { Settings, Code2, Megaphone, UtensilsCrossed, Package, ChevronRight } from '@lucide/svelte';
+  const PackageIcon = Package;
   import OrderStatusBadge from "./OrderStatusBadge.svelte";
-  import IOSBottomSheet from "./IOSBottomSheet.svelte";
+  import OrderDetailSheet from "./OrderDetailSheet.svelte";
 
-  /** @type {{ orders: any[], limit?: number, hideTeamColumn?: boolean, hideCategoryColumn?: boolean, hideCompanyColumn?: boolean, onmanage?: (order: any) => void }} */
   let {
     orders = [],
     limit = 0,
@@ -22,7 +26,7 @@
   let sortCol = $state("status");
   let sortDir = $state("asc");
 
-  function toggleSort(/** @type {string} */ col) {
+  function toggleSort(col) {
     if (sortCol === col) {
       sortDir = sortDir === "asc" ? "desc" : "asc";
     } else {
@@ -33,16 +37,6 @@
           : "asc";
     }
   }
-
-  /** @type {Record<string, number>} */
-  const STATUS_PRIORITY = {
-    "pending review": 0,
-    approved: 1,
-    ordered: 2,
-    received: 3,
-    denied: 4,
-    void: 5,
-  };
 
   let sortedOrders = $derived(
     orders.slice().sort((a, b) => {
@@ -78,91 +72,26 @@
     limit > 0 ? sortedOrders.slice(0, limit) : sortedOrders,
   );
 
-  /** @type {Record<string, string>} */
-  const colorCache = {};
-
-  function getOrderColor(/** @type {string|undefined} */ uuid) {
-    if (!uuid) return "transparent";
-    if (colorCache[uuid]) return colorCache[uuid];
-    let hash = 0;
-    for (let i = 0; i < uuid.length; i++) {
-      hash = uuid.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const h = Math.abs(Math.floor(hash * 137.5) % 360);
-    const color = `hsl(${h}, 70%, 40%)`;
-    colorCache[uuid] = color;
-    return color;
-  }
-
-  /** @type {Record<string, string>} */
-  const CAT_COLORS = {
-    hardware: "#f97316",
-    software: "#3b82f6",
-    outreach: "#10b981",
-    food: "#eab308",
-    miscellaneous: "#8b5cf6",
-  };
-
-  /** @type {Record<string, string>} */
   const CAT_ICONS = {
-    hardware:
-      '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
-    software:
-      '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>',
-    outreach:
-      '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>',
-    food: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>',
-    miscellaneous:
-      '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>',
+    hardware: Settings,
+    software: Code2,
+    outreach: Megaphone,
+    food: UtensilsCrossed,
+    miscellaneous: Package,
   };
 
-  function getCatColor(/** @type {string|undefined} */ cat) {
-    return CAT_COLORS[(cat || "miscellaneous").toLowerCase()] || "#8b5cf6";
-  }
-  function getCatIcon(/** @type {string|undefined} */ cat) {
-    return (
-      CAT_ICONS[(cat || "miscellaneous").toLowerCase()] ||
-      CAT_ICONS.miscellaneous
-    );
+  function getCatIcon(cat) {
+    const key = ((cat || "miscellaneous").toLowerCase());
+    return CAT_ICONS[key] || CAT_ICONS.miscellaneous;
   }
 
-  /** @param {string} url */
   function openExternal(url) {
     if (!url) return;
     const href = url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`;
     window.open(href, '_blank', 'noopener,noreferrer');
   }
 
-  /** @type {any} */
-  let selectedOrder = /** @type {any|null} */ ($state(null));
-
-  // Swipe gesture variables
-  let touchStartY = 0;
-  let touchCurrentY = 0;
-  let isSwiping = $state(false);
-  let swipeTranslateY = $state(0);
-
-  function handleTouchStart(/** @type {TouchEvent} */ e) {
-    touchStartY = e.touches[0].clientY;
-    isSwiping = true;
-  }
-
-  function handleTouchMove(/** @type {TouchEvent} */ e) {
-    if (!isSwiping) return;
-    touchCurrentY = e.touches[0].clientY;
-    const delta = touchCurrentY - touchStartY;
-    if (delta > 0) {
-      swipeTranslateY = delta;
-    }
-  }
-
-  function handleTouchEnd() {
-    if (swipeTranslateY > 100) {
-      selectedOrder = null;
-    }
-    isSwiping = false;
-    swipeTranslateY = 0;
-  }
+  let selectedOrder = ($state(null));
 </script>
 
 <!-- ── Desktop Table ─────────────────────────────────────────────────────── -->
@@ -230,8 +159,14 @@
     </thead>
     <tbody>
       {#each display as order (order.id)}
-        {@const orderColor = getOrderColor(order.orderUUID)}
-        <tr class="group-row" style="--group-color: {orderColor}">
+        <tr
+          class="group-row clickable-row"
+          style="--group-color: {getCatColor(order.category)}"
+          role="button"
+          tabindex="0"
+          onclick={() => onmanage ? onmanage(order) : (selectedOrder = order)}
+          onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && (onmanage ? onmanage(order) : (selectedOrder = order))}
+        >
           <td>
             <div class="item-name">
               {#if order.link}
@@ -248,6 +183,9 @@
             </div>
             {#if order.notes}
               <div class="item-notes">{truncate(order.notes, 50)}</div>
+            {/if}
+            {#if order.orderedBy}
+              <div class="item-notes">{order.orderedBy}</div>
             {/if}
             {#if order.tracking}
               <div class="tracking-info">
@@ -306,20 +244,7 @@
           <td colspan={emptyCols}>
             <div class="empty-state">
               <div class="icon">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="32"
-                  height="32"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  ><path
-                    d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"
-                  /><path d="m3.3 7 8.7 5 8.7-5" /><path d="M12 22V12" /></svg
-                >
+                <PackageIcon size={32} stroke-width={1.5} />
               </div>
               No orders found
             </div>
@@ -355,22 +280,9 @@
 <!-- ── iOS Mobile List ───────────────────────────────────────────────────── -->
 <div class="ios-list-wrap fade-in mobile-list">
   {#if orders.length === 0}
-    <div class="empty-state" style="padding: 40px 16px; border-radius: 14px;">
+    <div class="empty-state">
       <div class="icon">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="32"
-          height="32"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          ><path
-            d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"
-          /><path d="m3.3 7 8.7 5 8.7-5" /><path d="M12 22V12" /></svg
-        >
+        <PackageIcon size={32} stroke-width={1.5} />
       </div>
       No orders found
     </div>
@@ -378,8 +290,8 @@
     <div class="ios-list-group">
       {#each display as order (order.id)}
         {@const catColor = getCatColor(order.category)}
-        {@const catIcon = getCatIcon(order.category)}
-        <div 
+        {@const CatIcon = getCatIcon(order.category)}
+        <div
           class="ios-cell"
           role="button"
           tabindex="0"
@@ -392,7 +304,7 @@
             class="ios-cell-icon"
             style="background: {catColor}22; color: {catColor}; font-size: 18px;"
           >
-            {@html catIcon}
+            <CatIcon size={18} />
           </div>
 
           <!-- Item info -->
@@ -401,9 +313,7 @@
               {truncate(order.item, 32)}
             </div>
             <div class="ios-cell-subtitle">
-              {order.company || "—"}{!hideTeamColumn && order.team
-                ? ` · ${order.team}`
-                : ""}
+              {order.company || "—"}{!hideTeamColumn && order.team ? ` · ${order.team}` : ""}{order.orderedBy ? ` · ${order.orderedBy}` : ""}
             </div>
           </div>
 
@@ -417,18 +327,7 @@
           </div>
 
           {#if onmanage}
-            <svg
-              class="ios-chevron"
-              xmlns="http://www.w3.org/2000/svg"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg
-            >
+            <ChevronRight class="ios-chevron" size={14} />
           {/if}
         </div>
       {/each}
@@ -448,101 +347,14 @@
   {/if}
 </div>
 
-<IOSBottomSheet open={!!selectedOrder} onclose={() => selectedOrder = null} title="Order Details">
-  {#snippet children()}
-    {#if selectedOrder}
-      {@const catColor = getCatColor(selectedOrder.category)}
-      {@const catIcon = getCatIcon(selectedOrder.category)}
-      <div class="ios-receipt-card">
-        <div class="ios-receipt-header">
-          <div class="ios-receipt-avatar" style="background: {catColor}22; color: {catColor}; font-size: 18px;">
-            {@html catIcon}
-          </div>
-          <div class="ios-receipt-amount">{formatCurrency(selectedOrder.total)}</div>
-          <div class="ios-receipt-title">{selectedOrder.item}</div>
-          <div class="ios-receipt-subtitle">{selectedOrder.company || '—'}</div>
-        </div>
-
-        <hr class="ios-receipt-divider" />
-
-        <div class="ios-receipt-grid">
-          <div class="ios-receipt-row">
-            <span class="ios-receipt-label">Status</span>
-            <span class="ios-receipt-val"><OrderStatusBadge status={selectedOrder.status} /></span>
-          </div>
-          <div class="ios-receipt-row">
-            <span class="ios-receipt-label">Date</span>
-            <span class="ios-receipt-val monospace">{formatFullDate(selectedOrder.timestamp)}</span>
-          </div>
-          <div class="ios-receipt-row">
-            <span class="ios-receipt-label">Team</span>
-            <span class="ios-receipt-val">{selectedOrder.team || selectedOrder.user || "—"}</span>
-          </div>
-          <div class="ios-receipt-row">
-            <span class="ios-receipt-label">Category</span>
-            <span class="ios-receipt-val">{capitalize(selectedOrder.category)}</span>
-          </div>
-          <div class="ios-receipt-row">
-            <span class="ios-receipt-label">Unit Price</span>
-            <span class="ios-receipt-val monospace">{formatCurrency(selectedOrder.price)}</span>
-          </div>
-          <div class="ios-receipt-row">
-            <span class="ios-receipt-label">Quantity</span>
-            <span class="ios-receipt-val monospace">×{selectedOrder.quantity}</span>
-          </div>
-          {#if selectedOrder.tracking}
-            <div class="ios-receipt-row">
-              <span class="ios-receipt-label">Tracking</span>
-              <span class="ios-receipt-val monospace">
-                <button type="button" class="link-btn" onclick={() => openExternal(selectedOrder.tracking)}>
-                  {selectedOrder.tracking} ↗
-                </button>
-              </span>
-            </div>
-          {/if}
-        </div>
-
-        {#if selectedOrder.notes}
-          <div class="ios-receipt-notes-card">
-            <div class="ios-receipt-notes-title">
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-              Notes
-            </div>
-            <div class="ios-receipt-notes-body">{selectedOrder.notes}</div>
-          </div>
-        {/if}
-
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          {#if selectedOrder.link}
-            <button
-              type="button"
-              class="btn btn-ghost btn-block"
-              style="height: 48px; border-radius: 12px; font-weight: 700;"
-              onclick={() => openExternal(selectedOrder.link)}
-            >
-              Open Vendor Link ↗
-            </button>
-          {/if}
-
-          {#if onmanage}
-            <button
-              class="btn btn-primary btn-block"
-              onclick={() => {
-                onmanage(selectedOrder);
-                selectedOrder = null;
-              }}
-            >
-              Manage Order
-            </button>
-          {/if}
-        </div>
-      </div>
-    {/if}
-  {/snippet}
-</IOSBottomSheet>
+<OrderDetailSheet
+  order={selectedOrder}
+  open={!!selectedOrder}
+  onclose={() => (selectedOrder = null)}
+  onmanage={onmanage}
+/>
 
 <style>
-  /* ── Desktop: show table, hide list ─────────────────────────── */
   .desktop-table {
     display: block;
   }
@@ -558,8 +370,6 @@
       display: block;
     }
   }
-
-  /* ── Desktop Table Styles ────────────────────────────────────── */
   .table-wrap {
     box-shadow: var(--shadow-sm);
     margin-bottom: 2rem;
@@ -627,6 +437,25 @@
     font-weight: 500;
   }
 
+  .clickable-row {
+    cursor: pointer;
+  }
+
+  @media (hover: hover) {
+    .clickable-row:hover td {
+      background: var(--surface-2);
+    }
+  }
+
+  .clickable-row:focus-visible td {
+    background: var(--surface-2);
+    outline: none;
+  }
+
+  .clickable-row:focus-visible td:first-child {
+    box-shadow: inset 2px 0 0 var(--primary);
+  }
+
   .group-row td:first-child {
     position: relative;
     padding-left: 20px !important;
@@ -665,8 +494,6 @@
       border-bottom-color: currentColor;
     }
   }
-
-  /* ── iOS List Styles ─────────────────────────────────────────── */
   .ios-list-wrap {
     margin-bottom: 1.5rem;
   }
@@ -685,7 +512,6 @@
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    font-family: -apple-system, "SF Pro Text", sans-serif;
   }
 
   .ios-total-amount {
@@ -699,7 +525,6 @@
   .ios-cell-qty {
     font-size: 11px;
     color: var(--text-muted);
-    font-family: -apple-system, "SF Pro Text", sans-serif;
     font-weight: 600;
   }
 </style>

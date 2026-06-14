@@ -1,68 +1,256 @@
-const SECRET_KEY = "YOUR_SECRET_KEY"; // Ensure this matches src/lib/config.js
+const scriptProperties = PropertiesService.getScriptProperties();
+const GOOGLE_CLIENT_ID = scriptProperties.getProperty("GOOGLE_CLIENT_ID");
+const SESSION_SECRET = scriptProperties.getProperty("SESSION_SECRET");
+const SESSION_TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days
 
-function doGet(e) {
-  const action = e.parameter.action;
-  if (!e.parameter.key || e.parameter.key !== SECRET_KEY) {
-    return jsonResponse({ error: "Unauthorized" });
-  }
-
+function verifyGoogleToken(idToken) {
+  if (!idToken) return null;
   try {
-    switch (action) {
-      case "getAllData":
-        return jsonResponse({
-          orders: getOrders(),
-          funds: getFundraising(),
-          budget: getBudget(),
-          members: getMembers()
-        });
-
-      case "getOrders":
-        return jsonResponse(getOrders());
-
-      case "addOrder":
-        return jsonResponse(addOrderFromParams(e.parameter));
-
-      case "updateOrderStatus":
-        return jsonResponse(updateOrderStatus(e.parameter));
-
-      case "deleteOrder":
-        return jsonResponse(deleteOrder(e.parameter.uuid));
-
-      case "getBudget":
-        return jsonResponse(getBudget());
-
-      case "getFunds":
-        return jsonResponse(getFundraising());
-
-      case "addFundraising":
-      case "addFunds":
-        return jsonResponse(addFundraisingFromParams(e.parameter));
-
-      case "updateFunding":
-        return jsonResponse(updateFunding(e.parameter));
-
-      case "getMembers":
-        return jsonResponse({ members: getMembers() });
-
-      case "addMember":
-        return jsonResponse(addMember(e));
-
-      case "removeMember":
-        return jsonResponse(removeMember(e));
-
-      default:
-        return jsonResponse({ error: "Invalid action: " + action });
-    }
-  } catch (err) {
-    return jsonResponse({ error: err.toString() });
+    const res = UrlFetchApp.fetch(
+      "https://oauth2.googleapis.com/tokeninfo?id_token=" +
+        encodeURIComponent(idToken),
+      { muteHttpExceptions: true },
+    );
+    if (res.getResponseCode() !== 200) return null;
+    const payload = JSON.parse(res.getContentText());
+    if (payload.aud !== GOOGLE_CLIENT_ID) return null;
+    if (payload.email_verified !== true && payload.email_verified !== "true")
+      return null;
+    return payload;
+  } catch (_) {
+    return null;
   }
+}
+
+function b64urlStr(str) {
+  return Utilities.base64EncodeWebSafe(
+    Utilities.newBlob(str).getBytes(),
+  ).replace(/=+$/, "");
+}
+function b64urlBytes(b) {
+  return Utilities.base64EncodeWebSafe(b).replace(/=+$/, "");
+}
+function b64urlDecode(s) {
+  return Utilities.newBlob(Utilities.base64DecodeWebSafe(s)).getDataAsString();
+}
+
+function signParts(h, p) {
+  return b64urlBytes(
+    Utilities.computeHmacSha256Signature(h + "." + p, SESSION_SECRET),
+  );
+}
+
+function mintSessionToken(member) {
+  if (!SESSION_SECRET)
+    throw new Error("Server misconfigured: no SESSION_SECRET");
+  const now = Math.floor(Date.now() / 1000);
+  const h = b64urlStr(JSON.stringify({ alg: "HS256", typ: "WFS" }));
+  const p = b64urlStr(
+    JSON.stringify({
+      email: String(member.email).toLowerCase(),
+      role: (member.role || "").trim().toLowerCase(),
+      studentId: String(member.studentId || ""),
+      iat: now,
+      exp: now + SESSION_TTL_SECONDS,
+    }),
+  );
+  return {
+    token: h + "." + p + "." + signParts(h, p),
+    exp: now + SESSION_TTL_SECONDS,
+  };
+}
+
+function safeEqual(a, b) {
+  const len = Math.max(a.length, b.length);
+  var d = a.length !== b.length ? 1 : 0;
+  for (var i = 0; i < len; i++) d |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0);
+  return d === 0;
+}
+
+function verifySessionToken(token) {
+  if (!token || !SESSION_SECRET) return null;
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    if (!safeEqual(parts[2], signParts(parts[0], parts[1]))) return null;
+    const payload = JSON.parse(b64urlDecode(parts[1]));
+    if (!payload.exp || Math.floor(Date.now() / 1000) >= payload.exp)
+      return null;
+    return payload; // { email, role, studentId, iat, exp }
+  } catch (_) {
+    return null;
+  }
+}
+
+function loginWithGoogle(p) {
+  const caller = verifyGoogleToken(p.idToken);
+  if (!caller) return { error: "Unauthorized" };
+
+  const member = getMemberByEmail(caller.email);
+  let status;
+  if (!member) {
+    status = "pending_approval";
+  } else {
+    const role = (member.role || "").trim().toLowerCase();
+    status =
+      role === "unauthorized"
+        ? "unauthorized"
+        : role !== ""
+          ? "approved"
+          : "pending_approval";
+  }
+
+  const seed = member || { email: caller.email, role: "", studentId: "" };
+  const minted = mintSessionToken(seed);
+
+  return {
+    sessionToken: minted.token,
+    expiresAt: minted.exp,
+    member: member || null,
+    status: status,
+    googleEmail: caller.email,
+    googleName: caller.name || "",
+    googlePicture: caller.picture || "",
+  };
+}
+
+function getMemberByEmail(email) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Members");
+  if (!sheet) return null;
+  const data = sheet.getDataRange().getValues();
+  const lower = email.trim().toLowerCase();
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][5]).trim().toLowerCase() === lower) {
+      return {
+        firstName: data[i][0],
+        lastName: data[i][1],
+        studentId: String(data[i][2]),
+        team: data[i][3],
+        role: data[i][4],
+        email: data[i][5],
+      };
+    }
+  }
+  return null;
+}
+
+function isAdmin(email) {
+  const m = getMemberByEmail(email);
+  return m && (m.role || "").trim().toLowerCase() === "admin";
+}
+
+function isApprovedMember(email) {
+  const m = getMemberByEmail(email);
+  if (!m) return false;
+  const role = (m.role || "").trim().toLowerCase();
+  return role !== "" && role !== "unauthorized";
+}
+
+function sanitizeCell(val) {
+  if (typeof val === "string" && /^[=+\-@]/.test(val)) return "'" + val;
+  return val;
+}
+
+function doGet() {
+  return txtResponse({ error: "GET not supported. Use POST." });
 }
 
 function doPost(e) {
-  return doGet(e);
-}
+  let p;
+  try {
+    p = JSON.parse(e.postData.contents);
+  } catch (_) {
+    return txtResponse({ error: "Invalid JSON body" });
+  }
 
-// ── ORDERS ──────────────────────────────────────────────────────────────────
+  if (p.action === "login") {
+    return txtResponse(loginWithGoogle(p));
+  }
+
+  if (!p.sessionToken && p.idToken) {
+    return txtResponse({ error: "Session expired" });
+  }
+
+  const caller = verifySessionToken(p.sessionToken);
+  if (!caller) return txtResponse({ error: "Session expired" });
+
+  const ADMIN_ACTIONS = new Set([
+    "addMember",
+    "removeMember",
+    "deleteOrder",
+    "updateOrderStatus",
+    "updateFunding",
+    "addFundraising",
+    "addFunds",
+  ]);
+  const MEMBER_ACTIONS = new Set([
+    "addOrder",
+    "getAllData",
+    "getOrders",
+    "getBudget",
+    "getFunds",
+    "getMembers",
+  ]);
+
+  const needsRoleCheck = ADMIN_ACTIONS.has(p.action) ||
+    (MEMBER_ACTIONS.has(p.action) && (caller.role === "unauthorized" || caller.role === ""));
+  if (needsRoleCheck) {
+    const callerMember = getMemberByEmail(caller.email);
+    const role = callerMember ? (callerMember.role || "").trim().toLowerCase() : "";
+    if (ADMIN_ACTIONS.has(p.action)) {
+      if (role !== "admin") return txtResponse({ error: "Forbidden" });
+    } else if (!callerMember || !role || role === "unauthorized") {
+      return txtResponse({ error: "Forbidden" });
+    }
+  }
+
+  if (p.action === "registerSelf" && caller.role === "unauthorized") {
+    return txtResponse({ error: "Forbidden" });
+  }
+
+  try {
+    switch (p.action) {
+      case "getAllData":
+        return txtResponse({
+          orders: getOrders(),
+          funds: getFundraising(),
+          budget: getBudget(),
+          members: getMembers(),
+        });
+      case "getOrders":
+        return txtResponse(getOrders());
+      case "addOrder":
+        return txtResponse(addOrderFromParams(p));
+      case "updateOrderStatus":
+        return txtResponse(updateOrderStatus(p));
+      case "deleteOrder":
+        return txtResponse(deleteOrder(p.uuid));
+      case "getBudget":
+        return txtResponse(getBudget());
+      case "getFunds":
+        return txtResponse(getFundraising());
+      case "addFundraising":
+      case "addFunds":
+        return txtResponse(addFundraisingFromParams(p));
+      case "updateFunding":
+        return txtResponse(updateFunding(p));
+      case "getMembers":
+        return txtResponse({ members: getMembers() });
+      case "addMember":
+        return txtResponse(addMember(p));
+      case "removeMember":
+        return txtResponse(removeMember(p));
+      case "getSelf":
+        return txtResponse({ member: getMemberByEmail(caller.email) });
+      case "registerSelf":
+        return txtResponse(registerSelf(p, caller.email));
+      default:
+        return txtResponse({ error: "Invalid action: " + p.action });
+    }
+  } catch (err) {
+    return txtResponse({ error: err.toString() });
+  }
+}
 
 function getOrders() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Orders");
@@ -75,42 +263,40 @@ function addOrderFromParams(p) {
   const price = Number(p.price) || 0;
   const quantity = Number(p.quantity) || 1;
   const uuid = p.uuid || generateShortId();
-  
-  // Column J receives formula for dynamic total
-  const totalFormula = "=INDIRECT(\"D\"&ROW())*INDIRECT(\"E\"&ROW())";
-  
-  // Column N receives formula for sequential counting
+  const totalFormula = '=INDIRECT("D"&ROW())*INDIRECT("E"&ROW())';
   const nextRow = sheet.getLastRow() + 1;
   const colNFormula = `=IF(A${nextRow}<>"", COUNTIF($A$3:A${nextRow}, "<>"), "")`;
-  
-  // Columns: A=Item, B=Company, C=Link, D=Price, E=Quantity, F=Notes,
-  //          G=Category, H=Team, I=Timestamp, J=Total, K=Status,
-  //          L=Tracking, M=UUID, N=Formula, O=Ordered By
   sheet.appendRow([
-    p.item||"", p.company||"", p.link||"", price, quantity, p.notes||"", 
-    p.category||"", p.team||"", new Date(), totalFormula, 
-    p.status||"Pending Review", p.tracking||"", uuid,
-    colNFormula, p.orderedBy||""
+    sanitizeCell(p.item || ""),
+    sanitizeCell(p.company || ""),
+    sanitizeCell(p.link || ""),
+    price,
+    quantity,
+    sanitizeCell(p.notes || ""),
+    sanitizeCell(p.category || ""),
+    sanitizeCell(p.team || ""),
+    new Date(),
+    totalFormula,
+    sanitizeCell(p.status || "Pending Review"),
+    sanitizeCell(p.tracking || ""),
+    uuid,
+    colNFormula,
+    sanitizeCell(p.orderedBy || ""),
   ]);
-  return { success: true, uuid: uuid };
-}
-
-function generateShortId() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // No O, 0, I, 1 to avoid confusion
-  let result = '';
-  for (let i = 0; i < 6; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
+  return { success: true, uuid };
 }
 
 function updateOrderStatus(p) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Orders");
   const rowIndex = parseInt(p.rowIndex);
-  if (!rowIndex || rowIndex < 3) return { error: "Invalid row" };
-  if (p.status)    sheet.getRange(rowIndex, 11).setValue(p.status);    // Column K
-  if (p.tracking)  sheet.getRange(rowIndex, 12).setValue(p.tracking);  // Column L
-  if (p.orderUUID) sheet.getRange(rowIndex, 13).setValue(p.orderUUID); // Column M
+  if (!rowIndex || rowIndex < 3 || rowIndex > sheet.getLastRow())
+    return { error: "Invalid row" };
+  const existingUUID = String(sheet.getRange(rowIndex, 13).getValue()).trim();
+  if (existingUUID && existingUUID !== String(p.orderUUID || ''))
+    return { error: "Row mismatch" };
+  if (p.newGroupUUID) sheet.getRange(rowIndex, 13).setValue(sanitizeCell(p.newGroupUUID));
+  if (p.status) sheet.getRange(rowIndex, 11).setValue(sanitizeCell(p.status));
+  if (p.tracking) sheet.getRange(rowIndex, 12).setValue(sanitizeCell(p.tracking));
   return { success: true };
 }
 
@@ -127,149 +313,247 @@ function deleteOrder(uuid) {
   return { error: "ID not found" };
 }
 
-// ── BUDGETS ──────────────────────────────────────────────────────────────────
+function generateShortId() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let result = "";
+  for (let i = 0; i < 6; i++)
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  return result;
+}
 
 function getBudget() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Budgets");
   if (!sheet) return {};
   const data = sheet.getDataRange().getValues();
-  const headers = data[0], categories = headers.slice(1), result = {};
-  categories.forEach(cat => result[cat] = {});
+  const headers = data[0],
+    categories = headers.slice(1),
+    result = {};
+  categories.forEach((cat) => (result[cat] = {}));
   for (let i = 1; i < data.length; i++) {
-    const row = data[i], parent = row[0];
+    const row = data[i],
+      parent = row[0];
     if (!parent) continue;
     for (let j = 1; j < headers.length; j++) {
-      let val = row[j];
-      result[headers[j]][parent] = (val === "" || isNaN(val)) ? val : Number(val);
+      const val = row[j];
+      result[headers[j]][parent] = val === "" || isNaN(val) ? val : Number(val);
     }
   }
   return result;
 }
 
-// ── FUNDRAISING ─────────────────────────────────────────────────────────────
-
 function getFundraising() {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Fundraising");
+  const sheet =
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Fundraising");
   if (!sheet) return [];
   const data = sheet.getDataRange().getValues();
-  const headers = data[0], rows = data.slice(1);
-  return rows.filter(r => r.some(c => c !== "")).map(r => {
-    let obj = {};
-    headers.forEach((h, i) => obj[h.trim()] = r[i]);
-    return obj;
-  });
+  const headers = data[0],
+    rows = data.slice(1);
+  return rows
+    .filter((r) => r.some((c) => c !== ""))
+    .map((r) => {
+      const obj = {};
+      headers.forEach((h, i) => (obj[h.trim()] = r[i]));
+      return obj;
+    });
 }
 
 function addFundraisingFromParams(p) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Fundraising");
-  const amount = Number(p.amount);
-  sheet.appendRow([p.type||"", p.source||"", amount, new Date(), p.notes||"", p.recipient||"All"]);
+  const sheet =
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Fundraising");
+  sheet.appendRow([
+    sanitizeCell(p.type || ""),
+    sanitizeCell(p.source || ""),
+    Number(p.amount),
+    new Date(),
+    sanitizeCell(p.notes || ""),
+    sanitizeCell(p.recipient || "All"),
+  ]);
   return { success: true };
 }
 
 function updateFunding(p) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Fundraising");
+  const sheet =
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Fundraising");
   const rowIndex = parseInt(p.rowIndex);
-  if (!rowIndex || rowIndex < 2) return { error: "Invalid row" };
-  // Columns: A=Type, B=Source, C=Amount, D=Date, E=Notes, F=Recipient
-  if (p.Type !== undefined)      sheet.getRange(rowIndex, 1).setValue(p.Type);
-  if (p.Source !== undefined)    sheet.getRange(rowIndex, 2).setValue(p.Source);
-  if (p.Amount !== undefined)    sheet.getRange(rowIndex, 3).setValue(Number(p.Amount) || 0);
-  if (p.Date !== undefined)      sheet.getRange(rowIndex, 4).setValue(p.Date);
-  if (p.Notes !== undefined)     sheet.getRange(rowIndex, 5).setValue(p.Notes);
-  if (p.Recipient !== undefined) sheet.getRange(rowIndex, 6).setValue(p.Recipient);
+  if (!rowIndex || rowIndex < 2 || rowIndex > sheet.getLastRow())
+    return { error: "Invalid row" };
+  if (p.Type !== undefined)
+    sheet.getRange(rowIndex, 1).setValue(sanitizeCell(String(p.Type)));
+  if (p.Source !== undefined)
+    sheet.getRange(rowIndex, 2).setValue(sanitizeCell(String(p.Source)));
+  if (p.Amount !== undefined)
+    sheet.getRange(rowIndex, 3).setValue(Number(p.Amount) || 0);
+  if (p.Date !== undefined)
+    sheet.getRange(rowIndex, 4).setValue(sanitizeCell(String(p.Date)));
+  if (p.Notes !== undefined)
+    sheet.getRange(rowIndex, 5).setValue(sanitizeCell(String(p.Notes)));
+  if (p.Recipient !== undefined)
+    sheet.getRange(rowIndex, 6).setValue(sanitizeCell(String(p.Recipient)));
   return { success: true };
 }
 
-// ── HELPERS ──────────────────────────────────────────────────────────────────
-
-function sheetToObjects(sheet) {
-  const data = sheet.getDataRange().getValues();
-  if (data.length < 3) return []; // Header is on line 2, data starts on line 3
-  const headers = data[1], rows = data.slice(2);
-  return rows.filter(r => r.some(c => c !== "")).map((r, i) => {
-    let obj = {};
-    headers.forEach((h, k) => obj[h.trim()] = r[k]);
-    obj.rowIndex = i + 3; 
-    return obj;
-  });
-}
-
-function jsonResponse(data) {
-  return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
-}
-
-function logRequest(e) {
-  console.log("Action: " + (e.parameter.action || "none") + " | Params: " + JSON.stringify(e.parameter));
-}
-
-// ── MEMBERS ─────────────────────────────────────────────────────────────────
-
 function getMembers() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName("Members");
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Members");
   if (!sheet) return [];
-
-  var data = sheet.getDataRange().getValues();
-  var members = [];
-
-  for (var i = 1; i < data.length; i++) {
-    var row = data[i];
-    if (!row[0] && !row[2]) continue; // Skip empty rows
+  const data = sheet.getDataRange().getValues();
+  const members = [];
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    if (!row[0] && !row[2]) continue;
     members.push({
       firstName: row[0] || "",
       lastName: row[1] || "",
       studentId: String(row[2] || ""),
       team: row[3] || "",
       role: row[4] || "",
-      email: row[5] || ""
+      email: row[5] || "",
     });
   }
-
   return members;
 }
 
-function addMember(e) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName("Members");
+function addMember(p) {
+  let sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Members");
   if (!sheet) {
-    sheet = ss.insertSheet("Members");
-    sheet.appendRow(["firstName", "lastName", "studentId", "team", "role"]);
+    sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet("Members");
+    sheet.appendRow([
+      "firstName",
+      "lastName",
+      "studentId",
+      "team",
+      "role",
+      "email",
+    ]);
   }
-
-  var firstName = e.parameter.firstName || "";
-  var lastName = e.parameter.lastName || "";
-  var studentId = e.parameter.studentId || "";
-  var team = e.parameter.team || "";
-  var role = e.parameter.role || "";
-  var email = e.parameter.email || "";
-
-  // Check if student ID already exists
-  var data = sheet.getDataRange().getValues();
-  for (var i = 1; i < data.length; i++) {
-    if (String(data[i][2]) === studentId || (email && String(data[i][5]).toLowerCase() === email.toLowerCase())) {
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (
+      String(data[i][2]) === p.studentId ||
+      (p.email && String(data[i][5]).toLowerCase() === p.email.toLowerCase())
+    ) {
       return { error: "Member with this Student ID or Email already exists" };
     }
   }
-
-  sheet.appendRow([firstName, lastName, studentId, team, role, email]);
-  return { success: true, message: "Member added successfully" };
+  sheet.appendRow([
+    sanitizeCell(p.firstName || ""),
+    sanitizeCell(p.lastName || ""),
+    sanitizeCell(p.studentId || ""),
+    sanitizeCell(p.team || ""),
+    sanitizeCell(p.role || ""),
+    sanitizeCell(p.email || ""),
+  ]);
+  return { success: true };
 }
 
-function removeMember(e) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName("Members");
-  if (!sheet) return { error: "Members sheet not found" };
+function registerSelf(p, callerEmail) {
+  if ((p.email || "").toLowerCase() !== callerEmail.toLowerCase()) {
+    return { error: "Email mismatch" };
+  }
+  let sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Members");
+  if (!sheet) {
+    sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet("Members");
+    sheet.appendRow([
+      "firstName",
+      "lastName",
+      "studentId",
+      "team",
+      "role",
+      "email",
+    ]);
+  }
+  const data = sheet.getDataRange().getValues();
 
-  var studentId = e.parameter.studentId || "";
-  var data = sheet.getDataRange().getValues();
-
-  for (var i = 1; i < data.length; i++) {
-    if (String(data[i][2]) === studentId) {
-      sheet.deleteRow(i + 1);
-      return { success: true, message: "Member removed" };
+  let foundIdx = -1;
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][2]) === p.studentId) {
+      foundIdx = i;
+      break;
     }
   }
 
+  let member;
+  if (foundIdx >= 0) {
+    const existingEmail = data[foundIdx][5]
+      ? String(data[foundIdx][5]).trim().toLowerCase()
+      : "";
+    if (existingEmail && existingEmail !== callerEmail.toLowerCase()) {
+      return { error: "Student ID already claimed by another email" };
+    }
+    sheet.getRange(foundIdx + 1, 6).setValue(callerEmail);
+    member = {
+      firstName: data[foundIdx][0],
+      lastName: data[foundIdx][1],
+      studentId: String(data[foundIdx][2]),
+      team: data[foundIdx][3],
+      role: data[foundIdx][4],
+      email: callerEmail,
+    };
+  } else {
+    sheet.appendRow([
+      sanitizeCell(p.firstName || ""),
+      sanitizeCell(p.lastName || ""),
+      sanitizeCell(p.studentId || ""),
+      sanitizeCell(p.team || ""),
+      "",
+      sanitizeCell(p.email || ""),
+    ]);
+    member = {
+      firstName: p.firstName || "",
+      lastName: p.lastName || "",
+      studentId: p.studentId || "",
+      team: p.team || "",
+      role: "",
+      email: callerEmail,
+    };
+  }
+
+  const minted = mintSessionToken(member);
+  const role = (member.role || "").trim().toLowerCase();
+  const status =
+    role === "unauthorized"
+      ? "unauthorized"
+      : role !== ""
+        ? "approved"
+        : "pending_approval";
+
+  return {
+    success: true,
+    sessionToken: minted.token,
+    expiresAt: minted.exp,
+    member: member,
+    status: status,
+  };
+}
+
+function removeMember(p) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Members");
+  if (!sheet) return { error: "Members sheet not found" };
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][2]) === p.studentId) {
+      sheet.deleteRow(i + 1);
+      return { success: true };
+    }
+  }
   return { error: "Member not found" };
+}
+
+function sheetToObjects(sheet) {
+  const data = sheet.getDataRange().getValues();
+  if (data.length < 3) return [];
+  const headers = data[1], rows = data.slice(2), result = [];
+  rows.forEach((r, i) => {
+    if (!r.some((c) => c !== "")) return;
+    const obj = {};
+    headers.forEach((h, k) => (obj[h.trim()] = r[k]));
+    obj.rowIndex = i + 3;
+    result.push(obj);
+  });
+  return result;
+}
+
+function txtResponse(data) {
+  return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(
+    ContentService.MimeType.TEXT,
+  );
 }
