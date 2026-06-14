@@ -740,6 +740,10 @@ tbody td {
   .hide-mobile {
     display: none !important;
   }
+  .refresh-btn {
+    flex: none !important;
+    margin-left: auto;
+  }
 }
 
 @media (max-width: 390px) {
@@ -1494,6 +1498,14 @@ tbody td {
   transition: top 0.15s;
 }
 
-.skip-to-main:focus {
-  top: 0;
+  .skip-to-main:focus {
+    top: 0;
+  }
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
+.spinning {
+  animation: spin 0.8s linear infinite;
+}
+
