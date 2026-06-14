@@ -6,7 +6,7 @@
   import { api } from '$lib/api.js';
   import { FINANCE_DIRECTOR } from '$lib/config.js';
 
-  let addForm = $state({ firstName: '', lastName: '', studentId: '', team: 'FRC', isAdmin: false });
+  let addForm = $state({ firstName: '', lastName: '', studentId: '', email: '', team: 'FRC', isAdmin: false });
   let submitting = $state(false);
   let actionMsg = $state('');
   let actionErr = $state('');
@@ -15,16 +15,17 @@
     actionMsg = '';
     actionErr = '';
     if (!addForm.firstName.trim() || !addForm.lastName.trim()) { actionErr = 'First and last name are required.'; return; }
+    if (!addForm.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(addForm.email.trim())) { actionErr = 'A valid email is required.'; return; }
     const cleanId = addForm.studentId.replace(/^s/i, '').trim();
     if (!cleanId || cleanId.length !== 6 || !/^\d{6}$/.test(cleanId)) { actionErr = 'Student ID must be exactly 6 digits (without the S).'; return; }
 
     submitting = true;
     try {
-      const result = await api.post({ action: 'addMember', firstName: addForm.firstName.trim(), lastName: addForm.lastName.trim(), studentId: cleanId, team: addForm.team, role: addForm.isAdmin ? 'admin' : '' });
+      const result = await api.post({ action: 'addMember', firstName: addForm.firstName.trim(), lastName: addForm.lastName.trim(), studentId: cleanId, email: addForm.email.trim(), team: addForm.team, role: addForm.isAdmin ? 'admin' : '' });
       if (result.error) throw new Error(result.error);
 
       actionMsg = `✓ ${addForm.firstName} ${addForm.lastName} approved!`;
-      addForm = { firstName: '', lastName: '', studentId: '', team: 'FRC', isAdmin: false };
+      addForm = { firstName: '', lastName: '', studentId: '', email: '', team: 'FRC', isAdmin: false };
       await dataService.load(true, true);
     } catch (e) {
       actionErr = e instanceof Error ? e.message : 'Failed to add member';
@@ -40,7 +41,7 @@
       const result = await api.post({ action: 'removeMember', studentId });
       if (result.error) throw new Error(result.error);
 
-      actionMsg = '✓ Member removed.';
+      actionMsg = 'Member removed.';
       await dataService.load(true, true);
     } catch (e) {
       actionErr = e instanceof Error ? e.message : 'Failed to remove member';
@@ -75,6 +76,10 @@
         <div class="form-group">
           <label for="member-sid">Student ID (6 digits, no S) *</label>
           <input id="member-sid" type="text" inputmode="numeric" maxlength={6} bind:value={addForm.studentId} placeholder="123456" required />
+        </div>
+        <div class="form-group">
+          <label for="member-email">Email *</label>
+          <input id="member-email" type="email" bind:value={addForm.email} placeholder="you@example.com" required />
         </div>
         <div class="form-group">
           <label for="member-team">Team *</label>
