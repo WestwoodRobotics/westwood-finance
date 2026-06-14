@@ -31,13 +31,18 @@
   let actionErr = $state('');
 
   $effect(() => {
-    if (vendorSelect && vendorSelect !== 'Other') form.company = vendorSelect;
+    if (vendorSelect && vendorSelect !== 'Other') {
+      form.company = vendorSelect;
+    } else if (vendorSelect === 'Other' && presetVendors.some(v => v.value === form.company)) {
+      form.company = '';
+    }
   });
 
   async function submit() {
     actionErr = '';
     actionMsg = '';
     if (!form.item.trim()) { actionErr = 'Item name is required.'; return; }
+    if (!form.company.trim()) { actionErr = 'Vendor / Company is required.'; return; }
     if (!form.price || isNaN(Number(form.price))) { actionErr = 'Valid price is required.'; return; }
     if (!form.notes.trim()) { actionErr = 'Team Notes (Reason for order) is required.'; return; }
 
@@ -84,9 +89,11 @@
         </div>
         <div class="form-group">
           <label for="ae-company">Vendor / Company *</label>
-          <div style="display:flex; gap:8px;">
+          <div style="display:flex; flex-direction:column; gap:8px;">
             <CustomDropdown options={presetVendors} bind:value={vendorSelect} placeholder="Quick pick…" />
-            <input id="ae-company" type="text" bind:value={form.company} placeholder="ex. REV Robotics" required style="flex:1;" />
+            {#if vendorSelect === 'Other'}
+              <input id="ae-company" type="text" bind:value={form.company} placeholder="type custom vendor name" required />
+            {/if}
           </div>
         </div>
         <div class="form-group">

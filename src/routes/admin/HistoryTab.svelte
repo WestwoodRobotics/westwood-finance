@@ -164,4 +164,19 @@
     background: var(--group-color, var(--primary));
     opacity: 0.9;
   }
+
+  .text-dim {
+    color: var(--text-dim);
+  }
+
+  .th-content {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 100%;
+  }
+
+  .sortable {
+    cursor: pointer;
+  }
 </style>

@@ -87,7 +87,13 @@
   }
 
   $effect(() => {
-    if (vendorSelect && vendorSelect !== 'Other') form.company = vendorSelect;
+    if (vendorSelect && vendorSelect !== 'Other') {
+      form.company = vendorSelect;
+      delete fieldErrors.company;
+      fieldErrors = { ...fieldErrors };
+    } else if (vendorSelect === 'Other' && presetVendors.some(v => v.value === form.company)) {
+      form.company = "";
+    }
   });
 
   $effect(() => {
@@ -250,14 +256,20 @@
             <label for="ae-company">Vendor / Supplier *</label>
             <div class="vendor-field-group">
               <CustomDropdown options={presetVendors} bind:value={vendorSelect} />
-              <input
-                id="ae-company"
-                type="text"
-                bind:value={form.company}
-                placeholder="or type vendor name"
-                required
-              />
+              {#if vendorSelect === 'Other'}
+                <input
+                  id="ae-company"
+                  type="text"
+                  bind:value={form.company}
+                  placeholder="type vendor name"
+                  required
+                  class:field-error={fieldErrors.company}
+                  onblur={() => validateField('company', form.company)}
+                />
+              {/if}
             </div>
+            {#if fieldErrors.company && vendorSelect === 'Other'}<span class="field-error-msg">{fieldErrors.company}</span>{/if}
+            {#if fieldErrors.company && vendorSelect !== 'Other'}<span class="field-error-msg">Please select a vendor</span>{/if}
           </div>
 
           <div class="form-group">
