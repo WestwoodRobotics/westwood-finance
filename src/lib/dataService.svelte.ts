@@ -134,7 +134,7 @@ class DataStore {
           status,
           tracking: String(o["Tracking"] ?? o["tracking"] ?? ""),
           id: finalId,
-          orderUUID: String(o["Order UUID"] || o["orderUUID"] || ""),
+          orderUUID: String(o["Order UUID"] || o["UUID"] || o["orderUUID"] || ""),
           rowIndex: Number(o["rowIndex"]) || index + 3,
           orderedBy: String(o["Ordered By"] ?? o["orderedBy"] ?? ""),
         } satisfies Order;
