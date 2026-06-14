@@ -4,6 +4,7 @@
   import { dataService } from '$lib/dataService.svelte.js';
   import { api } from '$lib/api.js';
   import { formatDate } from '$lib/utils.js';
+  import type { OrderStatus } from '$lib/types.js';
 
   const ORDER_STATUSES = ['Pending Review', 'Approved', 'Ordered', 'Received', 'Denied', 'Cancelled', 'Void'];
   const recipientOptions = [
@@ -25,7 +26,7 @@
     { label: 'Other', value: 'Other' },
   ];
   let vendorSelect = $state('');
-  let form = $state({ item: '', company: '', link: '', price: '', quantity: '1', notes: '', team: 'FRC', category: 'hardware', status: 'Received' });
+  let form = $state({ item: '', company: '', link: '', price: '', quantity: '1', notes: '', team: 'FRC', category: 'hardware', status: 'Received' as OrderStatus });
   let submitting = $state(false);
   let actionMsg = $state('');
   let actionErr = $state('');

@@ -3,7 +3,7 @@
   import CustomDropdown from '$lib/components/CustomDropdown.svelte';
   import { dataService } from '$lib/dataService.svelte.js';
   import { api } from '$lib/api.js';
-  import type { Order } from '$lib/types.js';
+  import type { Order, OrderStatus } from '$lib/types.js';
 
   const ORDER_STATUSES = ['Pending Review', 'Approved', 'Ordered', 'Received', 'Denied', 'Cancelled', 'Void'];
 
@@ -13,7 +13,7 @@
     onsaved: (msg: string, undofn: () => Promise<void>) => void;
   } = $props();
 
-  let groupStatus = $state('Ordered');
+  let groupStatus: OrderStatus = $state('Ordered');
   let saving = $state(false);
   let actionErr = $state('');
 

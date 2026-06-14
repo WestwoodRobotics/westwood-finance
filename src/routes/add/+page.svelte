@@ -78,7 +78,7 @@
   function validateField(name: string, value: string | number) {
     if (value == null || !String(value).trim()) {
       fieldErrors[name] = 'Required';
-    } else if (name === 'price' && (isNaN(parseFloat(value)) || parseFloat(value) < 0)) {
+    } else if (name === 'price' && (isNaN(parseFloat(String(value))) || parseFloat(String(value)) < 0)) {
       fieldErrors[name] = 'Enter a valid price';
     } else {
       delete fieldErrors[name];

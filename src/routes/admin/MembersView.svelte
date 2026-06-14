@@ -2,6 +2,7 @@
   import { Check, Info, Users } from '@lucide/svelte';
   import CustomDropdown from '$lib/components/CustomDropdown.svelte';
   import { authStore } from '$lib/authStore.svelte.js';
+  import { dataService } from '$lib/dataService.svelte.js';
   import { api } from '$lib/api.js';
   import { FINANCE_DIRECTOR } from '$lib/config.js';
 

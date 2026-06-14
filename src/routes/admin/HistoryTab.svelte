@@ -30,8 +30,8 @@
       if (adminSortCol === 'total') {
         return adminSortDir === 'asc' ? (a.total || 0) - (b.total || 0) : (b.total || 0) - (a.total || 0);
       }
-      const valA = String((a as Record<string, unknown>)[adminSortCol] || '').toLowerCase();
-      const valB = String((b as Record<string, unknown>)[adminSortCol] || '').toLowerCase();
+      const valA = String((a as unknown as Record<string, unknown>)[adminSortCol] || '').toLowerCase();
+      const valB = String((b as unknown as Record<string, unknown>)[adminSortCol] || '').toLowerCase();
       return adminSortDir === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
     })
   );
