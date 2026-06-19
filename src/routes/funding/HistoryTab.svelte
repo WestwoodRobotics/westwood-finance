@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Receipt } from '@lucide/svelte';
-  import { formatCurrency } from '$lib/utils.js';
+  import { formatCurrency, formatDate } from '$lib/utils.js';
   import { createTeamView } from '$lib/derived.svelte.js';
 
   const TYPE_COLORS: Record<string, string> = {
@@ -57,7 +57,7 @@
               <td>
                 <span style="font-size: 1.05rem; font-weight: 500; border-left: 2px solid {TYPE_COLORS[String(f.Type)] || '#ccc'}; padding-left: 8px;">{f.Type}</span>
               </td>
-              <td class="text-dim monospace">{f.Date || '—'}</td>
+              <td class="text-dim monospace">{f.Date ? formatDate(f.Date).split(' ')[0] : '—'}</td>
               <td class="text-right monospace amount-positive">{formatCurrency(f.Amount)}</td>
             </tr>
           {/each}

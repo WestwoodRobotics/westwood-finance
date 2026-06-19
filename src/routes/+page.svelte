@@ -41,13 +41,7 @@
     const teamBudget = (dataService.budget?.[budgetKey] as Record<string, number> | undefined);
     const totalClub = teamBudget?.['Club Funds'] || 0;
     const totalPersonal = teamBudget?.['Personal Funds'] || 0;
-    const totalRealExpenses = view.financialOrders
-      .filter(o => {
-        const st = (o.status || '').toLowerCase().trim();
-        return (st === 'received' || st === 'ordered') && String(o.timestamp || '').includes(currentYear);
-      })
-      .reduce((sum, o) => sum + (o.total || 0), 0);
-    return totalClub + totalPersonal + view.totalRaised - totalRealExpenses;
+    return totalClub + totalPersonal + view.totalRaised;
   });
 
   let selectedOrder = $state<Order | null>(null);
