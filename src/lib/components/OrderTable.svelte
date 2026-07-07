@@ -4,13 +4,10 @@
     formatFullDate,
     truncate,
     capitalize,
-    getTeamBadgeClass,
-    CAT_COLORS,
     STATUS_PRIORITY,
     getCatColor,
   } from "../utils.js";
   import { Settings, Code2, Megaphone, UtensilsCrossed, Package, ChevronRight } from '@lucide/svelte';
-  const PackageIcon = Package;
   import OrderStatusBadge from "./OrderStatusBadge.svelte";
   import OrderDetailSheet from "./OrderDetailSheet.svelte";
 
@@ -244,7 +241,7 @@
           <td colspan={emptyCols}>
             <div class="empty-state">
               <div class="icon">
-                <PackageIcon size={32} stroke-width={1.5} />
+                <Package size={32} stroke-width={1.5} />
               </div>
               No orders found
             </div>
@@ -257,9 +254,7 @@
         6 -
         (hideTeamColumn ? 1 : 0) -
         (hideCategoryColumn ? 1 : 0) -
-        (hideCompanyColumn ? 1 : 0) +
-        (onmanage ? 1 : 0) -
-        (onmanage ? 1 : 0)}
+        (hideCompanyColumn ? 1 : 0)}
       <tfoot>
         <tr class="total-row">
           <td colspan={footCols} class="total-label">Subtotal</td>
@@ -282,7 +277,7 @@
   {#if orders.length === 0}
     <div class="empty-state">
       <div class="icon">
-        <PackageIcon size={32} stroke-width={1.5} />
+        <Package size={32} stroke-width={1.5} />
       </div>
       No orders found
     </div>
@@ -426,7 +421,7 @@
 
   .amount {
     font-weight: 700;
-    color: #fff;
+    color: var(--text);
     font-size: 0.95rem;
   }
 
@@ -517,13 +512,13 @@
   .ios-total-amount {
     font-size: 17px;
     font-weight: 700;
-    color: #fff;
+    color: var(--text);
     font-family: "SF Mono", "JetBrains Mono", monospace;
     font-variant-numeric: tabular-nums;
   }
 
   .ios-cell-qty {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--text-muted);
     font-weight: 600;
   }

@@ -17,12 +17,22 @@
   --cat-hardware: #f97316;
   --cat-software: #3b82f6;
   --cat-outreach: #10b981;
+  --cat-food: #eab308;
   --cat-miscellaneous: #8b5cf6;
 
   --status-applied: #3b82f6;
   --status-pending: #eab308;
   --status-awarded: #10b981;
   --status-rejected: #ef4444;
+
+  /* Order lifecycle status colors (kept in sync with OrderStatusBadge) */
+  --status-pending-review: #3b82f6;
+  --status-ordered: #f97316;
+  --status-received: #10b981;
+  --status-approved: #06b6d4;
+  --status-denied: #ef4444;
+  --status-cancelled: #f59e0b;
+  --status-void: #71717a;
 
   --radius: 8px;
   --radius-sm: 6px;
@@ -354,7 +364,7 @@ textarea {
 }
 .badge-food {
   background: rgba(234, 179, 8, 0.1);
-  color: #eab308;
+  color: var(--cat-food);
   border-color: rgba(234, 179, 8, 0.2);
 }
 .badge-miscellaneous {

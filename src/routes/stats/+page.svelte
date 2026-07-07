@@ -8,7 +8,6 @@
   import LoadingIndicator from "$lib/components/LoadingIndicator.svelte";
   import CustomDropdown from "$lib/components/CustomDropdown.svelte";
   import {
-    formatCurrency,
     CATEGORIES,
     STATUS_COLORS,
     TEAMS,
@@ -174,7 +173,7 @@
 
 <style>
   .team-selector {
-    width: 170px;
+    width: 180px;
   }
 
   .stat-grid {
@@ -205,7 +204,7 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: #fff;
+    color: var(--text);
     margin-bottom: 4px;
   }
 
@@ -229,7 +228,6 @@
     }
   }
   @media (max-width: 768px) {
-    .btn { height: 42px; line-height: 1; display: inline-flex; align-items: center; }
     .team-selector { width: 175px; }
   }
 

@@ -149,7 +149,7 @@
 </script>
 
 {#if !authStore.initialized}
-  <div class="auth-loading">
+  <div class="auth-loading" role="status" aria-live="polite">
     <div class="auth-spinner"></div>
     <p class="auth-loading-text">Signing you in...</p>
   </div>
@@ -335,10 +335,10 @@
     max-width: 440px;
     padding: 48px 40px;
     text-align: center;
-    background: var(--surface, #141416);
-    border: 1px solid var(--border, rgba(255,255,255,0.08));
+    background: var(--surface, #121214);
+    border: 1px solid var(--border, #1f1f23);
     border-radius: 20px;
-    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255,255,255,0.03);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
     animation: authFadeIn 0.5s ease;
   }
 
@@ -354,7 +354,6 @@
     overflow: hidden;
     border: 2px solid rgba(255, 255, 255, 0.9);
     background: #000;
-    box-shadow: 0 0 30px rgba(249, 115, 22, 0.15);
   }
 
   .auth-logo img {
@@ -434,7 +433,6 @@
     height: 56px;
     border-radius: 50%;
     border: 2px solid var(--primary, #f97316);
-    box-shadow: 0 0 20px rgba(249, 115, 22, 0.2);
     margin-bottom: 4px;
   }
 

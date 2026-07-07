@@ -42,7 +42,7 @@
     <div class="progress-section">
       <div class="progress-info">
         <span class="progress-label">{progressLabel || ' '}</span>
-        <span class="progress-pct">{progress.toFixed(2)}%</span>
+        <span class="progress-pct">{Math.round(progress)}%</span>
       </div>
       <div class="progress-track">
         <div

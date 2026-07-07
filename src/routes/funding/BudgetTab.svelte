@@ -144,7 +144,7 @@
     {@const teamBudgetOnly = teamFundsRaised + personal}
     {@const final = clubFunds + personal + teamFundsRaised - view.totalSpent}
     {@const usagePct = teamBudgetOnly > 0 ? (view.totalSpent / teamBudgetOnly) * 100 : 0}
-    {@const pctColor = usagePct > 90 ? 'var(--status-rejected)' : (usagePct > 60 ? '#f97316' : 'var(--status-awarded)')}
+    {@const pctColor = usagePct > 90 ? 'var(--status-rejected)' : (usagePct > 60 ? 'var(--primary)' : 'var(--status-awarded)')}
     {@const pctBg = usagePct > 90 ? 'rgba(239,68,68,0.1)' : (usagePct > 60 ? 'rgba(249,115,22,0.1)' : 'rgba(16,185,129,0.1)')}
 
     <div class="budget-overview-container is-single fade-in">
@@ -157,7 +157,7 @@
           <div class="budget-balance-note">committed balance · excl. pending</div>
           {#if usagePct > 0}
             <div class="budget-usage-badge">
-              <div class="budget-usage-badge-inner" style="color:{pctColor}; background:{pctBg}">{usagePct.toFixed(1)}% Used</div>
+              <div class="budget-usage-badge-inner" style="color:{pctColor}; background:{pctBg}">{Math.round(usagePct)}% Used</div>
             </div>
           {/if}
           <div class="budget-details">
@@ -166,7 +166,7 @@
             <div class="budget-detail-row"><span class="text-muted">Expenses</span><span class="monospace amount-negative">{formatCurrency(Math.abs(view.totalSpent))}</span></div>
             <div class="budget-detail-row"><span class="text-muted">Pending Expenses</span><span class="monospace text-muted">{formatCurrency(pendingExpenses)}</span></div>
           </div>
-          <div class="budget-bar-track"><div class="budget-bar-fill"></div></div>
+          <div class="budget-bar-track"><div class="budget-bar-fill" style="width:{Math.min(100, usagePct)}%; background:{pctColor}"></div></div>
         </div>
       </div>
       <div class="breakdown-card fade-in">
@@ -240,7 +240,7 @@
   .budget-details { display: flex; flex-direction: column; gap: 11px; margin-top: 18px; }
   .budget-detail-row { display: flex; justify-content: space-between; font-size: 0.95rem; }
   .budget-bar-track { margin-top: 22px; height: 8px; background: var(--surface-2); border-radius: 99px; overflow: hidden; }
-  .budget-bar-fill { height: 100%; background: var(--primary); width: 100%; transition: width 0.6s ease; }
+  .budget-bar-fill { height: 100%; background: var(--primary); width: 0; transition: width 0.6s ease; }
 
   .breakdown-card {
     flex: none;

@@ -1,9 +1,10 @@
 <script lang="ts">
-  import { Check, Info, Users } from '@lucide/svelte';
+  import { Check, Info, Users, RefreshCw } from '@lucide/svelte';
   import CustomDropdown from '$lib/components/CustomDropdown.svelte';
   import { authStore } from '$lib/authStore.svelte.js';
   import { dataService } from '$lib/dataService.svelte.js';
   import { api } from '$lib/api.js';
+  import { getTeamBadgeClass } from '$lib/utils.js';
   import { FINANCE_DIRECTOR } from '$lib/config.js';
 
   let addForm = $state({ firstName: '', lastName: '', studentId: '', email: '', team: 'FRC', isAdmin: false });
@@ -24,7 +25,7 @@
       const result = await api.post({ action: 'addMember', firstName: addForm.firstName.trim(), lastName: addForm.lastName.trim(), studentId: cleanId, email: addForm.email.trim(), team: addForm.team, role: addForm.isAdmin ? 'admin' : '' });
       if (result.error) throw new Error(result.error);
 
-      actionMsg = `✓ ${addForm.firstName} ${addForm.lastName} approved!`;
+      actionMsg = `${addForm.firstName} ${addForm.lastName} approved!`;
       addForm = { firstName: '', lastName: '', studentId: '', email: '', team: 'FRC', isAdmin: false };
       await dataService.load(true, true);
     } catch (e) {
@@ -90,7 +91,7 @@
         </div>
         <div class="form-group" style="display: flex; align-items: center; gap: 10px; padding-top: 24px;">
           <input id="member-admin" type="checkbox" bind:checked={addForm.isAdmin} style="width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer;" />
-          <label for="member-admin" style="margin: 0; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: #fff; text-transform: none; letter-spacing: 0;">Grant Admin Access</label>
+          <label for="member-admin" style="margin: 0; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: var(--text); text-transform: none; letter-spacing: 0;">Grant Admin Access</label>
         </div>
       </div>
       <button type="submit" class="btn btn-primary" style="margin-top:24px; width: 100%; justify-content: center;" disabled={submitting}>
@@ -103,7 +104,7 @@
 <section class="fade-in" style="margin-top: 32px;">
   <div class="section-title" style="margin-bottom:12px; display: flex; justify-content: space-between; align-items: center;">
     <span>Approved Members ({authStore.membersList.length})</span>
-    <button class="btn btn-ghost btn-sm" onclick={() => dataService.load(true, true)} style="font-size: 0.75rem;">↻ Refresh List</button>
+    <button class="btn btn-ghost btn-sm" onclick={() => dataService.load(true, true)} style="font-size: 0.75rem;"><RefreshCw size={13} /> Refresh List</button>
   </div>
   <div class="card orders-card" style="padding:0; overflow:hidden;">
     {#if authStore.membersList.length === 0}
@@ -127,9 +128,9 @@
           <tbody>
             {#each authStore.membersList as m (m.studentId)}
               <tr>
-                <td style="font-weight: 600; color: #fff;">{m.firstName} {m.lastName}</td>
+                <td style="font-weight: 600; color: var(--text);">{m.firstName} {m.lastName}</td>
                 <td class="monospace" style="color: var(--text-muted);">{m.studentId}</td>
-                <td><span class="badge" style="font-size: 0.75rem;">{m.team}</span></td>
+                <td><span class="badge {getTeamBadgeClass(m.team)}" style="font-size: 0.75rem;">{m.team}</span></td>
                 <td>
                   {#if m.role === 'admin'}
                     <span class="badge badge-awarded" style="font-size: 0.7rem;">Admin</span>
@@ -162,7 +163,6 @@
     gap: 20px;
   }
   @media (max-width: 768px) {
-    .add-layout { grid-template-columns: 1fr; gap: 16px; }
     .form-grid { grid-template-columns: 1fr; gap: 16px; }
     .add-card { padding: 16px; border-radius: 0; border-left: none; border-right: none; }
   }

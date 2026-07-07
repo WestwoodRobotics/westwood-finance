@@ -10,6 +10,8 @@
 
   let { data = [] } = $props();
   
+  const FONT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif';
+
   let labels = $derived(data.map(d => formatMonth(d.month)));
   let values = $derived(data.map(d => d.amount));
 
@@ -65,8 +67,8 @@
           legend: { display: false },
           tooltip: {
             backgroundColor: '#18181b',
-            titleFont: { family: 'Outfit', size: 13, weight: 700 },
-            bodyFont: { family: '"Plus Jakarta Sans"', size: 12 },
+            titleFont: { family: FONT, size: 13, weight: 700 },
+            bodyFont: { family: FONT, size: 12 },
             padding: 12,
             cornerRadius: 8,
             borderColor: '#27272a',
@@ -78,9 +80,9 @@
         },
         scales: {
           x: {
-            ticks: { 
-              color: '#71717a', 
-              font: { family: '"Plus Jakarta Sans"', size: 11, weight: 600 } 
+            ticks: {
+              color: '#71717a',
+              font: { family: FONT, size: 11, weight: 600 }
             },
             grid: { display: false },
             border: { display: false }
@@ -88,7 +90,7 @@
           y: {
             ticks: {
               color: '#71717a',
-              font: { family: '"Plus Jakarta Sans"', size: 10, weight: 500 },
+              font: { family: FONT, size: 10, weight: 500 },
               padding: 10,
               callback: v => `$${v}`,
             },
@@ -98,7 +100,7 @@
           },
         },
         animation: {
-          duration: 1200,
+          duration: 1000,
           easing: 'easeOutQuart'
         }
       },
@@ -109,7 +111,8 @@
 </script>
 
 <div class="chart-wrapper">
-  <canvas bind:this={canvas}></canvas>
+  <!-- svelte-ignore a11y_no_interactive_element_to_noninteractive_role -->
+  <canvas bind:this={canvas} role="img" aria-label="Spending over time"></canvas>
 </div>
 
 <style>

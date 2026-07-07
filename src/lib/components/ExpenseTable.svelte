@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { formatCurrency, formatDate, truncate, capitalize, getTeamBadgeClass } from '../utils.js';
+  import { formatCurrency, formatDate, truncate, capitalize, getCatColor } from '../utils.js';
   import { Settings, Code2, Megaphone, UtensilsCrossed, Package, ClipboardList, Clipboard, Pencil } from '@lucide/svelte';
   import IOSBottomSheet from './IOSBottomSheet.svelte';
 
@@ -35,14 +35,6 @@
 
   let display = $derived(limit > 0 ? sortedExpenses.slice(0, limit) : sortedExpenses);
 
-  const CAT_COLORS = {
-    hardware: '#f97316',
-    software: '#3b82f6',
-    outreach: '#10b981',
-    food: '#eab308',
-    miscellaneous: '#8b5cf6',
-  };
-
   const CAT_ICONS = {
     hardware: Settings,
     software: Code2,
@@ -51,14 +43,8 @@
     miscellaneous: Package,
   };
 
-  const CAT_COLORS_MAP = CAT_COLORS;
-  const CAT_ICONS_MAP = CAT_ICONS;
-
-  function getCatColor(cat) {
-    return CAT_COLORS_MAP[(cat || 'miscellaneous').toLowerCase()] || '#8b5cf6';
-  }
   function getCatIcon(cat) {
-    return CAT_ICONS_MAP[(cat || 'miscellaneous').toLowerCase()] || CAT_ICONS.miscellaneous;
+    return CAT_ICONS[(cat || 'miscellaneous').toLowerCase()] || CAT_ICONS.miscellaneous;
   }
 
 function openExternal(url) {
@@ -373,10 +359,5 @@ function openExternal(url) {
     font-size: 12px;
     color: var(--text-muted);
     font-family: -apple-system, 'SF Pro Text', sans-serif;
-  }
-
-  .stat-sub {
-    font-size: 0.78rem;
-    color: var(--text-muted);
   }
 </style>

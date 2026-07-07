@@ -55,7 +55,7 @@
             <tr>
               <td style="font-weight:500">{f.Source || '—'}</td>
               <td>
-                <span style="font-size: 1.05rem; font-weight: 500; border-left: 2px solid {TYPE_COLORS[String(f.Type)] || '#ccc'}; padding-left: 8px;">{f.Type}</span>
+                <span style="font-weight: 500; border-left: 3px solid {TYPE_COLORS[String(f.Type)] || 'var(--text-dim)'}; padding-left: 8px;">{f.Type}</span>
               </td>
               <td class="text-dim monospace">{f.Date ? formatDate(f.Date).split(' ')[0] : '—'}</td>
               <td class="text-right monospace amount-positive">{formatCurrency(f.Amount)}</td>

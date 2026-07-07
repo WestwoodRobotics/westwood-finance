@@ -37,7 +37,6 @@
     actionMsg = '';
     if (!form.source.trim()) { actionErr = 'Source is required.'; return; }
     if (!form.amount || isNaN(Number(form.amount))) { actionErr = 'A valid amount is required.'; return; }
-    if (!form.date) { actionErr = 'Date is required.'; return; }
 
     submitting = true;
     try {
@@ -106,7 +105,7 @@
   <aside class="tips-card card hide-mobile" style="padding: 24px;">
     <div class="card-title" style="font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;">Entry Tips</div>
     <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 12px; font-size: 0.85rem;">
-      <li style="color: var(--text-dim); line-height: 1.4;">Use <strong>All</strong> for income distributed equally.</li>
+      <li style="color: var(--text-dim); line-height: 1.4;">Use <strong>Westwood Overall</strong> for income distributed equally.</li>
       <li style="color: var(--text-dim); line-height: 1.4;"><strong>Grants</strong> and <strong>Sponsors</strong> go to specific teams.</li>
       <li style="color: var(--text-dim); line-height: 1.4;">Date is optional but recommended.</li>
     </ul>
@@ -114,7 +113,7 @@
       <div class="card-title" style="font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;">Fund Types</div>
       <div style="display:flex; flex-direction:column; gap:8px; margin-top:8px">
         {#each typeOptions as t}
-          <span class="type-tag" style="font-size: 0.75rem; padding: 4px 8px; background: var(--surface-2); border-left: 3px solid {TYPE_COLORS[t.value] || '#8a8a8a'};">{t.label}</span>
+          <span class="type-tag" style="font-size: 0.75rem; padding: 4px 8px; background: var(--surface-2); border-left: 3px solid {TYPE_COLORS[t.value] || 'var(--text-dim)'};">{t.label}</span>
         {/each}
       </div>
     </div>

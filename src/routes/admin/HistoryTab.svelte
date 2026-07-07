@@ -123,9 +123,9 @@
 </section>
 
 <style>
-  .item-primary { font-weight: 700; color: #fff; font-size: 0.9rem; }
+  .item-primary { font-weight: 700; color: var(--text); font-size: 0.9rem; }
   .item-secondary { font-size: 0.75rem; color: var(--text-dim); margin-top: 2px; }
-  .amount { font-weight: 700; color: #fff; }
+  .amount { font-weight: 700; color: var(--text); }
 
   .admin-link-btn {
     background: none;
@@ -151,7 +151,7 @@
 
   .group-row td:first-child {
     position: relative;
-    padding-left: 20px !important;
+    padding-left: 24px !important;
   }
 
   .group-row td:first-child::before {

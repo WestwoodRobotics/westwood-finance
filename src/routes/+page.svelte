@@ -84,7 +84,7 @@
     </StatCard>
     <StatCard
       label="Budget Progress"
-      value={budgetTotalValue > 0 ? ((yearSpent / budgetTotalValue) * 100).toFixed(2) + '%' : '0%'}
+      value={budgetTotalValue > 0 ? Math.round((yearSpent / budgetTotalValue) * 100) + '%' : '0%'}
       progress={budgetTotalValue > 0 ? (yearSpent / budgetTotalValue) * 100 : 0}
       sub={budgetTotalValue > 0 ? `${formatCurrency(yearSpent)} of ${formatCurrency(budgetTotalValue)}` : 'No active budget'}
       accentColor="var(--cat-miscellaneous)"

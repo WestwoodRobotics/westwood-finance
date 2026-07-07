@@ -443,7 +443,7 @@
   .success-bar {
     background: rgba(16, 185, 129, 0.08);
     border-color: rgba(16, 185, 129, 0.2);
-    color: var(--status-received);
+    color: var(--status-awarded);
   }
 
   .error-bar {

@@ -3,12 +3,10 @@
 </script>
 
 <div class="loading-wrapper fade-in">
-  <!-- Glowing text -->
   <div class="loading-text">
     {text}
   </div>
 
-  <!-- Progress bar track and fill with rounded ends -->
   <div class="progress-track">
     <div class="progress-fill"></div>
   </div>
@@ -49,7 +47,6 @@
     background: var(--primary);
     border-radius: 999px;
     animation: loading-bar 1.5s infinite ease-in-out;
-    box-shadow: 0 0 10px var(--primary-glow);
   }
 
   @keyframes loading-bar {

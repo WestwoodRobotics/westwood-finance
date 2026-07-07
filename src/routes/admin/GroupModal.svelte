@@ -36,7 +36,7 @@
         dataService.load(true, true);
       };
       dataService.load(true, true);
-      onsaved(`✓ Status updated to ${groupStatus}`, undofn);
+      onsaved(`Status updated to ${groupStatus}`, undofn);
       onclose();
     } catch (e) {
       actionErr = e instanceof Error ? e.message : 'Error updating group status';

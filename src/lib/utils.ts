@@ -56,22 +56,24 @@ export function truncate(str: string, max = 40): string {
   return str.length > max ? str.slice(0, max) + "…" : str;
 }
 
+// Single source of truth for category colors (matches the badge tokens in app.css).
 export const CATEGORY_COLORS: Record<string, string> = {
-  hardware: "#e07b30",
-  software: "#4e9af1",
-  outreach: "#6bcb77",
-  food: "#f1a94e",
-  miscellaneous: "#b97cf3",
+  hardware: "#f97316",
+  software: "#3b82f6",
+  outreach: "#10b981",
+  food: "#eab308",
+  miscellaneous: "#8b5cf6",
 };
 
+// Order status colors — kept in sync with OrderStatusBadge.svelte.
 export const STATUS_COLORS: Record<string, string> = {
-  "Pending Review": "#4e9af1",
-  Approved: "#4eeaf1",
-  Ordered: "#f19a4e",
-  Received: "#6bcb77",
-  Denied: "#f16a4e",
+  "Pending Review": "#3b82f6",
+  Approved: "#06b6d4",
+  Ordered: "#f97316",
+  Received: "#10b981",
+  Denied: "#ef4444",
   Cancelled: "#f59e0b",
-  Void: "#8a8a8a",
+  Void: "#71717a",
 };
 
 export const CATEGORIES = [

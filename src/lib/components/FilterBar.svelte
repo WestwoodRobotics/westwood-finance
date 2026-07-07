@@ -47,7 +47,7 @@
   );
 </script>
 
-<!-- dekstop filter -->
+<!-- desktop filter -->
 {#if !isMobile.current}
   <div class="filter-bar fade-in">
     <div class="filter-main">
@@ -59,7 +59,6 @@
             type="search"
             placeholder="Filter requests, vendors, or notes..."
             bind:value={filters.search}
-           
           />
         </div>
       </div>
@@ -107,7 +106,6 @@
         type="search"
         placeholder="Search orders..."
         bind:value={filters.search}
-       
         class="ios-search-input"
       />
       {#if filters.search}
@@ -193,7 +191,6 @@
     flex-direction: column;
     gap: 20px;
   }
-  /* i apologize to your eyes */
   .filter-main { display: flex; gap: 12px; align-items: center; }
   .search-input { flex: 1; }
   .filter-grid { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; }
@@ -206,7 +203,7 @@
   .input-wrapper input { padding-left: 40px; height: 44px; background: var(--surface-2); border-radius: var(--radius-sm); font-size: 0.9rem; }
   .date-range { display: flex; align-items: center; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); height: 44px; overflow: hidden; }
   .date-range:focus-within { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2); }
-  .date-range input { background: transparent; border: none; padding: 0 12px; font-size: 0.85rem; flex: 1; width: 0; min-width: 0; height: 100%; color: #fff; cursor: pointer; text-align: center; }
+  .date-range input { background: transparent; border: none; padding: 0 12px; font-size: 0.85rem; flex: 1; width: 0; min-width: 0; height: 100%; color: var(--text); cursor: pointer; text-align: center; }
   .date-range input:focus { background: rgba(255,255,255,0.03); outline: none; }
   .connector { color: var(--text-dim); font-size: 0.8rem; }
   .reset-button { height: 44px; padding: 0 16px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-sm); font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
@@ -214,7 +211,7 @@
   .ios-filter-row { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; margin-top: 8px; }
   .ios-search-wrap { flex: 1; position: relative; display: flex; align-items: center; background: rgba(118, 118, 128, 0.18); border-radius: 10px; overflow: hidden; }
   :global(.ios-search-icon) { position: absolute; left: 10px; color: var(--text-dim); pointer-events: none; flex-shrink: 0; }
-  .ios-search-input { flex: 1; background: transparent; border: none; outline: none; padding: 10px 36px 10px 34px; font-size: 16px; color: #fff; min-height: 38px; -webkit-appearance: none; appearance: none; }
+  .ios-search-input { flex: 1; background: transparent; border: none; outline: none; padding: 10px 36px 10px 34px; font-size: 16px; color: var(--text); min-height: 38px; -webkit-appearance: none; appearance: none; }
   .ios-search-input::placeholder { color: var(--text-dim); }
   .ios-search-clear { position: absolute; right: 8px; background: var(--surface-3); border: none; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); -webkit-tap-highlight-color: transparent; padding: 0; }
   .ios-filter-btn { display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: rgba(118, 118, 128, 0.18); border: none; border-radius: 10px; color: var(--text-muted); font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; -webkit-tap-highlight-color: transparent; transition: background 0.15s; min-height: 38px; }
@@ -225,11 +222,11 @@
   .ios-sheet-filters { padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 16px; }
   .ios-sheet-filter-group { display: flex; flex-direction: column; gap: 6px; }
   .ios-sheet-filter-label { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; }
-  .ios-native-select, .ios-native-input { width: 100%; background: rgba(118, 118, 128, 0.18); border: none; border-radius: 10px; color: #fff; font-size: 16px; padding: 12px 14px; -webkit-appearance: none; appearance: none; outline: none; min-height: 44px; }
+  .ios-native-select, .ios-native-input { width: 100%; background: rgba(118, 118, 128, 0.18); border: none; border-radius: 10px; color: var(--text); font-size: 16px; padding: 12px 14px; -webkit-appearance: none; appearance: none; outline: none; min-height: 44px; }
   .ios-native-select option { background: var(--surface-2); }
   .ios-sheet-filter-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
   .ios-apply-btn { background: var(--primary); color: #fff; border: none; border-radius: 12px; font-size: 17px; font-weight: 600; padding: 14px; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: opacity 0.15s; }
   .ios-apply-btn:active { opacity: 0.8; }
-  .ios-reset-btn { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; padding: 12px; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: opacity 0.15s; }
+  .ios-reset-btn { background: rgba(239, 68, 68, 0.1); color: var(--status-rejected); border: none; border-radius: 12px; font-size: 15px; font-weight: 600; padding: 12px; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: opacity 0.15s; }
   .ios-reset-btn:active { opacity: 0.7; }
 </style>

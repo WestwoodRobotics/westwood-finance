@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Receipt } from '@lucide/svelte';
+  import { Receipt, Download } from '@lucide/svelte';
   import OrderStatusBadge from '$lib/components/OrderStatusBadge.svelte';
   import LoadingIndicator from '$lib/components/LoadingIndicator.svelte';
   import { formatCurrency, capitalize } from '$lib/utils.js';
@@ -39,7 +39,7 @@
 <section class="fade-in">
   <div class="section-title" style="margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
     <span>Master Finance History ({masterTransactions.length})</span>
-    <button class="btn btn-ghost btn-sm" onclick={exportMasterCSV} disabled={!masterTransactions.length}>↓ Export CSV</button>
+    <button class="btn btn-ghost btn-sm" onclick={exportMasterCSV} disabled={!masterTransactions.length}><Download size={14} /> Export CSV</button>
   </div>
   <div class="card orders-card" style="padding:0;overflow:hidden">
     {#if dataService.loading && !masterTransactions.length}
@@ -62,7 +62,7 @@
             {#each masterTransactions as tx (tx.id + tx.type)}
               <tr class="fade-in">
                 <td class="text-dim monospace">{tx.date}</td>
-                <td style="font-weight:600; color:#fff">{tx.source || '—'}</td>
+                <td style="font-weight:600; color:var(--text)">{tx.source || '—'}</td>
                 <td><span class="badge {tx.type === 'Income' ? 'badge-awarded' : 'badge-rejected'}">{tx.type}</span></td>
                 <td>{capitalize(tx.category ?? '') || '—'}</td>
                 <td>{tx.team || '—'}</td>

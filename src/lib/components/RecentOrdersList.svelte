@@ -81,7 +81,7 @@
   .item-name {
     font-weight: 600;
     font-size: 0.85rem;
-    color: #fff;
+    color: var(--text);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -92,7 +92,7 @@
     align-items: center;
     gap: 8px;
     font-size: 0.75rem;
-    color: var(--text-dim);
+    color: var(--text-muted);
     font-weight: 500;
     overflow: hidden;
   }
@@ -119,7 +119,7 @@
     white-space: nowrap;
     text-align: right;
     font-weight: 700;
-    color: #fff;
+    color: var(--text);
     font-size: 0.85rem;
   }
 </style>

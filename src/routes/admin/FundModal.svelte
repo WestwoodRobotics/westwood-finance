@@ -33,7 +33,7 @@
     Amount: Number(fund.Amount) || 0,
     Recipient: String(fund.Recipient || ''),
     Notes: String(fund.Notes || ''),
-    Type: String(fund.Type || 'Part Order'),
+    Type: String(fund.Type || 'Fundraiser'),
     Date: String(fund.Date || new Date().toISOString().split('T')[0]),
   });
   let saving = $state(false);
@@ -94,6 +94,10 @@
         <div class="form-group">
           <label for="fund-recipient">Recipient / Team</label>
           <CustomDropdown id="fund-recipient" options={recipientOptions} bind:value={fields.Recipient} />
+        </div>
+        <div class="form-group">
+          <label for="fund-type">Type</label>
+          <CustomDropdown id="fund-type" options={typeOptions} bind:value={fields.Type} />
         </div>
         <div class="form-group">
           <label for="fund-date">Date</label>

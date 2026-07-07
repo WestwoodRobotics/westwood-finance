@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { Check, Info, Grid2x2 } from '@lucide/svelte';
+  import { Check, Info, Grid2x2, RefreshCw } from '@lucide/svelte';
   import OrderModal from './OrderModal.svelte';
   import FundModal from './FundModal.svelte';
   import GroupModal from './GroupModal.svelte';
@@ -52,7 +52,7 @@
         api.post({ action: 'updateOrderStatus', rowIndex: String(o.rowIndex), orderUUID: o.orderUUID || '', newGroupUUID: targetUUID })
       ));
       if (results.some((r: { error?: string }) => r.error)) throw new Error('Batch link failed');
-      actionMsg = `✓ Linked into Order #${targetUUID}`;
+      actionMsg = `Linked into Order #${targetUUID}`;
       orders.forEach(o => dataService.updateOrderOptimistic(o.id, { orderUUID: targetUUID }));
       dataService.load(true, true);
     } catch (e) {
@@ -80,7 +80,7 @@
 
 {#if !perms.admin}
   <div class="admin-auth-container">
-    <h2 style="color: #fff; margin-bottom: 12px;">Access Denied</h2>
+    <h2 style="margin-bottom: 12px;">Access Denied</h2>
     <p style="color: var(--text-muted); margin-bottom: 24px;">You need admin privileges to access this page.</p>
     <a href="/" class="btn btn-primary">Back to Dashboard</a>
   </div>
@@ -90,16 +90,16 @@
       <h1>Admin <span>Portal</span></h1>
     </div>
     <div class="header-right">
-      <button class="btn btn-ghost btn-sm refresh-btn" onclick={sync} disabled={syncing}>
-        <span class:spinning={syncing}>↻</span>
+      <button class="btn btn-ghost btn-sm refresh-btn" onclick={sync} disabled={syncing} aria-label="Refresh data">
+        <span class="refresh-icon" class:spinning={syncing}><RefreshCw size={14} /></span>
         <span class="hide-mobile">{syncing ? 'Syncing...' : 'Refresh'}</span>
       </button>
     </div>
   </div>
 
   <div class="tabs-wrapper" style="margin-bottom: 32px; overflow-x: auto; -webkit-overflow-scrolling: touch;">
-    <div class="segmented-control" style="width: auto; min-width: 750px; margin: 0 auto; grid-template-columns: repeat(7, 1fr);">
-      <div class="segment-highlight" style="transform: translateX(calc({['orderHistory','orders','master','funding','add','addOrder','members'].indexOf(activeView)} * 100%)); width: calc((100% - 8px) / 7);"></div>
+    <div class="segmented-control" style="--tab-count: 7; --tab-index: {['orderHistory','orders','master','funding','add','addOrder','members'].indexOf(activeView)}; width: auto; min-width: 750px; margin: 0 auto;">
+      <div class="segment-highlight"></div>
       {#each [['orderHistory','Order History'],['orders','Orders'],['master','Finance History'],['funding','Funding'],['add','Add Funds +'],['addOrder','Add Expense +'],['members','Members']] as [key, label]}
         <button class="segment" class:active={activeView === key} onclick={() => (activeView = key)}>{label}</button>
       {/each}
@@ -188,6 +188,12 @@
     width: 100%;
     text-align: center;
     padding-top: env(safe-area-inset-top);
+  }
+
+  .refresh-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 
   :global(.admin-action-tag) {
